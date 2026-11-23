@@ -152,12 +152,35 @@ class Employee extends Model
             'Resign' => 'Resign'
         ];
     }
+    /** Tipe absen lewat aplikasi mobile. */
+    public const ATTENDANCE_STORE_BOUND       = 'store_bound';       // wajib di radius store utama
+    public const ATTENDANCE_FLEXIBLE          = 'flexible';          // radius store mana pun yang ditugaskan
+    public const ATTENDANCE_LOCATION_FLEXIBLE = 'location_flexible'; // dari mana saja, di luar store ditandai
+    public const ATTENDANCE_EXEMPT            = 'exempt';            // tidak wajib absen
+
     public static function getAttendanceTypeOptions()
     {
         return [
-            'store_bound' => 'store_bound',
-            'flexible' => 'flexible'
+            self::ATTENDANCE_STORE_BOUND       => 'Terikat lokasi: absen lewat aplikasi harus di radius store utama',
+            self::ATTENDANCE_FLEXIBLE          => 'Multi-store: absen di radius store mana pun yang ditugaskan',
+            self::ATTENDANCE_LOCATION_FLEXIBLE => 'Bebas lokasi: absen dari mana saja, absen di luar store ditandai untuk HR',
+            self::ATTENDANCE_EXEMPT            => 'Tidak wajib absen: untuk direksi/petinggi, absen lewat aplikasi dinonaktifkan',
         ];
+    }
+
+    public static function getAttendanceTypeLabels()
+    {
+        return [
+            self::ATTENDANCE_STORE_BOUND       => 'Terikat lokasi',
+            self::ATTENDANCE_FLEXIBLE          => 'Multi-store',
+            self::ATTENDANCE_LOCATION_FLEXIBLE => 'Bebas lokasi',
+            self::ATTENDANCE_EXEMPT            => 'Tidak wajib absen',
+        ];
+    }
+
+    public function isAttendanceExempt(): bool
+    {
+        return $this->attendance_type === self::ATTENDANCE_EXEMPT;
     }
     public static function getBloodTypeOptions()
     {

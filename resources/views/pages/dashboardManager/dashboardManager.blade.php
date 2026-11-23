@@ -1458,7 +1458,7 @@
         $emp = Auth::user()->employee;
         $hour = now()->hour;
         $greeting = $hour < 11 ? 'Selamat pagi' : ($hour < 15 ? 'Selamat siang' : ($hour < 18 ? 'Selamat sore' : 'Selamat malam'));
-        $storeNames = $stores->pluck('name')->implode(', ');
+        $storeNames = $emp ? $emp->primaryStore()->pluck('name')->implode(', ') : '';
     @endphp
     <div class="main-content pr">
         <section class="section">
@@ -1471,7 +1471,7 @@
                         <p class="pr-hello-date">{{ now()->locale('id')->translatedFormat('l, d F Y') }}</p>
                         <h1 class="pr-title">{{ $greeting }}, {{ $emp->employee_name ?? Auth::user()->username }}</h1>
                         <p class="pr-lede">
-                            {{ collect([$emp?->position->first()?->name, $storeNames ? 'Manager ' . $storeNames : null, $teamStats['total'] . ' bawahan langsung'])->filter()->implode(', ') }}
+                            {{ collect([$emp?->position->first()?->name, $storeNames ? 'Manager ' . $storeNames : null, $teamStats['total'] . ' anggota tim'])->filter()->implode(', ') }}
                         </p>
                     </div>
                 </div>
@@ -1500,21 +1500,15 @@
 
             @include('pages.dashboardSupervisor._approvals')
 
-            {{-- Store attendance (signature for a manager: the whole floor today) --}}
+            {{-- Kehadiran tim: store + departemen yang sama, ditambah bawahan langsung --}}
             @include('pages.dashboardSupervisor._team', [
-                'teamToday' => $storeToday,
-                'teamStats' => $storeStats,
-                'teamId' => 'store',
-                'teamTitle' => 'Kehadiran store hari ini' . ($storeNames ? ', ' . $storeNames : ''),
-                'teamSub' => $storeStats['total'] . ' karyawan aktif' . ($storeStats['rate'] !== null ? ', ' . $storeStats['rate'] . '% dari yang dijadwalkan sudah absen' : ''),
-                'teamEmpty' => $stores->isEmpty()
-                    ? 'Store utama Anda belum diatur di data karyawan, jadi kehadiran store belum bisa ditampilkan.'
-                    : 'Belum ada karyawan aktif di store ini.',
+                'teamId' => 'team',
+                'teamTitle' => 'Kehadiran tim hari ini',
+                'teamSub' => $teamStats['total'] . ' anggota tim, dari store dan departemen Anda ditambah bawahan langsung' . ($teamStats['rate'] !== null ? '. ' . $teamStats['rate'] . '% dari yang dijadwalkan sudah absen' : ''),
+                'teamEmpty' => $hasPlacement
+                    ? 'Belum ada karyawan aktif lain di store dan departemen Anda, dan belum ada bawahan langsung.'
+                    : 'Store atau departemen Anda belum diatur di data karyawan, dan belum ada bawahan langsung. Hubungi HR.',
             ])
-
-            @if ($teamStats['total'] > 0)
-                @include('pages.dashboardSupervisor._team')
-            @endif
 
             <h2 class="pr-section-title">Data saya</h2>
             @include('pages.dashboardHuman._personal')

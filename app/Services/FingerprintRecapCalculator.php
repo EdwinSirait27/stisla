@@ -38,7 +38,7 @@ use Carbon\Carbon;
 //             ->groupBy('employee_id');
 
 //         // ── Roster Work + Cuti + PH ──
-//         $rosters = Roster::with('shift:id,shift_name,start_time,end_time')
+//         $rosters = Roster::with('shift:id,shift_name,start_time,end_time,is_split,break_start,break_end')
 //             ->whereIn('employee_id', $employeeIds)
 //             ->whereBetween('date', [$startDate, $endDate])
 //             ->whereIn('day_type', ['Work', 'Leave', 'Cuti Melahirkan', 'Public Holiday'])
@@ -235,7 +235,7 @@ class FingerprintRecapCalculator
             ->groupBy('employee_id');
 
         // ── Roster Work + Cuti + PH ──
-        $rosters = Roster::with('shift:id,shift_name,start_time,end_time')
+        $rosters = Roster::with('shift:id,shift_name,start_time,end_time,is_split,break_start,break_end')
             ->whereIn('employee_id', $employeeIds)
             ->whereBetween('date', [$startDate, $endDate])
             ->whereIn('day_type', ['Work', 'Leave', 'Cuti Melahirkan', 'Public Holiday'])
@@ -329,7 +329,7 @@ class FingerprintRecapCalculator
             foreach ($employeeRecaps as $recap) {
                 $dateStr = Carbon::parse($recap->date)->toDateString();
 
-                if (!$recap->time_in && !$recap->time_out) continue;
+                if (!$recap->time_in && !$recap->time_out && !$recap->break_out && !$recap->break_in) continue;
                 if (isset($cutiDatesSet[$dateStr])) continue;
 
                 $rosterKey = $employee->id . '_' . $dateStr;
@@ -337,16 +337,26 @@ class FingerprintRecapCalculator
 
                 if (!$roster || $roster->day_type !== 'Work') continue;
 
-                $scanTidakLengkap = (!$recap->time_in || !$recap->time_out);
+                $isSplit = $roster->shift?->isSplit() ?? false;
+
+                // Split shift: wajib empat scan (masuk & pulang di tiap blok)
+                $scanTidakLengkap = (!$recap->time_in || !$recap->time_out)
+                    || ($isSplit && (!$recap->break_out || !$recap->break_in));
 
                 $masukTerlambat = false;
-                if ($recap->time_in && $roster->shift) {
-                    $shiftStart = Carbon::parse($dateStr . ' ' . $roster->shift->start_time);
-                    $actualIn   = Carbon::parse($dateStr . ' ' . $recap->time_in);
-                    $batasMasuk = $shiftStart->copy()->addMinutes($toleransi);
+                if ($roster->shift) {
+                    // [jam masuk aktual, jam masuk jadwal] per blok
+                    $cekMasuk = [[$recap->time_in, $roster->shift->start_time]];
+                    if ($isSplit) {
+                        $cekMasuk[] = [$recap->break_in, $roster->shift->break_end];
+                    }
 
-                    if ($actualIn->gt($batasMasuk)) {
-                        $masukTerlambat = true;
+                    foreach ($cekMasuk as [$aktual, $jadwal]) {
+                        if (!$aktual) continue;
+                        $batasMasuk = Carbon::parse($dateStr . ' ' . $jadwal)->addMinutes($toleransi);
+                        if (Carbon::parse($dateStr . ' ' . $aktual)->gt($batasMasuk)) {
+                            $masukTerlambat = true;
+                        }
                     }
                 }
 

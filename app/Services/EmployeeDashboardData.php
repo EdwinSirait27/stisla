@@ -175,7 +175,7 @@ class EmployeeDashboardData
                 'tooltip'  => $tooltip,
                 'dateStr'  => $dateObj->toDateString(),
                 'dayType'  => $roster->day_type ?? null,
-                'shift'    => $roster && $roster->shift ? substr($roster->shift->start_time, 0, 5) . '–' . substr($roster->shift->end_time, 0, 5) : null,
+                'shift'    => $roster && $roster->shift ? $roster->shift->time_label : null,
                 'scanned'  => in_array($d, $scanDays, true),
                 'isPast'   => $dateObj->lt($today),
             ];

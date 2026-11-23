@@ -30,7 +30,7 @@ class ScheduleController extends Controller
                 'schedules' => function ($q) use ($startDate, $endDate) {
                     $q->whereBetween('date', [$startDate, $endDate])
                       ->with([
-                          'roster.shift:id,shift_name,start_time,end_time',
+                          'roster.shift:id,shift_name,start_time,end_time,is_split,break_start,break_end',
                           'fingerprintRecap',
                       ]);
                 },
@@ -43,7 +43,7 @@ class ScheduleController extends Controller
             // ── Ambil roster unik berdasarkan shift untuk dropdown ──
             // Roster diambil dalam rentang tanggal yang dipilih
             // unique by shift_id agar tidak duplikat shift yang sama
-            $rosters = Roster::with('shift:id,shift_name,start_time,end_time')
+            $rosters = Roster::with('shift:id,shift_name,start_time,end_time,is_split,break_start,break_end')
                 ->whereNotNull('shift_id')
                 ->whereBetween('date', [$startDate, $endDate])
                 ->whereHas('employee', fn($eq) => $eq->where('store_id', $storeId))

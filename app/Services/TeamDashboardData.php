@@ -32,15 +32,43 @@ class TeamDashboardData
             ->get(['employees_tables.id', 'employee_name', 'employee_pengenal', 'pin', 'employees_tables.status']);
     }
 
-    /** Karyawan aktif yang store utamanya salah satu dari $storeIds. */
-    public function storeEmployees(array $storeIds): Collection
+    /**
+     * Tim manager/SPV: karyawan aktif yang berada di store DAN departemen yang sama dengan $employee
+     * (semua penempatannya, bukan hanya yang utama), ditambah bawahan langsung (employee_atasans,
+     * walau beda store/departemen). $employee sendiri tidak ikut.
+     * Sama dengan cakupan ManageEmployeeSPVManager di EmployeeController / AttendanceMobileController.
+     */
+    public function teamEmployees(?Employee $employee): Collection
     {
-        if (!$storeIds) {
+        if (!$employee) {
+            return collect();
+        }
+
+        $storeIds      = $employee->store()->pluck('stores_tables.id')->toArray();
+        $departmentIds = $employee->department()->pluck('departments_tables.id')->toArray();
+
+        // Bawahan langsung dari pivot employee_atasans
+        $bawahanIds = $employee->bawahanList()->pluck('employees_tables.id')->toArray();
+
+        if ((empty($storeIds) || empty($departmentIds)) && empty($bawahanIds)) {
             return collect();
         }
 
         return Employee::whereIn('status', self::ACTIVE_STATUSES)
-            ->whereHas('store', fn($q) => $q->whereIn('stores_tables.id', $storeIds)->where('employee_stores.is_primary', true))
+            ->whereNull('deleted_at')
+            ->whereKeyNot($employee->id)
+            ->where(function ($q) use ($storeIds, $departmentIds, $bawahanIds) {
+                if (!empty($storeIds) && !empty($departmentIds)) {
+                    // Kondisi 1: karyawan di store + department yang sama
+                    $q->where(fn($q1) => $q1
+                        ->whereHas('store', fn($s) => $s->whereIn('stores_tables.id', $storeIds))
+                        ->whereHas('department', fn($d) => $d->whereIn('departments_tables.id', $departmentIds)));
+                }
+                // Kondisi 2: bawahan langsung (beda company/store/department sekalipun)
+                if (!empty($bawahanIds)) {
+                    $q->orWhereIn('id', $bawahanIds);
+                }
+            })
             ->with(['position' => fn($q) => $q->wherePivot('is_primary', true)])
             ->orderBy('employee_name')
             ->get(['id', 'employee_name', 'employee_pengenal', 'pin', 'status']);
@@ -80,7 +108,7 @@ class TeamDashboardData
                 'nip'      => $m->employee_pengenal,
                 'position' => $m->position->first()?->name,
                 'day_type' => $r?->day_type,
-                'shift'    => $r && $r->shift ? substr($r->shift->start_time, 0, 5) . '–' . substr($r->shift->end_time, 0, 5) : null,
+                'shift'    => $r && $r->shift ? $r->shift->time_label : null,
                 'scan'     => $scan ? Carbon::parse($scan)->format('H:i') : null,
                 'state'    => $state,
             ];

@@ -47,18 +47,14 @@ class LoginController extends Controller
             'password.min'      => 'Password minimal 8 karakter.',
             'password.max'      => 'Password maksimal 128 karakter.',
         ]);
-
         $username = strtolower($request->username);
         $keys = LoginThrottle::keys($username, $request->ip());
-
         if ($seconds = LoginThrottle::lockedFor($keys)) {
             Log::warning('Login rate limit hit', ['username' => $username, 'ip' => $request->ip()]);
-
             return back()->withInput($request->only('username'))->withErrors([
                 'throttle' => 'Terlalu banyak percobaan login. Coba lagi dalam ' . max(1, (int) ceil($seconds / 60)) . ' menit.',
             ]);
         }
-
         try {
             $user = User::with('employee')->where('username', $username)->first();
 
@@ -104,17 +100,14 @@ class LoginController extends Controller
                     'user_id'    => $user->id,
                     'expires_at' => now()->addMinutes(10)->timestamp,
                 ]);
-
                 return redirect()->route('2fa.verify');
             }
-
-            Auth::login($user, $request->boolean('remember'));
+            // Tanpa "ingat saya": sesi selalu berakhir setelah SESSION_LIFETIME menit tidak aktif
+            Auth::login($user);
             $request->session()->regenerate();
-
-            return $this->loginSession->finish($request, $user, false, $request->boolean('remember'));
+            return $this->loginSession->finish($request, $user, false);
         } catch (\Throwable $e) {
             Log::error('Login error', ['message' => $e->getMessage(), 'ip' => $request->ip(), 'username' => $username]);
-
             return back()->withInput($request->only('username'))->withErrors(['/' => 'Terjadi kesalahan. Silakan coba lagi.']);
         }
     }
@@ -190,10 +183,10 @@ class LoginController extends Controller
             return redirect()->route('login')->withErrors(['/' => self::BLOCKED_ACCOUNT]);
         }
 
-        Auth::login($user, (bool) $pending['remember']);
+        Auth::login($user);
         $request->session()->regenerate();
 
-        return $this->loginSession->finish($request, $user, true, (bool) $pending['remember']);
+        return $this->loginSession->finish($request, $user, true);
     }
 
     public function destroy(Request $request)

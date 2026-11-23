@@ -258,7 +258,8 @@ public function bulkUpdateRole(Request $request)
     'roles.min'      => 'Minimal satu role harus dipilih.',
 ]);
 
-        Log::info('Data berhasil divalidasi', ['validatedData' => $validatedData]);
+        // Jangan pernah menulis password ke log
+        Log::info('Data berhasil divalidasi', ['validatedData' => \Illuminate\Support\Arr::except($validatedData, ['password', 'password_confirmation'])]);
 
         $userData = ['username' => $validatedData['username']];
         if (!empty($validatedData['password'])) {
@@ -271,9 +272,16 @@ public function bulkUpdateRole(Request $request)
             $user->update($userData);
             Log::info('User berhasil diupdate', ['user_id' => $user->id]);
 
-            // Password diganti manual oleh admin → link reset yang masih aktif tidak berlaku lagi
+            // Password diganti manual oleh admin → link reset yang masih aktif tidak berlaku lagi,
+            // dan user keluar dari semua perangkat (kecuali sesi admin ini kalau mengedit akunnya sendiri)
             if (!empty($validatedData['password'])) {
                 app(PasswordResetLinkService::class)->revokeAll($user);
+                $user->forceFill(['remember_token' => \Illuminate\Support\Str::random(60)])->save();
+                app(\App\Services\UserSessionService::class)->logoutEverywhere(
+                    $user,
+                    $user->id === auth()->id() ? $request->session()->getId() : null,
+                    'password changed by admin'
+                );
             }
 
             if ($user->Terms) {

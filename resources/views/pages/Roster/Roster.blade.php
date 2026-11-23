@@ -1932,7 +1932,7 @@
                             @foreach ($shifts as $shift)
                                 <option value="{{ $shift->id }}">
                                     {{ $shift->shift_name }}
-                                    ({{ substr($shift->start_time, 0, 5) }} - {{ substr($shift->end_time, 0, 5) }})
+                                    ({{ $shift->time_label }})
                                 </option>
                             @endforeach
                         </select>
@@ -2055,7 +2055,7 @@
                         @foreach ($shifts as $shift)
                             <option value="{{ $shift->id }}">
                                 {{ $shift->shift_name }}
-                                ({{ substr($shift->start_time, 0, 5) }}-{{ substr($shift->end_time, 0, 5) }})
+                                ({{ $shift->time_label }})
                             </option>
                         @endforeach
                     </select>
@@ -2176,7 +2176,7 @@
                                 @foreach ($shifts as $shift)
                                     <option value="{{ $shift->id }}">
                                         {{ $shift->shift_name }}
-                                        ({{ substr($shift->start_time, 0, 5) }} - {{ substr($shift->end_time, 0, 5) }})
+                                        ({{ $shift->time_label }})
                                     </option>
                                 @endforeach
                             </select>
@@ -2190,7 +2190,7 @@
                                 @foreach ($shifts as $shift)
                                     <option value="{{ $shift->id }}">
                                         {{ $shift->shift_name }}
-                                        ({{ substr($shift->start_time, 0, 5) }} - {{ substr($shift->end_time, 0, 5) }})
+                                        ({{ $shift->time_label }})
                                     </option>
                                 @endforeach
                             </select>
@@ -3624,7 +3624,7 @@
             tbody.innerHTML = '';
 
             const shiftOptions = aroState.availableShifts.map(s =>
-                `<option value="${s.id}">${s.shift_name} (${s.start_time.substring(0,5)}–${s.end_time.substring(0,5)})</option>`
+                `<option value="${s.id}">${s.shift_name} (${s.time_label || (s.start_time.substring(0,5) + '–' + s.end_time.substring(0,5))})</option>`
             ).join('');
 
             ARO_DAYS.forEach((day, i) => {
@@ -3686,7 +3686,7 @@
             const shiftId = aroState.dayPattern[i].shift_id;
             const shift = aroState.availableShifts.find(s => s.id == shiftId);
             const el = document.getElementById(`aroShInfo${i}`);
-            if (el) el.textContent = shift ? shift.start_time.substring(0, 5) + ' – ' + shift.end_time.substring(0, 5) :
+            if (el) el.textContent = shift ? (shift.time_label || shift.start_time.substring(0, 5) + ' – ' + shift.end_time.substring(0, 5)) :
                 '—';
         }
 
@@ -3772,7 +3772,7 @@
             <tr>
                 <td style="font-weight:600;">${ARO_DAYS[i]}</td>
                 <td><span style="color:${color};font-weight:600;">${pat.day_type}</span></td>
-                <td style="color:#64748b;font-size:11px;">${shift ? shift.shift_name+' ('+shift.start_time.substring(0,5)+'–'+shift.end_time.substring(0,5)+')' : '—'}</td>
+                <td style="color:#64748b;font-size:11px;">${shift ? shift.shift_name+' ('+(shift.time_label || shift.start_time.substring(0,5)+'–'+shift.end_time.substring(0,5))+')' : '—'}</td>
             </tr>`;
             });
 
@@ -3949,7 +3949,7 @@
                         <td>${esc(r.date)}</td>
                         <td><span class="rs-type ${typeClass[r.day_type] || 'is-off'}">${esc(r.day_type)}</span></td>
                         <td>${esc(r.shift_name || '-')}</td>
-                        <td>${r.start_time && r.end_time ? esc(r.start_time + '–' + r.end_time) : '-'}</td>
+                        <td>${r.time_label ? esc(r.time_label) : (r.start_time && r.end_time ? esc(r.start_time + '–' + r.end_time) : '-')}</td>
                         <td>${esc(r.notes || '-')}</td>
                     </tr>`;
                         });

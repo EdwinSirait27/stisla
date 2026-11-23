@@ -2,38 +2,24 @@
 
 namespace App\Console\Commands;
 
+use App\Services\UserSessionService;
 use Illuminate\Console\Command;
-use App\Models\UserSession;
-use Carbon\Carbon;
 
+/**
+ * Hapus catatan user_sessions yang sudah tidak aktif melewati umur session
+ * (SESSION_LIFETIME + jeda). Session Redis-nya sudah habis dengan sendirinya;
+ * catatan basi ini dulu menyisakan status "masih login" palsu.
+ */
 class CleanupUserSessions extends Command
 {
-    /**
-     * The name and signature of the console command.
-     *
-     * @var string
-     */
     protected $signature = 'sessions:cleanup';
 
-    /**
-     * The console command description.
-     *
-     * @var string
-     */
-    protected $description = 'Remove inactive user sessions older than 30 days';
-    /**
-     * Execute the console command.
-     *
-     * @return int
-     */
+    protected $description = 'Hapus catatan sesi web yang sudah habis';
 
-    
-    public function handle()
+    public function handle(UserSessionService $sessions): int
     {
-        // Remove sessions inactive for more than 30 days
-        $deletedSessions = UserSession::where('last_activity', '<', Carbon::now()->subDays(30))->delete();
-
-        $this->info("Cleaned up {$deletedSessions} inactive user sessions.");
-        return 0;
+        $deleted = $sessions->pruneStale();
+        $this->info("Menghapus {$deleted} catatan sesi yang sudah habis.");
+        return self::SUCCESS;
     }
 }

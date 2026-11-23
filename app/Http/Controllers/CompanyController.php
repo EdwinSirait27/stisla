@@ -288,10 +288,9 @@ class CompanyController extends Controller
         $file = $request->file('foto');
         if (!$file) return null;
 
-        $ext  = $file->guessExtension() ?: 'png';
-        $name = hash('sha256', $file->getClientOriginalName() . microtime(true) . random_int(0, PHP_INT_MAX)) . '.' . $ext;
-        $dir  = 'company/' . date('Y/m');
-
-        return Storage::disk('public')->putFileAs($dir, $file, $name) ?: null;
+        // Dikompres & dibersihkan, tetap PNG transparan untuk kop surat
+        return app(\App\Services\UploadStorage::class)->put(
+            $file, 'company/' . date('Y/m'), 'logo', \App\Services\UploadStorage::IMAGES, 'public', true, 'foto'
+        );
     }
 }

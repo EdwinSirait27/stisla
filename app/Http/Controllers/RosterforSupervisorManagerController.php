@@ -79,7 +79,7 @@ class RosterforSupervisorManagerController extends Controller
     //             'department:id,department_name',
     //             'rosters' => fn($q) => $q
     //                 ->whereBetween('date', [$startDate, $endDate])
-    //                 ->with('shift:id,shift_name,start_time,end_time'),
+    //                 ->with('shift:id,shift_name,start_time,end_time,is_split,break_start,break_end'),
     //         ])
     //             ->select('id', 'employee_name', 'store_id', 'status_employee', 'status','company_id','department_id','position_id') 
     //             ->whereNull('deleted_at')
@@ -154,7 +154,7 @@ class RosterforSupervisorManagerController extends Controller
             'department:id,department_name',
             'rosters' => fn($q) => $q
                 ->whereBetween('date', [$startDate, $endDate])
-                ->with('shift:id,shift_name,start_time,end_time'),
+                ->with('shift:id,shift_name,start_time,end_time,is_split,break_start,break_end'),
         ])
         ->select('id', 'employee_name', 'store_id', 'status_employee', 'status', 'company_id', 'department_id', 'position_id')
         ->whereNull('deleted_at')
@@ -249,9 +249,7 @@ class RosterforSupervisorManagerController extends Controller
             'success'     => true,
             'roster'      => $roster->load('shift'),
             'roster_name' => $roster->shift?->shift_name ?? $request->day_type,
-            'roster_time' => $roster->shift
-                ? substr($roster->shift->start_time, 0, 5) . '-' . substr($roster->shift->end_time, 0, 5)
-                : '',
+            'roster_time' => $roster->shift?->time_label ?? '',
         ]);
     }
 

@@ -34,9 +34,9 @@ class UserSession extends Model
     {
         return $this->belongsTo(User::class, 'user_id', 'id');
     }
-    // Scope untuk sesi aktif
+    // Sesi yang masih hidup: last_activity belum melewati batas session (lihat UserSessionService)
     public function scopeActive($query)
     {
-        return $query->where('last_activity', '>', now()->subHours(2));
+        return $query->where('last_activity', '>=', now()->subMinutes(\App\Services\UserSessionService::staleAfterMinutes()));
     }
 }

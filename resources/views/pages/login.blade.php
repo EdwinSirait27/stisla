@@ -537,12 +537,6 @@
                     </div>
                 </div>
 
-                <!-- Remember -->
-                {{-- <div class="remember-row">
-                    <input type="checkbox" name="remember" id="remember">
-                    <label for="remember">Keep me signed in</label>
-                </div> --}}
-
                 <button type="submit" class="btn-login">Continue</button>
             </form>
 

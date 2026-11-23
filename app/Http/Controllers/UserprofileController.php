@@ -22,10 +22,21 @@ use Illuminate\Validation\Rule;
 
 class UserprofileController extends Controller
 {
-    public function indexpassword()
+    public function indexpassword(Request $request)
     {
+        /** @var \App\Models\User $user */
         $user = Auth::user();
-        return view('pages.change-password', compact('user'));
+
+        // Status "password default" dari cache ForcePasswordChange (per hash password), supaya bcrypt tidak dijalankan ulang
+        $cached = $request->session()->get('pwd_default');
+        $isDefault = is_array($cached) && ($cached['fp'] ?? null) === hash('sha256', (string) $user->password)
+            ? (bool) $cached['is']
+            : \App\Services\LoginSessionService::hasDefaultPassword($user);
+
+        return view('pages.change-password', [
+            'user'      => $user,
+            'isDefault' => $isDefault,
+        ]);
     }
 //     public function switchRole(Request $request)
 // {
@@ -179,127 +190,27 @@ public function switchRole(Request $request)
     |--------------------------------------------------------------------------
     */
 
-        if ($request->hasFile('photos')) {
+        // Foto profil, KK, KTP: dikompres & dibersihkan (EXIF/lokasi GPS dibuang), ekstensi dari isi file.
+        // File baru diunggah dulu; yang lama baru dihapus setelah berhasil, supaya tidak hilang kalau unggahan gagal.
+        $uploads = app(\App\Services\UploadStorage::class);
+        $safeName = $user->employee->employee_name;
+        foreach ([
+            'photos'     => ['employees-photos', 'photos'],
+            'kk_photos'  => ['employees-kk-photos', 'kk'],
+            'ktp_photos' => ['employees-ktp-photos', 'ktp'],
+        ] as $field => [$folder, $suffix]) {
+            if (!$request->hasFile($field)) continue;
 
+            $oldPath = $user->employee->{$field};
+            $path    = $uploads->put($request->file($field), $folder, $safeName . '-' . $suffix, \App\Services\UploadStorage::IMAGES, 's3', false, $field);
 
-            $file     = $request->file('photos');
-            $safeName = Str::slug($user->employee->employee_name);
-            $fileName = $safeName . '-' . now()->timestamp . '-photos.png';
-            $folder   = 'employees-photos';
-            $oldPath  = $user->employee->photos;
-            // Hapus foto lama
-            if ($oldPath && Storage::disk('s3')->exists($oldPath)) {
+            if ($oldPath && $oldPath !== $path && Storage::disk('s3')->exists($oldPath)) {
                 Storage::disk('s3')->delete($oldPath);
-            } else {
-                Log::info('[PHOTO] Tidak ada foto lama untuk dihapus');
             }
+            Log::info('[PROFILE UPLOAD] ' . $field . ' diperbarui', ['employee_id' => $user->employee->id, 'path' => $path]);
 
-            // Upload baru
-            $path = Storage::disk('s3')->putFileAs(
-                $folder,
-                $file,
-                $fileName
-            );
-
-            Log::info('[PHOTO] Upload selesai', [
-                'path'   => $path,
-                'exists' => Storage::disk('s3')->exists($path),
-            ]);
-
-            $user->employee->photos = $path;
-            $photoUpdated           = true;
-        } else {
-            Log::info('[PHOTO] Tidak ada file yang diupload');
-        }
-        if ($request->hasFile('kk_photos')) {
-
-            Log::info('[KK PHOTO] File KK detected', [
-                'original_name' => $request->file('kk_photos')->getClientOriginalName(),
-                'size'          => $request->file('kk_photos')->getSize(),
-                'mime'          => $request->file('kk_photos')->getMimeType(),
-            ]);
-
-            $file     = $request->file('kk_photos');
-            $safeName = Str::slug($user->employee->employee_name);
-            $fileName = $safeName . '-' . now()->timestamp . '-kk.png';
-            $folder   = 'employees-kk-photos';
-            $oldPath  = $user->employee->kk_photos;
-
-            Log::info('[KK PHOTO] Info upload KK', [
-                'safeName' => $safeName,
-                'fileName' => $fileName,
-                'folder'   => $folder,
-                'oldPath'  => $oldPath ?? 'tidak ada',
-            ]);
-
-            // Hapus foto lama
-            if ($oldPath && Storage::disk('s3')->exists($oldPath)) {
-                Storage::disk('s3')->delete($oldPath);
-            } else {
-                Log::info('[KK PHOTO] Tidak ada foto KK lama untuk dihapus');
-            }
-
-            // Upload baru
-            $path = Storage::disk('s3')->putFileAs(
-                $folder,
-                $file,
-                $fileName
-            );
-
-            Log::info('[KK PHOTO] Upload KK selesai', [
-                'path'   => $path,
-                'exists' => Storage::disk('s3')->exists($path),
-            ]);
-
-            $user->employee->kk_photos = $path;
-            $photoUpdated           = true;
-        } else {
-            Log::info('[KK PHOTO] Tidak ada file KK yang diupload');
-        }
-        if ($request->hasFile('ktp_photos')) {
-
-            Log::info('[KTP PHOTO] File KTP detected', [
-                'original_name' => $request->file('ktp_photos')->getClientOriginalName(),
-                'size'          => $request->file('ktp_photos')->getSize(),
-                'mime'          => $request->file('ktp_photos')->getMimeType(),
-            ]);
-
-            $file     = $request->file('ktp_photos');
-            $safeName = Str::slug($user->employee->employee_name);
-            $fileName = $safeName . '-' . now()->timestamp . '-ktp.png';
-            $folder   = 'employees-ktp-photos';
-            $oldPath  = $user->employee->ktp_photos;
-
-            Log::info('[KTP PHOTO] Info upload KTP', [
-                'safeName' => $safeName,
-                'fileName' => $fileName,
-                'folder'   => $folder,
-                'oldPath'  => $oldPath ?? 'tidak ada',
-            ]);
-
-            // Hapus foto lama
-            if ($oldPath && Storage::disk('s3')->exists($oldPath)) {
-                Storage::disk('s3')->delete($oldPath);
-            } else {
-                Log::info('[KTP PHOTO] Tidak ada foto ktp lama untuk dihapus');
-            }
-
-            // Upload baru
-            $path = Storage::disk('s3')->putFileAs(
-                $folder,
-                $file,
-                $fileName
-            );
-
-            Log::info('[KTP PHOTO] Upload KTP selesai', [
-                'path'   => $path,
-                'exists' => Storage::disk('s3')->exists($path),
-            ]);
-
-            $user->employee->ktp_photos = $path;
-            $photoUpdated           = true;
-        } else {
-            Log::info('[KTP PHOTO] Tidak ada file KTP yang diupload');
+            $user->employee->{$field} = $path;
+            $photoUpdated = true;
         }
 
         /*
@@ -339,25 +250,10 @@ public function switchRole(Request $request)
                 ]);
             }
 
-            $signature = $request->signature;
-            $signature = str_replace('data:image/png;base64,', '', $signature);
-            $signature = str_replace(' ', '+', $signature);
-
-            $safeName = Str::slug($user->employee->employee_name);
-
-            // ✅ Fix: hapus double dash
-            $fileName = $safeName . '-' . now()->timestamp . '-signature.png';
-
-            $folder = 'employees-signatures-photos';
-            $path   = $folder . '/' . $fileName;
-
-            $decodedImage = base64_decode($signature);
-
-            if ($decodedImage === false) {
-                return back()->withErrors(['signature' => 'Signature gagal diproses.']);
-            }
-
-            Storage::disk('s3')->put($path, $decodedImage);
+            // Hanya PNG asli dari canvas yang diterima, dibatasi ukurannya, lalu di-encode ulang (PNG transparan)
+            $path = app(\App\Services\UploadStorage::class)->putSignatureDataUrl(
+                $request->signature, 'employees-signatures-photos', $user->employee->employee_name . '-signature'
+            );
 
             $user->employee->signature = $path;
             $photoUpdated = true;
@@ -377,22 +273,11 @@ public function switchRole(Request $request)
                 ]);
             }
 
-            $file     = $request->file('signature_file');
-            $safeName = Str::slug($user->employee->employee_name);
-
-            // ✅ Whitelist ekstensi, jangan pakai getClientOriginalExtension langsung
-            $allowedExt = ['jpg', 'jpeg', 'png', 'webp'];
-            $ext        = strtolower($file->getClientOriginalExtension());
-
-            if (!in_array($ext, $allowedExt)) {
-                return back()->withErrors(['signature_file' => 'Tipe file tidak diizinkan.']);
-            }
-
-            $fileName = $safeName . '-' . now()->timestamp . '-signature.' . $ext;
-            $folder   = 'employees-signatures-photos';
-            $path     = $folder . '/' . $fileName;
-
-            Storage::disk('s3')->putFileAs($folder, $file, $fileName);
+            // Dikompres jadi PNG transparan; ekstensi dari isi file
+            $path = app(\App\Services\UploadStorage::class)->put(
+                $request->file('signature_file'), 'employees-signatures-photos', $user->employee->employee_name . '-signature',
+                \App\Services\UploadStorage::IMAGES, 's3', true, 'signature_file'
+            );
 
             $user->employee->signature = $path;
             $photoUpdated = true;
@@ -448,30 +333,10 @@ public function switchRole(Request $request)
 
             Log::info('[SIGNATURE] Signature detected');
 
-            $signature = $request->signature;
-            $signature = str_replace('data:image/png;base64,', '', $signature);
-            $signature = str_replace(' ', '+', $signature);
-
-            $safeName = Str::slug($employee->employee_name);
-            $fileName = $safeName . '-' . now()->timestamp . '-signature.png';
-            $folder   = 'employees-signatures-photos';
-            $path     = $folder . '/' . $fileName;
-
-            $decodedImage = base64_decode($signature);
-
-            if ($decodedImage === false) {
-                Log::error('[SIGNATURE] Base64 decode gagal');
-                return back()->withErrors([
-                    'signature' => 'Signature gagal diproses.'
-                ]);
-            }
-
-            Storage::disk('s3')->put($path, $decodedImage);
-
-            Log::info('[SIGNATURE] Upload signature selesai', [
-                'path'   => $path,
-                'exists' => Storage::disk('s3')->exists($path),
-            ]);
+            $path = app(\App\Services\UploadStorage::class)->putSignatureDataUrl(
+                $request->signature, 'employees-signatures-photos', $employee->employee_name . '-signature'
+            );
+            Log::info('[SIGNATURE] Upload signature selesai', ['path' => $path]);
 
             $employee->signature = $path;
         }
@@ -489,23 +354,11 @@ public function switchRole(Request $request)
                 'mime'          => $request->file('signature_file')->getMimeType(),
             ]);
 
-            $file     = $request->file('signature_file');
-            $safeName = Str::slug($employee->employee_name);
-            $fileName = $safeName . '-' . now()->timestamp . '-signature.' . $file->getClientOriginalExtension();
-            $folder   = 'employees-signatures-photos';
-            $path     = $folder . '/' . $fileName;
-
-            // Storage::disk('public')->putFileAs($folder, $file, $fileName);
-            Storage::disk('s3')->putFileAs(
-                $folder,
-                $file,
-                $fileName
+            $path = app(\App\Services\UploadStorage::class)->put(
+                $request->file('signature_file'), 'employees-signatures-photos', $employee->employee_name . '-signature',
+                \App\Services\UploadStorage::IMAGES, 's3', true, 'signature_file'
             );
-
-            Log::info('[SIGNATURE FILE] Upload selesai', [
-                'path'   => $path,
-                'exists' => Storage::disk('s3')->exists($path),
-            ]);
+            Log::info('[SIGNATURE FILE] Upload selesai', ['path' => $path]);
 
             $employee->signature = $path;
         }
@@ -599,7 +452,7 @@ public function servePhotokk($filename)
 
     public function updatePassword(Request $request)
     {
-        /** @var \App\Models\User|null $user */
+        /** @var \App\Models\User $user */
         $user = Auth::user();
 
         $validated = $request->validate([
@@ -608,7 +461,7 @@ public function servePhotokk($filename)
                 'string',
                 function ($attribute, $value, $fail) use ($user) {
                     if (!Hash::check($value, $user->password)) {
-                        $fail('The current password is incorrect.');
+                        $fail('Password saat ini salah.');
                     }
                 },
             ],
@@ -617,44 +470,36 @@ public function servePhotokk($filename)
                 'string',
                 'min:8',
                 'max:20',
+                'confirmed',
                 'different:current_password',
                 'regex:/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9])\S+$/',
                 function ($attribute, $value, $fail) use ($user) {
-                    if (strtolower($value) === strtolower($user->username)) {
-                        $fail('Password tidak boleh sama dengan username.');
+                    if (strtolower($value) === strtolower((string) $user->username)) {
+                        $fail('Password baru tidak boleh sama dengan username.');
                     }
                     if ($user->employee?->employee_pengenal && strtolower($value) === strtolower($user->employee->employee_pengenal)) {
-                        $fail('Password tidak boleh sama dengan NIP.');
+                        $fail('Password baru tidak boleh sama dengan NIP.');
                     }
                 },
             ],
-        ], [], [], function ($validator) {
-            $validator->after(function ($validator) {
-                // tidak perlu tambahan logic di sini
-            });
-        });
+        ], [
+            'current_password.required' => 'Masukkan password saat ini.',
+            'password.required'         => 'Masukkan password baru.',
+            'password.min'              => 'Password baru minimal 8 karakter.',
+            'password.max'              => 'Password baru maksimal 20 karakter.',
+            'password.confirmed'        => 'Konfirmasi password baru tidak sama.',
+            'password.different'        => 'Password baru harus berbeda dari password saat ini.',
+            'password.regex'            => 'Password baru harus berisi huruf besar, huruf kecil, angka, dan simbol, tanpa spasi.',
+        ]);
+
+        $isDefaultPassword = \App\Services\LoginSessionService::hasDefaultPassword($user);
 
         try {
-            $isDefaultPassword = \App\Services\LoginSessionService::hasDefaultPassword($user);
-
             $user->password = Hash::make($validated['password']);
+            $user->remember_token = Str::random(60);
             $user->save();
-
-            Log::info("User changed password", [
-                'user_id'  => $user->id,
-                'username' => $user->username,
-                'ip'       => $request->ip(),
-            ]);
-
-            return redirect()->route('pages.feature-profile')
-                ->with(
-                    'success',
-                    $isDefaultPassword
-                        ? 'Password berhasil diubah. Selamat datang!'
-                        : 'Password changed successfully.'
-                );
-        } catch (\Exception $e) {
-            Log::error("Failed to change password", [
+        } catch (\Throwable $e) {
+            Log::error('Failed to change password', [
                 'user_id'  => $user->id,
                 'username' => $user->username,
                 'ip'       => $request->ip(),
@@ -664,6 +509,39 @@ public function servePhotokk($filename)
             return redirect()->route('pages.change-password')
                 ->with('error', 'Gagal mengubah password. Silakan coba lagi.');
         }
+
+        // Password sudah tersimpan. Kegagalan di bawah ini tidak boleh dilaporkan sebagai "gagal mengubah password".
+        // Password baru: keluarkan semua perangkat lain (web lain + aplikasi mobile).
+        // Sesi yang sedang dipakai tetap jalan, tapi ID-nya diganti.
+        $otherDevicesSignedOut = true;
+        try {
+            $oldSessionId = $request->session()->getId();
+            app(\App\Services\UserSessionService::class)->logoutEverywhere($user, $oldSessionId, 'password changed by user');
+            $request->session()->regenerate();
+            \App\Models\UserSession::where('user_id', $user->id)->where('session_id', $oldSessionId)
+                ->update(['session_id' => $request->session()->getId(), 'last_activity' => now()]);
+        } catch (\Throwable $e) {
+            $otherDevicesSignedOut = false;
+            Log::error('Password changed, but signing out other devices failed', [
+                'user_id' => $user->id,
+                'error'   => $e->getMessage(),
+            ]);
+        }
+
+        Log::info('User changed password', [
+            'user_id'  => $user->id,
+            'username' => $user->username,
+            'ip'       => $request->ip(),
+        ]);
+
+        $message = $isDefaultPassword
+            ? 'Password berhasil diubah. Selamat datang!'
+            : 'Password berhasil diubah.';
+        $message .= $otherDevicesSignedOut
+            ? ' Perangkat lain yang masih login sudah dikeluarkan.'
+            : ' Perangkat lain belum berhasil dikeluarkan; hubungi admin kalau ada perangkat yang tidak Anda kenal.';
+
+        return redirect()->route('pages.feature-profile')->with('success', $message);
     }
     public function downloadDocument(string $id)
     {

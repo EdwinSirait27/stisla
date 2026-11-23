@@ -162,24 +162,20 @@
     </header>
 
     <main>
-        <div class="code">404 — Not Found</div>
-        <h1>Page <em>not</em><br>found.</h1>
-        <p>The page you're looking for doesn't exist or has been moved. Please check the URL or head back to the dashboard.</p>
-        {{-- <div class="actions">
-            <a href="{{ url('/') }}" class="btn"><span>Go to Dashboard</span></a>
-            <a href="javascript:history.back()" class="back">← Go back</a>
-        </div> --}}
-         <div class="actions">
-    @auth
-        <a href="{{ route('pages.feature-profile') }}" class="back">← Go back</a>
-        <form method="POST" action="{{ route('logout') }}">
-            @csrf
-            <button type="submit" class="btn">Logout</button>
-        </form>
-    @else
-        <a href="javascript:history.back()" class="back">← Go back</a>
-    @endauth
-</div>
+        @php
+            $retry = (int) (isset($exception) && method_exists($exception, 'getHeaders') ? ($exception->getHeaders()['Retry-After'] ?? 60) : 60);
+            $wait = $retry >= 60 ? ceil($retry / 60) . ' menit' : $retry . ' detik';
+        @endphp
+        <div class="code">429 — Terlalu banyak percobaan</div>
+        <h1>Tunggu <em>sebentar</em><br>lalu coba lagi.</h1>
+        <p>Terlalu banyak permintaan dari perangkat ini dalam waktu singkat. Demi keamanan akun, coba lagi dalam {{ $wait }}. Kalau Anda sedang memasukkan kode 2FA, pastikan kode diambil dari aplikasi Authenticator yang benar dan jam di HP sudah otomatis.</p>
+        <div class="actions">
+            @auth
+                <a href="{{ route('pages.feature-profile') }}" class="back">&larr; Kembali</a>
+            @else
+                <a href="{{ route('login') }}" class="back">&larr; Kembali ke halaman login</a>
+            @endauth
+        </div>
     </main>
 
     <footer>© {{ date('Y') }} HRX · Developed by Edwin Sirait</footer>

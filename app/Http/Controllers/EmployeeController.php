@@ -563,6 +563,94 @@ class EmployeeController extends Controller
         return Excel::download(new EmployeesExportall($filters), $fileName . '.xlsx');
     }
 
+    /**
+     * Batasi query ke karyawan yang boleh dilihat user. Kolom employees_tables.id harus ada di query.
+     * Dipakai daftar (getEmployees) dan detail (show) supaya aturannya selalu sama:
+     * - ManageEmployee           : semua karyawan
+     * - ManageEmployeeSPVManager : karyawan di store + departemen yang sama, ditambah bawahan langsung
+     * - ViewEmployee             : rekan di store & departemen utama yang sama
+     * Mengembalikan false kalau user tidak punya cakupan sama sekali (hasilnya kosong).
+     */
+    private function applyEmployeeScope($query, User $user, bool $canManage, bool $canSpvManager, bool $canView): bool
+    {
+        if ($canManage) {
+            return true;
+        }
+
+        $employee = $user->employee;
+        if (!$employee) {
+            return false;
+        }
+
+        if ($canSpvManager) {
+            $storeIds      = $employee->store()->pluck('stores_tables.id')->toArray();
+            $departmentIds = $employee->department()->pluck('departments_tables.id')->toArray();
+
+            // Bawahan l_loangsung dari pivot employee_atasans
+            $bawahanIds = $employee->bawahanList()->pluck('employees_tables.id')->toArray();
+
+            if (empty($storeIds) || empty($departmentIds)) {
+                // Tidak punya store/department: hanya bawahan langsung
+                if (empty($bawahanIds)) {
+                    return false;
+                }
+                $query->whereIn('employees_tables.id', $bawahanIds);
+                return true;
+            }
+
+            $query->where(function ($q) use ($storeIds, $departmentIds, $bawahanIds) {
+                // Kondisi 1: karyawan di store + department yang sama
+                $q->where(function ($q1) use ($storeIds, $departmentIds) {
+                    $q1->whereExists(function ($sq) use ($storeIds) {
+                        $sq->select(DB::raw(1))
+                            ->from('employee_stores')
+                            ->whereColumn('employee_stores.employee_id', 'employees_tables.id')
+                            ->whereIn('employee_stores.store_id', $storeIds);
+                    })
+                        ->whereExists(function ($sq) use ($departmentIds) {
+                            $sq->select(DB::raw(1))
+                                ->from('employee_departments')
+                                ->whereColumn('employee_departments.employee_id', 'employees_tables.id')
+                                ->whereIn('employee_departments.department_id', $departmentIds);
+                        });
+                });
+
+                // Kondisi 2: bawahan langsung via pivot (beda company/store/department sekalipun)
+                if (!empty($bawahanIds)) {
+                    $q->orWhereIn('employees_tables.id', $bawahanIds);
+                }
+            });
+            return true;
+        }
+
+        if ($canView) {
+            $storeId      = $employee->primaryStore()->first()?->id;
+            $departmentId = $employee->primaryDepartment()->first()?->id;
+
+            if (!$storeId || !$departmentId) {
+                return false;
+            }
+
+            $query->whereExists(function ($q) use ($storeId) {
+                $q->select(DB::raw(1))
+                    ->from('employee_stores')
+                    ->whereColumn('employee_stores.employee_id', 'employees_tables.id')
+                    ->where('employee_stores.store_id', $storeId)
+                    ->where('employee_stores.is_primary', true);
+            })
+                ->whereExists(function ($q) use ($departmentId) {
+                    $q->select(DB::raw(1))
+                        ->from('employee_departments')
+                        ->whereColumn('employee_departments.employee_id', 'employees_tables.id')
+                        ->where('employee_departments.department_id', $departmentId)
+                        ->where('employee_departments.is_primary', true);
+                });
+            return true;
+        }
+
+        return false;
+    }
+
     public function getEmployees(Request $request)
     {
         /** @var \App\Models\User|null $user */
@@ -658,71 +746,9 @@ class EmployeeController extends Controller
             ]);
         }
 
-        if (!$canManage) {
-            $employee  = $user->employee;
-            $companyId = $employee->company_id;
-
-
-            if ($canSpvManager) {
-                $storeIds      = $employee->store()->pluck('stores_tables.id')->toArray();
-                $departmentIds = $employee->department()->pluck('departments_tables.id')->toArray();
-
-                // ← Ambil bawahan langsung dari pivot employee_atasans
-                $bawahanIds = $employee->bawahanList()->pluck('employees_tables.id')->toArray();
-
-                if (empty($storeIds) || empty($departmentIds)) {
-                    // Kalau tidak punya store/department, hanya tampilkan bawahan langsung
-                    if (empty($bawahanIds)) {
-                        return DataTables::of(collect())->make(true);
-                    }
-                    $query->whereIn('employees_tables.id', $bawahanIds);
-                } else {
-                    $query->where(function ($q) use ($storeIds, $departmentIds, $bawahanIds) {
-                        // ← Kondisi 1: employee di store + department yang sama
-                        $q->where(function ($q1) use ($storeIds, $departmentIds) {
-                            $q1->whereExists(function ($sq) use ($storeIds) {
-                                $sq->select(DB::raw(1))
-                                    ->from('employee_stores')
-                                    ->whereColumn('employee_stores.employee_id', 'employees_tables.id')
-                                    ->whereIn('employee_stores.store_id', $storeIds);
-                            })
-                                ->whereExists(function ($sq) use ($departmentIds) {
-                                    $sq->select(DB::raw(1))
-                                        ->from('employee_departments')
-                                        ->whereColumn('employee_departments.employee_id', 'employees_tables.id')
-                                        ->whereIn('employee_departments.department_id', $departmentIds);
-                                });
-                        });
-
-                        // ← Kondisi 2: bawahan langsung via pivot (beda company/store/department sekalipun)
-                        if (!empty($bawahanIds)) {
-                            $q->orWhereIn('employees_tables.id', $bawahanIds);
-                        }
-                    });
-                }
-            } elseif ($canView) {
-                $storeId      = $employee->primaryStore()->first()?->id;
-                $departmentId = $employee->primaryDepartment()->first()?->id;
-
-                if (!$storeId || !$departmentId) {
-                    return DataTables::of(collect())->make(true);
-                }
-
-                $query->whereExists(function ($q) use ($storeId) {
-                    $q->select(DB::raw(1))
-                        ->from('employee_stores')
-                        ->whereColumn('employee_stores.employee_id', 'employees_tables.id')
-                        ->where('employee_stores.store_id', $storeId)
-                        ->where('employee_stores.is_primary', true);
-                })
-                    ->whereExists(function ($q) use ($departmentId) {
-                        $q->select(DB::raw(1))
-                            ->from('employee_departments')
-                            ->whereColumn('employee_departments.employee_id', 'employees_tables.id')
-                            ->where('employee_departments.department_id', $departmentId)
-                            ->where('employee_departments.is_primary', true);
-                    });
-            }
+        // Cakupan karyawan yang boleh dilihat; aturan yang sama dipakai di show()
+        if (!$this->applyEmployeeScope($query, $user, $canManage, $canSpvManager, $canView)) {
+            return DataTables::of(collect())->make(true);
         }
 
         if ($canManage) {
@@ -1001,6 +1027,20 @@ class EmployeeController extends Controller
 
         $emp = $employee->Employee;
 
+        // Detail hanya untuk karyawan dalam cakupan viewer, sama dengan daftar di getEmployees.
+        // Tanpa ini, pemegang ViewEmployee / ManageEmployeeSPVManager bisa membuka detail karyawan
+        // mana pun lewat link /Employee/show/{hash}, walau karyawan itu tidak ada di daftarnya.
+        $inScope = Employee::where('employees_tables.id', $emp->id);
+        if (!$this->applyEmployeeScope(
+            $inScope,
+            $viewer,
+            $viewer->hasPermissionTo('ManageEmployee'),
+            $viewer->hasPermissionTo('ManageEmployeeSPVManager'),
+            $viewer->hasPermissionTo('ViewEmployee'),
+        ) || !$inScope->exists()) {
+            abort(404, 'Employee not found.');
+        }
+
         $documents = $viewer->hasPermissionTo('ManageEmployee')
             ? Documents::with(['companydocumentconfigs.documenttypes', 'companydocumentconfigs.company'])
                 ->where('employee_id', $emp->id)->get()
@@ -1116,7 +1156,7 @@ class EmployeeController extends Controller
             'marriage' => ['required', 'string', 'max:255', new NoXSSInput()],
             'child' => ['required', 'string', 'max:255', new NoXSSInput()],
             'blood_type' => ['nullable', 'string', 'max:255', new NoXSSInput()],
-            'attendance_type' => ['nullable', 'string', 'max:255', new NoXSSInput()],
+            'attendance_type' => ['nullable', Rule::in(array_keys(Employee::getAttendanceTypeOptions()))],
             'gender' => ['required', 'string', 'max:255', new NoXSSInput()],
             'telp_number' => ['required', 'numeric', 'digits_between:10,13', 'unique:employees_tables,telp_number', new NoXSSInput()],
             'status_employee' => ['required', 'string', 'max:255', new NoXSSInput()],
@@ -1196,21 +1236,12 @@ class EmployeeController extends Controller
     | HELPER: Upload file ke S3 dengan aman
     |--------------------------------------------------------------------------
     */
+        // Kompres & bersihkan lewat UploadStorage; ekstensi dari isi file. Tanda tangan tetap PNG transparan.
         $uploadToS3 = function ($file, string $safeName, string $suffix, string $folder) {
-            $allowedExtensions = ['jpg', 'jpeg', 'png', 'webp'];
-            $ext = strtolower($file->getClientOriginalExtension());
-
-            // ✅ Whitelist ekstensi
-            if (!in_array($ext, $allowedExtensions)) {
-                abort(400, 'File type not allowed');
-            }
-
-            $fileName = $safeName . '-' . now()->timestamp . '-' . $suffix . '.' . $ext;
-            $path     = $folder . '/' . $fileName;
-
-            Storage::disk('s3')->putFileAs($folder, $file, $fileName);
-
-            return $path;
+            $field = ['photos' => 'photos', 'kk' => 'kk_photos', 'ktp' => 'ktp_photos', 'signature' => 'signature_file'][$suffix] ?? 'photos';
+            return app(\App\Services\UploadStorage::class)->put(
+                $file, $folder, $safeName . '-' . $suffix, \App\Services\UploadStorage::IMAGES, 's3', $suffix === 'signature', $field
+            );
         };
 
         $safeName      = Str::slug($request->employee_name);
@@ -1307,7 +1338,7 @@ class EmployeeController extends Controller
                 'status_employee' => $validatedData['status_employee'] ?? '',
                 'join_date' => $validatedData['join_date'] ?? '',
                 'blood_type' => $validatedData['blood_type'] ?? null,
-                'attendance_type' => $validatedData['attendance_type'] ?? null,
+                'attendance_type' => $validatedData['attendance_type'] ?? Employee::ATTENDANCE_STORE_BOUND,
                 'marriage' => $validatedData['marriage'] ?? '',
                 'child' => $validatedData['child'] ?? '',
                 'telp_number' => $validatedData['telp_number'] ?? '',
@@ -1421,7 +1452,7 @@ class EmployeeController extends Controller
             'group_id'                => ['nullable', 'exists:groups_tables,id', new NoXSSInput()],
             'bpjs_kes'                => ['required', 'string', 'max:255'],
             'blood_type'              => ['nullable', 'string', 'max:255'],
-            'attendance_type'              => ['nullable', 'string', 'max:255'],
+            'attendance_type'         => ['nullable', Rule::in(array_keys(Employee::getAttendanceTypeOptions()))],
             'bpjs_ket'                => ['required', 'string', 'max:255'],
             'email'                   => ['required', 'string', 'max:255', 'not_regex:/[\r\n]/'],
             'company_email'           => ['nullable', 'string', 'max:255', 'not_regex:/[\r\n]/'],
@@ -1464,6 +1495,8 @@ class EmployeeController extends Controller
         ]);
         // Checkbox yang tidak dicentang tidak terkirim: anggap false, bukan "tidak berubah"
         $validatedData['can_approve'] = $request->boolean('can_approve');
+        // Kolom NOT NULL: tipe absen kosong berarti tidak diubah
+        if (empty($validatedData['attendance_type'])) unset($validatedData['attendance_type']);
         $primaryPick = [
             'stores'      => $validatedData['primary_store'] ?? null,
             'positions'   => $validatedData['primary_position'] ?? null,
@@ -1472,15 +1505,12 @@ class EmployeeController extends Controller
         ];
         unset($validatedData['primary_store'], $validatedData['primary_position'], $validatedData['primary_department'], $validatedData['primary_atasan']);
 
+        // Kompres & bersihkan lewat UploadStorage; ekstensi dari isi file. Tanda tangan tetap PNG transparan.
         $uploadToS3 = function ($file, string $safeName, string $suffix, string $folder) {
-            $allowedExtensions = ['jpg', 'jpeg', 'png', 'webp'];
-            $ext = strtolower($file->getClientOriginalExtension());
-            if (!in_array($ext, $allowedExtensions)) {
-                abort(400, 'File type not allowed');
-            }
-            $fileName = $safeName . '-' . now()->timestamp . '-' . $suffix . '.' . $ext;
-            Storage::disk('s3')->putFileAs($folder, $file, $fileName);
-            return $folder . '/' . $fileName;
+            $field = ['photos' => 'photos', 'kk' => 'kk_photos', 'ktp' => 'ktp_photos', 'signature' => 'signature_file'][$suffix] ?? 'photos';
+            return app(\App\Services\UploadStorage::class)->put(
+                $file, $folder, $safeName . '-' . $suffix, \App\Services\UploadStorage::IMAGES, 's3', $suffix === 'signature', $field
+            );
         };
 
         $safeName = Str::slug($request->employee_name);

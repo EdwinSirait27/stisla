@@ -52,14 +52,14 @@ class ManualRecapController extends Controller
 
     public function shiftList()
     {
-        $shifts = Shifts::with('store')->select('id', 'store_id','shift_name', 'start_time', 'end_time')
+        $shifts = Shifts::with('store')->select('id', 'store_id','shift_name', 'start_time', 'end_time', 'is_split', 'break_start', 'break_end')
             ->orderBy('shift_name')
             ->get()
             ->map(fn($s) => [
                 'id'   => $s->id,
                 'name' => $s->shift_name,
                 'store_name' => $s->store->name,
-                'time' => $s->start_time . ' - ' . $s->end_time,
+                'time' => $s->isSplit() ? str_replace('-', ' - ', $s->time_label) : $s->start_time . ' - ' . $s->end_time,
             ]);
 
         return response()->json(['data' => $shifts]);
@@ -235,9 +235,11 @@ if ($existingRecaps->isNotEmpty()) {
 $manualShiftTimeIn   = null;
 $manualShiftTimeOut  = null;
 $manualShiftDuration = null;
+$manualShift         = null;
 
 if ($request->shift_id) {
     $shift = Shifts::find($request->shift_id);
+    $manualShift = $shift;
     if ($shift) {
         $manualShiftTimeIn   = $shift->start_time;
         $manualShiftTimeOut  = $shift->end_time;
@@ -255,9 +257,13 @@ try {
     $empSlug         = $firstEmployee ? Str::slug($firstEmployee->employee_name) : 'employee';
 
     foreach ($request->file('evidence_files') as $index => $file) {
-        $fileName = $empSlug . '-' . $scanDateStr . '-' . $endDateStr . '-' . ($index + 1) . '.' . $file->getClientOriginalExtension();
+        // Gambar dikompres & dibersihkan, dokumen apa adanya; ekstensi dari isi file
         $folder   = 'manual-recap-evidence';
-        $path     = Storage::disk('s3')->putFileAs($folder, $file, $fileName);
+        $path     = app(\App\Services\UploadStorage::class)->put(
+            $file, $folder, $empSlug . '-' . $scanDateStr . '-' . $endDateStr . '-' . ($index + 1),
+            ['jpg', 'jpeg', 'png', 'gif', 'webp', 'pdf', 'doc', 'docx', 'xls', 'xlsx'], 's3', false, 'evidence_files'
+        );
+        $fileName = basename($path);
 
         Log::info('[ManualRecap] Upload evidence', [
             'original_name' => $file->getClientOriginalName(),
@@ -314,7 +320,7 @@ try {
 
             $employeeIds = $employees->pluck('id')->toArray();
 
-            $rosters = Roster::with('shift:id,shift_name,start_time,end_time')
+            $rosters = Roster::with('shift:id,shift_name,start_time,end_time,is_split,break_start,break_end')
                 ->whereIn('employee_id', $employeeIds)
                 ->whereIn('date', $dates)
                 ->get()
@@ -406,8 +412,10 @@ Log::info('ManualRecap debug', [
                     $resolvedTimeIn   = null;
                     $resolvedTimeOut  = null;
                     $resolvedDuration = null;
+                    $resolvedShift    = null;
 
                     if ($request->shift_id) {
+                        $resolvedShift    = $manualShift;
                         $resolvedTimeIn   = $manualShiftTimeIn;
                         $resolvedTimeOut  = $manualShiftTimeOut;
                         $resolvedDuration = $manualShiftDuration;
@@ -416,10 +424,19 @@ Log::info('ManualRecap debug', [
                             $skippedCount++;
                             continue;
                         } else {
+                            $resolvedShift    = $roster->shift;
                             $resolvedTimeIn   = $roster->shift->start_time;
                             $resolvedTimeOut  = $roster->shift->end_time;
                             $resolvedDuration = $this->calculateShiftDuration($resolvedTimeIn, $resolvedTimeOut);
                         }
+                    }
+
+                    // Split shift: empat scan (masuk/pulang tiap blok), durasi tanpa jeda
+                    $isSplit          = $resolvedShift?->isSplit() ?? false;
+                    $resolvedBreakOut = $isSplit ? $resolvedShift->break_start : null;
+                    $resolvedBreakIn  = $isSplit ? $resolvedShift->break_end : null;
+                    if ($isSplit) {
+                        $resolvedDuration = $resolvedShift->scheduledMinutes();
                     }
 
                     $deleteManualKeys[] = [
@@ -437,6 +454,20 @@ Log::info('ManualRecap debug', [
                             'reserved'   => 0,
                             'work_code'  => 0,
                         ];
+                    }
+
+                    if ($isSplit) {
+                        foreach ([[$resolvedBreakOut, 2], [$resolvedBreakIn, 1]] as [$t, $mode]) {
+                            $manualAddedRows[] = [
+                                'sn'         => self::MANUAL_SN,
+                                'scan_date'  => $date . ' ' . $t,
+                                'pin'        => $employee->pin,
+                                'verifymode' => 0,
+                                'inoutmode'  => $mode,
+                                'reserved'   => 0,
+                                'work_code'  => 0,
+                            ];
+                        }
                     }
 
                     if ($resolvedTimeOut) {
@@ -457,6 +488,8 @@ Log::info('ManualRecap debug', [
                         'date'             => $date,
                         'pin'              => $employee->pin,
                         'time_in'          => $resolvedTimeIn,
+                        'break_out'        => $resolvedBreakOut,
+                        'break_in'         => $resolvedBreakIn,
                         'time_out'         => $resolvedTimeOut,
                         'duration_minutes' => $resolvedDuration,
                         'is_counted'       => 1,
@@ -530,7 +563,7 @@ Log::info('ManualRecap debug', [
                     $chunk,
                     ['employee_id', 'date'],
                     [
-                        'pin', 'time_in', 'time_out', 'duration_minutes',
+                        'pin', 'time_in', 'break_out', 'break_in', 'time_out', 'duration_minutes',
                         'is_counted', 'device_sn', 'sync_status', 'synced_at', 'updated_at',
                     ]
                 );

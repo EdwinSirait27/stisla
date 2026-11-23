@@ -127,9 +127,9 @@
                 <a href="#" class="nav-link has-dropdown" data-toggle="dropdown"><i class="fas fa-database"></i>
                     <span>Master Data</span></a>
                 <ul class="dropdown-menu">
-                    @can('ManageBanks')
-                        <li class="{{ Request::is('{Banks}') ? 'active' : '' }}">
-                            <a class="nav-link" href="{{ url('Banks') }}">Banks</a>
+                    @can('bank.view')
+                        <li class="{{ Request::is('Bank', 'Bank/*') ? 'active' : '' }}">
+                            <a class="nav-link" href="{{ route('pages.Bank') }}">Banks</a>
                         </li>
                     @endcan
                     @can('ManageCompanies')
@@ -332,6 +332,11 @@
                             <a class="nav-link" href="{{ route('roster.index') }}">Roster & Schedule</a>
                         </li>
                     @endcanany
+                    @can('ManageRosterSetting')
+                        <li class="{{ Request::is('roster-setting*') ? 'active' : '' }}">
+                            <a class="nav-link" href="{{ route('rostersetting.index') }}">Roster Setting</a>
+                        </li>
+                    @endcan
                 </ul>
             </li>
             <li class="nav-item dropdown ">
@@ -342,6 +347,16 @@
                     @canany(['ManageAttendanceMobile', 'ViewAttendanceMobile', 'ManageAttendanceMobileSPVManager'])
                         <li class="{{ Request::is('{AttendanceMobile}') ? 'active' : '' }}">
                             <a class="nav-link" href="{{ url('AttendanceMobile') }}">Attendance Data</a>
+                        </li>
+                    @endcanany
+                    @canany(['ManageOvertimeAttendanceMobile', 'ViewOvertimeAttendanceMobile', 'ManageOvertimeAttendanceMobileSPVManager'])
+                        <li class="{{ Request::is('OvertimeAttendanceMobile*') ? 'active' : '' }}">
+                            <a class="nav-link" href="{{ route('pages.OvertimeAttendanceMobile') }}">Overtime Attendance</a>
+                        </li>
+                    @endcanany
+                    @canany(['ManageRegisteredDevice', 'ViewRegisteredDevice', 'ManageRegisteredDeviceSPVManager'])
+                        <li class="{{ Request::is('RegisteredDevice*') ? 'active' : '' }}">
+                            <a class="nav-link" href="{{ route('pages.RegisteredDevice') }}">Registered Device</a>
                         </li>
                     @endcanany
                 </ul>

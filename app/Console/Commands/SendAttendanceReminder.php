@@ -233,8 +233,10 @@ class SendAttendanceReminder extends Command
         $rosters = Roster::whereDate('date', $today)
             ->where('day_type', 'Work')
             ->whereNotNull('shift_id')
-            ->with(['employee:id,employee_name', 'shift:id,shift_name,start_time,end_time'])
-            ->get();
+            ->with(['employee:id,employee_name,attendance_type', 'shift:id,shift_name,start_time,end_time,is_split,break_start,break_end'])
+            ->get()
+            // Karyawan exempt tidak wajib absen, jangan diingatkan
+            ->reject(fn($r) => $r->employee?->isAttendanceExempt());
 
         if ($rosters->isEmpty()) {
             $this->info('Tidak ada jadwal kerja hari ini.');
@@ -259,7 +261,7 @@ class SendAttendanceReminder extends Command
         $todayAttendance = AttendanceLog::whereIn('employee_id', $employeeIds)
             ->whereDate('logged_at', $today)
             ->where('status', '!=', 'rejected')
-            ->get(['employee_id', 'type'])
+            ->get(['employee_id', 'type', 'session'])
             ->groupBy('employee_id');
 
         $messages = [];
@@ -276,37 +278,48 @@ class SendAttendanceReminder extends Command
             $tokens = $pushTokensByUserId->get($user->id);
             if (!$tokens || $tokens->isEmpty()) continue;
 
-            // Parse jam shift
-            $shiftStart = Carbon::parse($today . ' ' . $shift->start_time, 'Asia/Makassar');
-            $shiftEnd = Carbon::parse($today . ' ' . $shift->end_time, 'Asia/Makassar');
-
-            // Window reminder: 30 menit sebelum masuk, 15 menit sebelum pulang
-            $reminderCheckin = $shiftStart->copy()->subMinutes(30);
-            $reminderCheckout = $shiftEnd->copy()->subMinutes(15);
-
-            $isCheckinTime = $now->between($reminderCheckin, $reminderCheckin->copy()->addMinutes(15));
-            $isCheckoutTime = $now->between($reminderCheckout, $reminderCheckout->copy()->addMinutes(15));
-
-            if (!$isCheckinTime && !$isCheckoutTime) continue;
-
             // Cek status absensi dari preloaded data (tanpa query tambahan)
             $employeeAttendance = $todayAttendance->get($employee->id, collect());
 
-            if ($isCheckinTime) {
-                $alreadyCheckin = $employeeAttendance->where('type', 'checkin')->isNotEmpty();
-                if ($alreadyCheckin) continue;
+            // Shift biasa satu blok; split shift dua blok, masing-masing diingatkan masuk & pulang
+            $blocks  = $shift->blocks();
+            $isSplit = count($blocks) > 1;
+            $title = $body = $type = null;
 
-                $title = 'Reminder Absensi Masuk 🕐';
-                $body = "Selamat pagi {$employee->employee_name}! Shift {$shift->shift_name} Anda mulai jam {$shiftStart->format('H:i')}. Jangan lupa absen masuk.";
-                $type = 'checkin';
-            } else {
-                $alreadyCheckout = $employeeAttendance->where('type', 'checkout')->isNotEmpty();
-                if ($alreadyCheckout) continue;
+            foreach ($blocks as $i => [$blockStart, $blockEnd]) {
+                $session    = $i + 1;
+                $blockLabel = $isSplit ? " blok {$session}" : '';
+                $shiftStart = Carbon::parse($today . ' ' . $blockStart, 'Asia/Makassar');
+                $shiftEnd   = Carbon::parse($today . ' ' . $blockEnd, 'Asia/Makassar');
 
-                $title = 'Reminder Absensi Pulang 🏠';
-                $body = "Hei {$employee->employee_name}! Shift {$shift->shift_name} selesai jam {$shiftEnd->format('H:i')}. Jangan lupa absen pulang.";
-                $type = 'checkout';
+                // Window reminder: 30 menit sebelum masuk, 15 menit sebelum pulang
+                $reminderCheckin  = $shiftStart->copy()->subMinutes(30);
+                $reminderCheckout = $shiftEnd->copy()->subMinutes(15);
+
+                $isCheckinTime  = $now->between($reminderCheckin, $reminderCheckin->copy()->addMinutes(15));
+                $isCheckoutTime = $now->between($reminderCheckout, $reminderCheckout->copy()->addMinutes(15));
+
+                if (!$isCheckinTime && !$isCheckoutTime) continue;
+
+                $sessionAttendance = $employeeAttendance->filter(fn($a) => (int) ($a->session ?? 1) === $session);
+
+                if ($isCheckinTime) {
+                    if ($sessionAttendance->where('type', 'checkin')->isNotEmpty()) continue;
+
+                    $title = 'Reminder Absensi Masuk 🕐';
+                    $body  = "Halo {$employee->employee_name}! Shift {$shift->shift_name}{$blockLabel} Anda mulai jam {$shiftStart->format('H:i')}. Jangan lupa absen masuk.";
+                    $type  = 'checkin';
+                } else {
+                    if ($sessionAttendance->where('type', 'checkout')->isNotEmpty()) continue;
+
+                    $title = 'Reminder Absensi Pulang 🏠';
+                    $body  = "Hei {$employee->employee_name}! Shift {$shift->shift_name}{$blockLabel} selesai jam {$shiftEnd->format('H:i')}. Jangan lupa absen pulang.";
+                    $type  = 'checkout';
+                }
+                break;
             }
+
+            if (!$type) continue;
 
             foreach ($tokens as $pushToken) {
                 $messages[] = [

@@ -22,7 +22,7 @@ class EmployeeImportController extends Controller
     public function import(Request $request)
     {
         $request->validate([
-            'file' => 'required|mimes:xlsx,csv,xls'
+            'file' => 'required|mimes:xlsx,csv,xls|max:10240'
         ]);
 
         Excel::import(new EmployeeImport, $request->file('file'));
@@ -32,7 +32,7 @@ class EmployeeImportController extends Controller
     public function importuser(Request $request)
     {
         $request->validate([
-            'file' => 'required|mimes:xlsx,csv,xls'
+            'file' => 'required|mimes:xlsx,csv,xls|max:10240'
         ]);
 
         Excel::import(new UserImport, $request->file('file'));

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Http\Controllers\Api\Concerns\VerifiesMobileAttendance;
 use App\Http\Controllers\Controller;
 use App\Models\AttendanceLog;
 use App\Models\Employee;
@@ -15,14 +16,13 @@ use Carbon\Carbon;
 
 class AttendanceController extends Controller
 {
+    use VerifiesMobileAttendance;
 
     /** Status absen sah dari aplikasi. Enum kolom: approved | pending | flagged (bukan "valid"). */
     private const STATUS_OK = 'approved';
 
     /** Berapa jam setelah jam pulang shift malam, check-out masih dihitung untuk shift kemarin. */
     private const NIGHT_SHIFT_GRACE_HOURS = 6;
-
-    const EARTH_RADIUS = 6371000;
 
     /**
      * Tanggal kerja untuk absen sekarang.
@@ -52,6 +52,52 @@ class AttendanceController extends Controller
         return $today;
     }
 
+    /** Shift kerja di tanggal kerja (null kalau tidak ada roster Work dengan shift). */
+    private function shiftFor(Employee $employee, string $workDate): ?\App\Models\Shifts
+    {
+        $roster = $employee->rosters()->with('shift')->whereDate('date', $workDate)->first();
+
+        return $roster && $roster->day_type === 'Work' ? $roster->shift : null;
+    }
+
+    /**
+     * Sesi absen saat ini. Shift biasa selalu sesi 1.
+     * Split shift: sesi 2 kalau blok 1 sudah check-out, atau jam sekarang sudah lewat titik tengah jeda
+     * (blok 1 yang terlewat atau lupa check-out tidak menghalangi absen blok 2).
+     */
+    private function resolveSession(?\App\Models\Shifts $shift, string $workDate, $logs): int
+    {
+        if (!$shift || !$shift->isSplit()) return 1;
+
+        if ($logs->contains(fn($l) => (int) $l->session === 1 && $l->type === 'checkout')) return 2;
+
+        $boundary = Carbon::parse($workDate . ' ' . $shift->splitBoundary());
+
+        return now()->gte($boundary) ? 2 : 1;
+    }
+
+    /** Ringkasan per sesi untuk respons API. */
+    private function sessionSummary(?\App\Models\Shifts $shift, $logs): array
+    {
+        $blocks = $shift ? $shift->blocks() : [[null, null]];
+
+        return collect($blocks)->map(function ($block, $i) use ($logs) {
+            $session  = $i + 1;
+            $checkin  = $logs->first(fn($l) => (int) $l->session === $session && $l->type === 'checkin');
+            $checkout = $logs->first(fn($l) => (int) $l->session === $session && $l->type === 'checkout');
+
+            return [
+                'session'       => $session,
+                'start_time'    => $block[0] ? substr($block[0], 0, 5) : null,
+                'end_time'      => $block[1] ? substr($block[1], 0, 5) : null,
+                'checkin_time'  => $checkin?->logged_at?->format('H:i'),
+                'checkin_at'    => $checkin?->logged_at,
+                'checkout_time' => $checkout?->logged_at?->format('H:i'),
+                'checkout_at'   => $checkout?->logged_at,
+            ];
+        })->values()->all();
+    }
+
     public function checkin(Request $request)
     {
         return $this->record($request, 'checkin');
@@ -70,7 +116,7 @@ class AttendanceController extends Controller
         $validator = Validator::make($request->all(), [
             'latitude'         => 'required|numeric|between:-90,90',
             'longitude'        => 'required|numeric|between:-180,180',
-            'photo'            => 'required|image|max:5120',
+            'photo'            => 'required|image|mimes:jpg,jpeg,png,webp|max:5120',
             'device_id'        => 'required|string|max:255',
             'is_mock_location' => 'required|in:0,1,true,false',
         ]);
@@ -81,6 +127,9 @@ class AttendanceController extends Controller
         $employee = $request->user()->employee;
         if (!$employee) {
             return response()->json(['success' => false, 'message' => 'Data karyawan tidak ditemukan'], 404);
+        }
+        if ($employee->isAttendanceExempt()) {
+            return response()->json(['success' => false, 'message' => 'Anda tidak wajib absen, absen lewat aplikasi tidak diperlukan', 'code' => 'ATTENDANCE_EXEMPT'], 403);
         }
         if (!$employee->photos) {
             return response()->json(['success' => false, 'message' => 'Foto referensi karyawan belum tersedia, hubungi HR'], 422);
@@ -94,17 +143,22 @@ class AttendanceController extends Controller
 
         try {
             $workDate = $this->resolveWorkDate($employee);
-            $existing = AttendanceLog::where('employee_id', $employee->id)->where('work_date', $workDate)->get(['type', 'logged_at']);
+            $allLogs  = AttendanceLog::where('employee_id', $employee->id)->where('work_date', $workDate)->get(['type', 'session', 'logged_at']);
+            $shift    = $this->shiftFor($employee, $workDate);
+            $session  = $this->resolveSession($shift, $workDate, $allLogs);
+            $isSplit  = $shift?->isSplit() ?? false;
+            $existing = $allLogs->filter(fn($l) => (int) $l->session === $session);
             $checkinLog = $existing->firstWhere('type', 'checkin');
+            $target   = $isSplit ? "blok {$session} shift ini" : 'shift ini';
 
             if ($type === 'checkin' && $checkinLog) {
-                return response()->json(['success' => false, 'message' => 'Anda sudah melakukan check-in untuk shift ini', 'code' => 'ALREADY_CHECKED_IN'], 422);
+                return response()->json(['success' => false, 'message' => "Anda sudah melakukan check-in untuk {$target}", 'code' => 'ALREADY_CHECKED_IN', 'session' => $session], 422);
             }
             if ($type === 'checkout' && !$checkinLog) {
-                return response()->json(['success' => false, 'message' => 'Anda belum melakukan check-in untuk shift ini', 'code' => 'NO_CHECKIN_FOUND'], 422);
+                return response()->json(['success' => false, 'message' => "Anda belum melakukan check-in untuk {$target}", 'code' => 'NO_CHECKIN_FOUND', 'session' => $session], 422);
             }
             if ($type === 'checkout' && $existing->contains('type', 'checkout')) {
-                return response()->json(['success' => false, 'message' => 'Anda sudah melakukan check-out untuk shift ini', 'code' => 'ALREADY_CHECKED_OUT'], 422);
+                return response()->json(['success' => false, 'message' => "Anda sudah melakukan check-out untuk {$target}", 'code' => 'ALREADY_CHECKED_OUT', 'session' => $session], 422);
             }
 
             if (filter_var($request->is_mock_location, FILTER_VALIDATE_BOOLEAN)) {
@@ -113,22 +167,9 @@ class AttendanceController extends Controller
             }
 
             // Geofence dicek sebelum wajah: lebih murah, dan tidak membebani DeepFace untuk absen yang pasti ditolak
-            $distance = null;
-            $storeId  = null;
-            if ($employee->attendance_type === 'store_bound') {
-                $store = $employee->store()->wherePivot('is_primary', true)->first();
-                if (!$store || $store->latitude === null || $store->longitude === null || !$store->geofence_radius) {
-                    return response()->json(['success' => false, 'message' => 'Lokasi store Anda belum diset, hubungi admin', 'code' => 'STORE_LOCATION_MISSING'], 422);
-                }
-                $storeId  = $store->id;
-                $distance = $this->calculateDistance($request->latitude, $request->longitude, $store->latitude, $store->longitude);
-                if ($distance > $store->geofence_radius) {
-                    return response()->json([
-                        'success' => false,
-                        'message' => 'Absen ditolak: Anda berada ' . number_format($distance, 0, ',', '.') . "m dari lokasi, di luar radius yang diizinkan ({$store->geofence_radius}m)",
-                        'code'    => 'OUTSIDE_GEOFENCE',
-                    ], 422);
-                }
+            $location = $this->resolveLocation($employee, (float) $request->latitude, (float) $request->longitude);
+            if (isset($location['error'])) {
+                return response()->json(['success' => false, 'message' => $location['error'], 'code' => $location['code']], 422);
             }
 
             $face = $this->verifyFace($request->file('photo'), $employee->photos);
@@ -142,34 +183,40 @@ class AttendanceController extends Controller
                 return response()->json(['success' => false, 'message' => 'Wajah tidak cocok dengan data karyawan, absen ditolak', 'code' => 'FACE_MISMATCH'], 422);
             }
 
-            $photoPath = $request->file('photo')->store('attendance/' . now()->format('Y/m'), 's3');
+            // Selfie dikompres sebelum disimpan (verifikasi wajah di atas tetap memakai file asli)
+            $photoPath = app(\App\Services\UploadStorage::class)->put(
+                $request->file('photo'), 'attendance/' . now()->format('Y/m'), 'selfie-' . $type, \App\Services\UploadStorage::IMAGES, 's3', false, 'photo'
+            );
 
             try {
                 $log = AttendanceLog::create([
                     'employee_id'         => $employee->id,
-                    'store_id'            => $storeId,
+                    'store_id'            => $location['store_id'],
                     'work_date'           => $workDate,
                     'type'                => $type,
+                    'session'             => $session,
+                    'attendance_mode'     => $employee->attendance_type ?: Employee::ATTENDANCE_STORE_BOUND,
                     'latitude'            => $request->latitude,
                     'longitude'           => $request->longitude,
-                    'distance_from_store' => $distance,
-                    'is_within_geofence'  => true,
+                    'distance_from_store' => $location['distance'],
+                    'is_within_geofence'  => $location['within'],
+                    'is_offsite'          => $location['offsite'],
                     'is_mock_location'    => false,
                     'photo_path'          => $photoPath,
                     'liveness_score'      => isset($face['distance']) ? round((float) $face['distance'], 2) : null,
                     'liveness_passed'     => true,
                     'device_id'           => $request->device_id,
                     'status'              => self::STATUS_OK,
-                    'flag_reason'         => null,
+                    'flag_reason'         => $location['note'],
                     'logged_at'           => now(),
                 ]);
             } catch (\Illuminate\Database\QueryException $e) {
                 Storage::disk('s3')->delete($photoPath);
                 if ($e->getCode() === '23000') {
-                    // unique (employee_id, work_date, type): request ganda yang lolos bersamaan
+                    // unique (employee_id, work_date, type, session): request ganda yang lolos bersamaan
                     return response()->json([
                         'success' => false,
-                        'message' => $type === 'checkin' ? 'Anda sudah melakukan check-in untuk shift ini' : 'Anda sudah melakukan check-out untuk shift ini',
+                        'message' => $type === 'checkin' ? "Anda sudah melakukan check-in untuk {$target}" : "Anda sudah melakukan check-out untuk {$target}",
                         'code'    => $type === 'checkin' ? 'ALREADY_CHECKED_IN' : 'ALREADY_CHECKED_OUT',
                     ], 422);
                 }
@@ -180,7 +227,16 @@ class AttendanceController extends Controller
             $lock->release();
         }
 
-        $data = ['id' => $log->id, 'status' => $log->status, 'logged_at' => $log->logged_at, 'work_date' => $log->work_date];
+        $data = [
+            'id'         => $log->id,
+            'status'     => $log->status,
+            'logged_at'  => $log->logged_at,
+            'work_date'  => $log->work_date,
+            'is_offsite' => $log->is_offsite,
+            'store_name' => $location['store_name'],
+            'session'        => $session,
+            'total_sessions' => $isSplit ? 2 : 1,
+        ];
         if ($type === 'checkout') {
             $data['checkin_at']            = $checkinLog->logged_at;
             $data['work_duration_minutes'] = (int) $checkinLog->logged_at->diffInMinutes($log->logged_at);
@@ -188,117 +244,10 @@ class AttendanceController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => $type === 'checkin' ? 'Absen berhasil' : 'Check-out berhasil',
+            'message' => ($type === 'checkin' ? 'Absen berhasil' : 'Check-out berhasil') . ($isSplit ? " (blok {$session})" : ''),
             'data'    => $data,
         ]);
     }
-
-    // /**
-    private function verifyFace($attendancePhoto, $referencePhotoPath)
-    {
-        $startTotal = microtime(true);
-
-        try {
-            $startCache = microtime(true);
-            $cacheKey = 'reference_photo_' . md5($referencePhotoPath);
-            $referenceContent = Cache::remember($cacheKey, now()->addHours(6), function () use ($referencePhotoPath) {
-                return Storage::disk('s3')->get($referencePhotoPath);
-            });
-            Log::info('Waktu ambil foto referensi: ' . round(microtime(true) - $startCache, 2) . 's');
-
-            $startHttp = microtime(true);
-            // Di bawah batas waktu request (120 detik) supaya error-nya tertangani, bukan fatal
-            $response = Http::connectTimeout(10)->timeout(75)
-                ->attach('photo', file_get_contents($attendancePhoto->getRealPath()), 'attendance.jpg')
-                ->attach('reference_photo', $referenceContent, 'reference.jpg')
-                ->post(config('services.deepface.url') . '/verify');
-            Log::info('Waktu request ke DeepFace: ' . round(microtime(true) - $startHttp, 2) . 's');
-            Log::info('Waktu total verifyFace: ' . round(microtime(true) - $startTotal, 2) . 's');
-
-            $result = $response->json();
-
-            Log::info('DeepFace response', [
-                'status' => $response->status(),
-                'body'   => $result,
-            ]);
-
-            // Error input (400/422) — masalah dari foto, bukan dari layanan
-            if ($response->status() === 400 || $response->status() === 422) {
-                $errorMessage = $result['message'] ?? $result['error'] ?? null;
-
-                $userMessage = match (true) {
-                    str_contains($errorMessage ?? '', 'Face could not be detected')
-                    => 'Wajah tidak terdeteksi, pastikan wajah terlihat jelas dan pencahayaan cukup',
-                    str_contains($errorMessage ?? '', 'Multiple faces')
-                    => 'Terdeteksi lebih dari satu wajah, pastikan hanya ada satu wajah',
-                    str_contains($errorMessage ?? '', 'blurry') || str_contains($errorMessage ?? '', 'Low quality')
-                    => 'Foto terlalu buram atau gelap, coba lagi dengan pencahayaan lebih baik',
-                    default
-                    => 'Foto tidak valid, pastikan wajah terlihat jelas dan coba lagi',
-                };
-
-                Log::warning('DeepFace input error', [
-                    'raw_message' => $errorMessage,
-                    'status'      => $response->status(),
-                ]);
-
-                return [
-                    'success' => false,
-                    'message' => $userMessage,
-                    'code'    => 'NO_FACE_DETECTED',
-                ];
-            }
-
-            // Error server (500, dst) — layanan bermasalah
-            if (!$response->successful()) {
-                Log::error('DeepFace server error', [
-                    'status' => $response->status(),
-                    'body'   => $result,
-                ]);
-
-                return [
-                    'success' => false,
-                    'message' => 'Layanan verifikasi wajah sedang bermasalah, coba lagi dalam beberapa saat',
-                ];
-            }
-
-            return [
-                'success'     => true,
-                'is_real'     => $result['is_real']     ?? false,
-                'is_verified' => $result['is_verified'] ?? false,
-                'distance'    => $result['distance']    ?? null,
-            ];
-        } catch (\Illuminate\Http\Client\ConnectionException $e) {
-            Log::error('DeepFace connection timeout: ' . $e->getMessage());
-            return [
-                'success' => false,
-                'message' => 'Layanan verifikasi wajah tidak merespons, coba lagi dalam beberapa saat',
-            ];
-        } catch (\Exception $e) {
-            Log::error('DeepFace verification error: ' . $e->getMessage());
-            return [
-                'success' => false,
-                'message' => 'Gagal terhubung ke layanan verifikasi wajah',
-            ];
-        }
-    }
-
-    private function calculateDistance($lat1, $lon1, $lat2, $lon2)
-    {
-        $lat1 = deg2rad($lat1);
-        $lon1 = deg2rad($lon1);
-        $lat2 = deg2rad($lat2);
-        $lon2 = deg2rad($lon2);
-
-        $dLat = $lat2 - $lat1;
-        $dLon = $lon2 - $lon1;
-
-        $a = sin($dLat / 2) ** 2 + cos($lat1) * cos($lat2) * sin($dLon / 2) ** 2;
-        $c = 2 * asin(sqrt($a));
-
-        return round(self::EARTH_RADIUS * $c, 2);
-    }
-
 
     public function history(Request $request)
     {
@@ -339,13 +288,25 @@ class AttendanceController extends Controller
 
         // Group by work_date → per hari ada checkin + checkout
         $grouped = $logs->groupBy(fn($l) => Carbon::parse($l->work_date)->toDateString())->map(function ($dayLogs, $workDate) {
-            $checkin  = $dayLogs->where('type', 'checkin')->first();
-            $checkout = $dayLogs->where('type', 'checkout')->first();
+            // Split shift punya dua sesi: check-in pertama dan check-out terakhir mewakili hari itu,
+            // durasi dijumlah per sesi (jeda tidak dihitung).
+            $checkin  = $dayLogs->where('type', 'checkin')->sortBy('session')->first();
+            $checkout = $dayLogs->where('type', 'checkout')->sortByDesc('session')->first();
 
             $workDurationMinutes = null;
-            if ($checkin && $checkout) {
-                $workDurationMinutes = $checkin->logged_at->diffInMinutes($checkout->logged_at);
-            }
+            $sessions = $dayLogs->groupBy(fn($l) => (int) $l->session)->sortKeys()->map(function ($sLogs, $session) use (&$workDurationMinutes) {
+                $in  = $sLogs->firstWhere('type', 'checkin');
+                $out = $sLogs->firstWhere('type', 'checkout');
+                if ($in && $out) {
+                    $workDurationMinutes = ($workDurationMinutes ?? 0) + $in->logged_at->diffInMinutes($out->logged_at);
+                }
+
+                return [
+                    'session'       => $session,
+                    'checkin_time'  => $in?->logged_at?->format('H:i'),
+                    'checkout_time' => $out?->logged_at?->format('H:i'),
+                ];
+            })->values();
 
             return [
                 'work_date'             => $workDate,
@@ -353,13 +314,17 @@ class AttendanceController extends Controller
                 'checkin_time'          => $checkin?->logged_at?->format('H:i'),
                 'checkout_time'         => $checkout?->logged_at?->format('H:i'),
                 'work_duration_minutes' => $workDurationMinutes !== null ? (int) $workDurationMinutes : null,
+                'is_split'              => $sessions->count() > 1,
+                'sessions'              => $sessions,
                 'status'                => $checkin?->status ?? $checkout?->status,
                 'checkin_status'        => $checkin ? [
                     'is_within_geofence' => $checkin->is_within_geofence,
+                    'is_offsite'         => $checkin->is_offsite,
                     'flag_reason'        => $checkin->flag_reason,
                 ] : null,
                 'checkout_status'       => $checkout ? [
                     'is_within_geofence' => $checkout->is_within_geofence,
+                    'is_offsite'         => $checkout->is_offsite,
                     'flag_reason'        => $checkout->flag_reason,
                 ] : null,
             ];
@@ -385,6 +350,21 @@ class AttendanceController extends Controller
             ], 404);
         }
 
+        if ($employee->isAttendanceExempt()) {
+            return response()->json([
+                'success' => true,
+                'data' => [
+                    'next_action'     => 'exempt',
+                    'attendance_type' => $employee->attendance_type,
+                    'work_date'       => today()->toDateString(),
+                    'checkin_time'    => null,
+                    'checkin_at'      => null,
+                    'checkout_time'   => null,
+                    'checkout_at'     => null,
+                ],
+            ]);
+        }
+
         $workDate = $this->resolveWorkDate($employee);
 
         $todayLog = AttendanceLog::where('employee_id', $employee->id)
@@ -392,20 +372,34 @@ class AttendanceController extends Controller
             ->orderBy('logged_at')
             ->get();
 
-        $checkin  = $todayLog->where('type', 'checkin')->first();
-        $checkout = $todayLog->where('type', 'checkout')->first();
+        $shift   = $this->shiftFor($employee, $workDate);
+        $isSplit = $shift?->isSplit() ?? false;
+        $session = $this->resolveSession($shift, $workDate, $todayLog);
+
+        // checkin_time / checkout_time mengikuti sesi yang sedang berjalan, supaya aplikasi lama tetap konsisten
+        $sessionLogs = $todayLog->filter(fn($l) => (int) $l->session === $session);
+        $checkin  = $sessionLogs->where('type', 'checkin')->first();
+        $checkout = $sessionLogs->where('type', 'checkout')->first();
 
         $nextAction = !$checkin ? 'checkin' : (!$checkout ? 'checkout' : 'done');
 
         return response()->json([
             'success' => true,
             'data' => [
-                'next_action'   => $nextAction,
-                'work_date'     => $workDate,
+                'next_action'     => $nextAction,
+                'attendance_type' => $employee->attendance_type,
+                'work_date'       => $workDate,
                 'checkin_time'  => $checkin?->logged_at?->format('H:i'),
                 'checkin_at'    => $checkin?->logged_at,
                 'checkout_time' => $checkout?->logged_at?->format('H:i'),
                 'checkout_at'   => $checkout?->logged_at,
+                // Split shift
+                'is_split'       => $isSplit,
+                'session'        => $session,
+                'total_sessions' => $isSplit ? 2 : 1,
+                'shift_name'     => $shift?->shift_name,
+                'shift_time'     => $shift?->time_label,
+                'sessions'       => $this->sessionSummary($shift, $todayLog),
             ],
         ]);
     }
@@ -445,7 +439,7 @@ class AttendanceController extends Controller
 
         $rosters = $employee->rosters()
             ->whereBetween('date', [$startDate, $endDate])
-            ->with('shift:id,shift_name,start_time,end_time')
+            ->with('shift:id,shift_name,start_time,end_time,is_split,break_start,break_end')
             ->orderBy('date')
             ->get();
 
@@ -459,6 +453,10 @@ class AttendanceController extends Controller
                 'shift_name' => $roster->shift->shift_name ?? null,
                 'start_time' => $roster->shift->start_time ?? null,
                 'end_time' => $roster->shift->end_time ?? null,
+                'is_split' => (bool) $roster->shift?->isSplit(),
+                'break_start' => $roster->shift?->isSplit() ? $roster->shift->break_start : null,
+                'break_end' => $roster->shift?->isSplit() ? $roster->shift->break_end : null,
+                'time_label' => $roster->shift?->time_label,
                 'notes' => $roster->notes,
                 'is_today' => $date->isToday(),
             ];

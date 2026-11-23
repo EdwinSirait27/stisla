@@ -681,7 +681,7 @@ class EmployeeSalaryController extends Controller
             abort(403, 'Unauthorized');
         }
         $request->validate([
-            'file'           => 'required|mimes:xlsx,xls',
+            'file'           => 'required|mimes:xlsx,xls|max:10240',
             'effective_date' => 'required|date',
         ]);
 

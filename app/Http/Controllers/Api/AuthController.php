@@ -270,6 +270,11 @@ class AuthController extends Controller
                 'employee_name' => $user->employee?->employee_name,
                 'email'         => $user->employee?->email,
                 'two_factor'    => $user->hasTwoFactorEnabled(),
+                // Menu yang boleh ditampilkan aplikasi; server tetap memeriksa ulang di setiap endpoint
+                'features'      => [
+                    'employees'        => \App\Http\Controllers\Api\EmployeeDirectoryController::accessLevel($user) !== null,
+                    'employees_access' => \App\Http\Controllers\Api\EmployeeDirectoryController::accessLevel($user),
+                ],
             ],
         ]);
     }

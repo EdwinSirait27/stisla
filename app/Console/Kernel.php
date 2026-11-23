@@ -20,7 +20,9 @@ class Kernel extends ConsoleKernel
     protected function schedule(Schedule $schedule)
     {
         // $schedule->command('inspire')->hourly();
-        $schedule->command('sessions:cleanup')->monthly();
+        // Catatan sesi web yang sudah habis, dan token aplikasi mobile yang sudah kedaluwarsa (lebih dari 24 jam)
+        $schedule->command('sessions:cleanup')->hourly();
+        $schedule->command('sanctum:prune-expired --hours=24')->dailyAt('03:15');
         $schedule->command('payrolls:delete-old')->daily();
         $schedule->command('leave:anniversary')->dailyAt('23:10');
         $schedule->command('reminder:probation')->dailyAt('08:00');

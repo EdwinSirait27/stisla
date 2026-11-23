@@ -6,6 +6,10 @@ use App\Http\Controllers\CompanyController;
 use App\Http\Controllers\ApiController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\AttendanceController;
+use App\Http\Controllers\Api\OvertimeAttendanceController;
+use App\Http\Controllers\Api\HolidayController;
+use App\Http\Controllers\Api\EmployeeDirectoryController;
+use App\Http\Controllers\Api\ToilBalanceController;
 
 /*
 |--------------------------------------------------------------------------
@@ -53,11 +57,20 @@ Route::middleware(['auth:sanctum', 'device.check', 'mobile.access'])->group(func
     Route::middleware('throttle:10,1')->group(function () {
         Route::post('/mobile/attendance/checkin', [AttendanceController::class, 'checkin']);
         Route::post('/mobile/attendance/checkout', [AttendanceController::class, 'checkout']);
+        Route::post('/mobile/overtime/checkin', [OvertimeAttendanceController::class, 'checkin']);
+        Route::post('/mobile/overtime/checkout', [OvertimeAttendanceController::class, 'checkout']);
     });
     // Read-only endpoints
     Route::middleware('throttle:60,1')->group(function () {
         Route::get('/mobile/attendance/history', [AttendanceController::class, 'history']);
         Route::get('/mobile/attendance/today', [AttendanceController::class, 'today']);
+        Route::get('/mobile/overtime/today', [OvertimeAttendanceController::class, 'today']);
+        Route::get('/mobile/overtime/history', [OvertimeAttendanceController::class, 'history']);
+        Route::get('/mobile/holidays', [HolidayController::class, 'index']);
+        Route::get('/mobile/toil/balance', [ToilBalanceController::class, 'index']);
+        // Hanya baca; permission ManageEmployee | ManageEmployeeSPVManager | ViewEmployee dicek di controller
+        Route::get('/mobile/employees', [EmployeeDirectoryController::class, 'index']);
+        Route::get('/mobile/employees/{id}', [EmployeeDirectoryController::class, 'show'])->whereUuid('id');
         Route::get('/mobile/roster', [AttendanceController::class, 'myRoster']);
                 Route::post('/mobile/push-token', [AuthController::class, 'registerPushToken']); // tambahkan di sini
 

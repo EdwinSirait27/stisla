@@ -1432,6 +1432,7 @@
                         <button type="button" class="sh-link" id="btnMissing" hidden aria-expanded="false" aria-controls="sh-missing">Lihat yang belum</button></div>
                     <div><dt>Dipakai di roster</dt><dd id="st-used">–</dd><span>shift yang sudah dijadwalkan</span></div>
                     <div><dt>Lintas hari</dt><dd id="st-night">–</dd><span>jam pulang di hari berikutnya</span></div>
+                    <div><dt>Split shift</dt><dd id="st-split">–</dd><span>dua blok kerja sehari</span></div>
                 </dl>
                 <p class="sh-missing" id="sh-missing" hidden></p>
             </section>
@@ -1497,12 +1498,26 @@
                                 <input type="text" id="shiftName" class="emp-input" maxlength="50" required placeholder="Mis. Pagi, Siang, Malam" autocomplete="off">
                                 <span class="emp-help" id="codeHelp">Kode di template roster: dua huruf pertama nama.</span>
                             </div>
-                            <div class="emp-field">
-                                <label for="shiftStart">Jam masuk <span class="emp-req" aria-hidden="true">*</span></label>
-                                <input type="time" id="shiftStart" class="emp-input" required>
+                            <div class="emp-field is-wide">
+                                <label class="emp-check" for="shiftSplit">
+                                    <input type="checkbox" id="shiftSplit">
+                                    <span><strong>Split shift</strong><small>Dua blok kerja di hari yang sama dengan jeda di tengah, mis. 07:00-11:00 lalu 17:00-21:00. Karyawan absen masuk dan pulang di tiap blok.</small></span>
+                                </label>
                             </div>
                             <div class="emp-field">
-                                <label for="shiftEnd">Jam pulang <span class="emp-req" aria-hidden="true">*</span></label>
+                                <label for="shiftStart"><span class="js-split-label" data-normal="Jam masuk" data-split="Masuk blok 1">Jam masuk</span> <span class="emp-req" aria-hidden="true">*</span></label>
+                                <input type="time" id="shiftStart" class="emp-input" required>
+                            </div>
+                            <div class="emp-field js-split-field" hidden>
+                                <label for="shiftBreakStart">Pulang blok 1 <span class="emp-req" aria-hidden="true">*</span></label>
+                                <input type="time" id="shiftBreakStart" class="emp-input">
+                            </div>
+                            <div class="emp-field js-split-field" hidden>
+                                <label for="shiftBreakEnd">Masuk blok 2 <span class="emp-req" aria-hidden="true">*</span></label>
+                                <input type="time" id="shiftBreakEnd" class="emp-input">
+                            </div>
+                            <div class="emp-field">
+                                <label for="shiftEnd"><span class="js-split-label" data-normal="Jam pulang" data-split="Pulang blok 2">Jam pulang</span> <span class="emp-req" aria-hidden="true">*</span></label>
                                 <input type="time" id="shiftEnd" class="emp-input" required>
                             </div>
                         </div>
@@ -1545,6 +1560,15 @@
                 const h = Math.floor(dur / 60), m = dur % 60;
                 return { night, bars, label: `${h} jam${m ? ' ' + m + ' menit' : ''}` };
             }
+            /** Split shift: dua blok di hari yang sama, durasi tanpa jeda. */
+            function splitSpan(start, bStart, bEnd, end) {
+                const a = mins(start), b = mins(bStart), c = mins(bEnd), d = mins(end);
+                if ([a, b, c, d].includes(null) || !(a < b && b < c && c < d)) return null;
+                const pct = v => (v / 1440 * 100).toFixed(2) + '%';
+                const dur = (b - a) + (d - c), gap = c - b;
+                const fmt = v => `${Math.floor(v / 60)} jam${v % 60 ? ' ' + (v % 60) + ' menit' : ''}`;
+                return { night: false, split: true, bars: [[pct(a), pct(b - a)], [pct(c), pct(d - c)]], label: `${fmt(dur)} kerja, jeda ${fmt(gap)}` };
+            }
             const barHtml = sp => `<div class="sh-day" aria-hidden="true">${sp.bars.map(([l, w]) => `<i style="left:${l};width:${w}"></i>`).join('')}</div>`;
 
             $('.js-s2').each(function() { $(this).select2({ width: '100%' }); });
@@ -1569,6 +1593,11 @@
                     { data: 'store_name', name: 'store_name', render: d => `<span class="pr-cell-name">${esc(d)}</span>` },
                     { data: 'shift_name', name: 'shifts_tables.shift_name', render: (d, t, r) => `<span class="sh-code" title="Kode di template roster">${esc(r.code)}</span><span class="pr-cell-name" style="display:inline">${esc(d)}</span>` },
                     { data: 'start_time', name: 'shifts_tables.start_time', searchable: false, render: (d, t, r) => {
+                        if (r.is_split) {
+                            const ss = splitSpan(r.start_time, r.break_start, r.break_end, r.end_time);
+                            const txt = `${esc(r.start_time)}–${esc(r.break_start)} / ${esc(r.break_end)}–${esc(r.end_time)}`;
+                            return `<span class="sh-time">${txt}</span><span class="sh-night">split</span>${ss ? `<span class="pr-cell-sub">${ss.label}</span>${barHtml(ss)}` : ''}`;
+                        }
                         const sp = span(r.start_time, r.end_time);
                         if (!sp) return `<span class="sh-time">${esc(r.start_time)}–${esc(r.end_time)}</span>`;
                         return `<span class="sh-time">${esc(r.start_time)}–${esc(r.end_time)}</span>${sp.night ? '<span class="sh-night">lintas hari</span>' : ''}<span class="pr-cell-sub">${sp.label}</span>${barHtml(sp)}`;
@@ -1598,6 +1627,7 @@
                     if (!miss.length) $('#sh-missing').prop('hidden', true);
                     $('#st-used').html(`${n(s.used)} <small>/ ${n(s.total)}</small>`);
                     $('#st-night').text(n(s.overnight));
+                    $('#st-split').text(n(s.split));
                     rows = {}; (j.data || []).forEach(r => rows[r.id] = r);
                 },
             });
@@ -1616,20 +1646,33 @@
                 function preview() {
                     const name = ($('#shiftName').val() || '').trim().toUpperCase();
                     $('#codeHelp').text(name.length >= 2 ? `Kode di template roster: ${name.slice(0, 2)}` : 'Kode di template roster: dua huruf pertama nama.');
-                    const sp = span($('#shiftStart').val(), $('#shiftEnd').val());
+                    const split = $('#shiftSplit').is(':checked');
+                    $('.js-split-field').prop('hidden', !split);
+                    $('.js-split-label').each(function() { $(this).text($(this).data(split ? 'split' : 'normal')); });
+                    const sp = split
+                        ? splitSpan($('#shiftStart').val(), $('#shiftBreakStart').val(), $('#shiftBreakEnd').val(), $('#shiftEnd').val())
+                        : span($('#shiftStart').val(), $('#shiftEnd').val());
                     const bars = sp ? sp.bars : [];
                     ['#previewBar1', '#previewBar2'].forEach((id, i) => $(id).css(bars[i] ? { left: bars[i][0], width: bars[i][1], display: 'block' } : { display: 'none' }));
+                    if (split) {
+                        $('#previewText').html(sp
+                            ? `Durasi <strong>${sp.label}</strong>.`
+                            : 'Isi keempat jam berurutan di hari yang sama: masuk blok 1, pulang blok 1, masuk blok 2, pulang blok 2.');
+                        return;
+                    }
                     $('#previewText').html(sp
                         ? `Durasi <strong>${sp.label}</strong>${sp.night ? ', pulang <strong>keesokan harinya</strong>' : ''}.`
                         : ($('#shiftStart').val() && $('#shiftStart').val() === $('#shiftEnd').val() ? 'Jam pulang tidak boleh sama dengan jam masuk.' : 'Isi jam masuk dan pulang.'));
                 }
-                $('#shiftName, #shiftStart, #shiftEnd').on('input change', preview);
+                $('#shiftName, #shiftStart, #shiftEnd, #shiftBreakStart, #shiftBreakEnd, #shiftSplit').on('input change', preview);
 
                 function openModal(r) {
                     $('#modalTitle').text(r ? `Ubah shift ${r.shift_name}` : 'Tambah shift');
                     $('#shiftId').val(r?.id ?? '');
                     $('#shiftStore').val(r?.store_id ?? ($('#filterStore').val() || '')).trigger('change');
                     $('#shiftName').val(r?.shift_name ?? ''); $('#shiftStart').val(r?.start_time ?? ''); $('#shiftEnd').val(r?.end_time ?? '');
+                    $('#shiftSplit').prop('checked', !!r?.is_split);
+                    $('#shiftBreakStart').val(r?.break_start ?? ''); $('#shiftBreakEnd').val(r?.break_end ?? '');
                     const used = r?.roster_count || 0;
                     $('#usageWarn').prop('hidden', !used).text(used ? `Dipakai di ${n(used)} jadwal roster. Lokasinya tidak bisa dipindah, dan jam baru berlaku untuk semua jadwal tersebut.` : '');
                     preview(); $m.modal('show');
@@ -1645,13 +1688,17 @@
                     if (($('#shiftName').val() || '').trim().length < 2) miss.push('nama shift (minimal 2 karakter)');
                     if (!$('#shiftStart').val()) miss.push('jam masuk');
                     if (!$('#shiftEnd').val()) miss.push('jam pulang');
+                    const split = $('#shiftSplit').is(':checked');
+                    if (split && !$('#shiftBreakStart').val()) miss.push('pulang blok 1');
+                    if (split && !$('#shiftBreakEnd').val()) miss.push('masuk blok 2');
                     if (miss.length) return Swal.fire({ icon: 'error', title: 'Belum lengkap', text: 'Isi dulu: ' + miss.join(', ') + '.' });
                     const $b = $('#btnSave').prop('disabled', true).text('Menyimpan');
                     $.ajax({
                         url: id ? '{{ url('/shifts') }}/' + encodeURIComponent(id) : '{{ route('shifts.store') }}',
                         type: id ? 'PUT' : 'POST',
                         headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}', Accept: 'application/json' },
-                        data: { store_id: $('#shiftStore').val(), shift_name: $('#shiftName').val(), start_time: $('#shiftStart').val(), end_time: $('#shiftEnd').val() },
+                        data: { store_id: $('#shiftStore').val(), shift_name: $('#shiftName').val(), start_time: $('#shiftStart').val(), end_time: $('#shiftEnd').val(),
+                            is_split: split ? 1 : 0, break_start: split ? $('#shiftBreakStart').val() : '', break_end: split ? $('#shiftBreakEnd').val() : '' },
                     })
                         .done(res => { $m.modal('hide'); table.ajax.reload(null, false); Swal.fire({ icon: 'success', title: 'Tersimpan', text: res.message, timer: 2200 }); })
                         .fail(x => Swal.fire({ icon: 'error', title: 'Tidak bisa disimpan', text: x.responseJSON?.errors ? Object.values(x.responseJSON.errors).flat().join('\n') : (x.responseJSON?.message ?? 'Terjadi kesalahan.') }))
@@ -1661,7 +1708,7 @@
                 $(document).on('click', '.btn-delete', function() {
                     const r = rows[$(this).data('id')]; if (!r) return;
                     Swal.fire({
-                        icon: 'warning', title: `Hapus shift ${r.shift_name}?`, text: `${r.store_name}, ${r.start_time}–${r.end_time}. Shift ini belum dipakai di roster.`,
+                        icon: 'warning', title: `Hapus shift ${r.shift_name}?`, text: `${r.store_name}, ${r.is_split ? `${r.start_time}–${r.break_start} / ${r.break_end}–${r.end_time}` : `${r.start_time}–${r.end_time}`}. Shift ini belum dipakai di roster.`,
                         showCancelButton: true, confirmButtonText: 'Hapus', cancelButtonText: 'Batal', confirmButtonColor: '#dc2626', focusCancel: true,
                     }).then(res => {
                         if (!res.isConfirmed) return;

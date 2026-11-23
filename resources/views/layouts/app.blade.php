@@ -1,11 +1,12 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="id">
 
 <head>
     <meta charset="UTF-8">
-    <meta content="width=device-width, initial-scale=1, maximum-scale=1, shrink-to-fit=no" name="viewport">
+    <meta content="width=device-width, initial-scale=1, shrink-to-fit=no" name="viewport">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>@yield('title') &mdash; Asian Bay Development</title>
+    <title>@yield('title') | HRX Asian Bay Development</title>
+    <meta name="description" content="HRX, sistem HR Asian Bay Development: data karyawan, absensi, roster, cuti, lembur, dan payroll.">
     <!-- General CSS Files -->
     <link rel="stylesheet" href="{{ asset('library/bootstrap/dist/css/bootstrap.min.css') }}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css"
@@ -20,22 +21,14 @@
     <link rel="stylesheet" href="{{ asset('css/mobile-nav.css') }}">
     <link rel="stylesheet" href="{{ asset('css/components.css') }}">
     <link rel="stylesheet" href="{{ mix('css/app.css') }}">
-    <!-- Start GA -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=UA-94034622-3"></script>
-
-    <script>
-        window.dataLayer = window.dataLayer || [];
-
-        function gtag() {
-            dataLayer.push(arguments);
-        }
-        gtag('js', new Date());
-        gtag('config', 'UA-94034622-3');
-    </script>
-    <script src="{{ mix('js/app.js') }}" defer></script>
+    <link rel="stylesheet" href="{{ asset('css/shell.css') }}">
+    {{-- Google Analytics bawaan template Stisla (UA-94034622-3, milik pembuat template) dihapus:
+         data pemakaian aplikasi HR tidak boleh terkirim ke akun pihak lain.
+         app.js juga tidak lagi dimuat dua kali (Alpine.js sempat terinisialisasi ganda). --}}
 </head>
 
 <body>
+    <a href="#main-content" class="shell-skip">Lewati ke konten</a>
     <div id="app">
         <div class="main-wrapper">
             <!-- Header -->
@@ -45,7 +38,9 @@
             @include('components.sidebar')
 
             <!-- Content -->
-            @yield('main')
+            <div id="main-content" tabindex="-1">
+                @yield('main')
+            </div>
             @include('components.mobile-bottom-nav')
 
             <!-- Footer -->
@@ -68,51 +63,80 @@
     <script src="{{ asset('js/custom.js') }}"></script>
     <script src="{{ mix('js/app.js') }}"></script>
 
+    <!-- Peringatan keluar otomatis -->
+    <div class="shell-idle" id="shell-idle" role="alertdialog" aria-modal="true" aria-labelledby="shell-idle-title" aria-describedby="shell-idle-text" hidden>
+        <div class="shell-idle-box">
+            <h2 id="shell-idle-title">Anda akan keluar otomatis</h2>
+            <p id="shell-idle-text">Tidak ada aktivitas hampir 60 menit. Anda akan keluar dalam <strong id="shell-idle-left">2:00</strong>. Data yang belum disimpan akan hilang.</p>
+            <div class="shell-idle-actions">
+                <button type="button" id="shell-idle-logout">Keluar sekarang</button>
+                <button type="button" class="is-primary" id="shell-idle-stay">Tetap masuk</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Main scripts that should always run -->
     <script>
-        // Wrap in IIFE to avoid global scope pollution
         (function() {
-            // Inactivity timer
-            let inactivityTime = function() {
-                let time;
+            if (window.inactivityTimerInitialized) return;
+            window.inactivityTimerInitialized = true;
 
-                // Reset timer on these events
-                window.onload = resetTimer;
-                document.onmousemove = resetTimer;
-                document.onkeypress = resetTimer;
+            const IDLE_MS = 60 * 60 * 1000;   // keluar otomatis setelah 60 menit tidak aktif
+            const WARN_MS = 2 * 60 * 1000;    // peringatan 2 menit sebelumnya
+            const KEY = 'hrx:last-activity'; // dibagi antar tab: aktif di satu tab menjaga tab lain tetap masuk
+            const box = document.getElementById('shell-idle');
+            const left = document.getElementById('shell-idle-left');
+            let lastWrite = 0;
 
-                function logout() {
-                    // Check if we're already logging out to prevent multiple calls
-                    if (window.loggingOut) return;
-                    window.loggingOut = true;
-
-                    // Panggil route logout
-                    fetch('{{ route('logout') }}', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-CSRF-TOKEN': '{{ csrf_token() }}'
-                        }
-                    }).then(() => {
-                        window.location.href = '/';
-                    }).catch(() => {
-                        window.loggingOut = false;
-                    });
+            const last = () => Math.max(Number(localStorage.getItem(KEY)) || 0, window.__hrxLocalActivity || 0);
+            function markActive() {
+                const now = Date.now();
+                window.__hrxLocalActivity = now;
+                if (now - lastWrite > 5000) { // cukup sekali per 5 detik
+                    lastWrite = now;
+                    try { localStorage.setItem(KEY, String(now)); } catch (e) {}
                 }
+                if (!box.hidden) hideWarning();
+            }
+            function hideWarning() { box.hidden = true; }
 
-                function resetTimer() {
-                    clearTimeout(time);
-                    time = setTimeout(logout, 3600000);
+            function logout() {
+                if (window.loggingOut) return;
+                window.loggingOut = true;
+                fetch('{{ route('logout') }}', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}' }
+                }).then(() => { window.location.href = '/'; })
+                  .catch(() => { window.loggingOut = false; });
+            }
+
+            ['mousemove', 'mousedown', 'keydown', 'touchstart', 'scroll', 'wheel'].forEach(ev =>
+                window.addEventListener(ev, () => { if (box.hidden) markActive(); }, { passive: true, capture: true }));
+            document.getElementById('shell-idle-stay').addEventListener('click', markActive);
+            document.getElementById('shell-idle-logout').addEventListener('click', logout);
+            markActive();
+
+            setInterval(() => {
+                const idle = Date.now() - last();
+                if (idle >= IDLE_MS) return logout();
+                if (idle >= IDLE_MS - WARN_MS) {
+                    const sec = Math.ceil((IDLE_MS - idle) / 1000);
+                    left.textContent = Math.floor(sec / 60) + ':' + String(sec % 60).padStart(2, '0');
+                    if (box.hidden) { box.hidden = false; document.getElementById('shell-idle-stay').focus(); }
+                } else if (!box.hidden) {
+                    hideWarning(); // tab lain aktif
                 }
-            };
-            // Initialize only if not already initialized
-            if (!window.inactivityTimerInitialized) {
-                inactivityTime();
-                window.inactivityTimerInitialized = true;
+            }, 1000);
+
+            // Jam WITA di bar atas, mengikuti zona waktu aplikasi walau HP di zona lain
+            const clock = document.getElementById('shell-clock');
+            if (clock) {
+                const fmt = new Intl.DateTimeFormat('id-ID', { hour: '2-digit', minute: '2-digit', timeZone: @json(config('app.timezone')) });
+                const tick = () => { clock.textContent = fmt.format(new Date()); };
+                tick(); setInterval(tick, 15000);
             }
         })();
     </script>
-
 
     @stack('scripts')
 

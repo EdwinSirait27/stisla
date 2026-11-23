@@ -118,9 +118,7 @@ class RosterController extends Controller
             } elseif ($roster->shift) {
                 $badgeClass = 'r-badge r-work';
                 $badgeName  = $roster->shift->shift_name;
-                $badgeTime  = substr($roster->shift->start_time, 0, 5)
-                    . '-'
-                    . substr($roster->shift->end_time, 0, 5);
+                $badgeTime  = $roster->shift->time_label;
                 $cellType   = 'work';
             } else {
                 $badgeClass = 'r-badge r-work';
@@ -187,21 +185,10 @@ class RosterController extends Controller
             && !$user->hasPermissionTo('ManageRoster');
     }
 
+    /** Jendela SPV/manager mengubah roster; diatur di halaman Pengaturan roster (RosterSettingController). */
     private function checkRosterWindow(): bool
     {
-        $setting = RosterSetting::where('is_active', true)->latest()->first();
-        if (!$setting) return false;
-
-        $today    = now()->day;
-        $openDay  = $setting->open_day;
-        $closeDay = $setting->close_day;
-
-        if ($openDay <= $closeDay) {
-            return $today >= $openDay && $today <= $closeDay;
-        }
-
-        // Lintas bulan: misal open 25, close 3
-        return $today >= $openDay || $today <= $closeDay;
+        return RosterSetting::isWithinWindow();
     }
 
     public function index(Request $request)
@@ -319,7 +306,7 @@ if ($hasStore) {
         'department' => fn($q) => $q->wherePivot('is_primary', true),
         'rosters'    => fn($q) => $q
             ->whereBetween('date', [$startDate, $endDate])
-            ->with('shift:id,shift_name,start_time,end_time'),
+            ->with('shift:id,shift_name,start_time,end_time,is_split,break_start,break_end'),
     ])
         ->select('id', 'employee_name', 'status_employee', 'status', 'company_id')
         ->whereNull('deleted_at')
@@ -610,14 +597,11 @@ if ($hasStore) {
                 'sick_attachment.max'      => 'Ukuran file maksimal 5MB.',
             ]);
 
-            $file     = $request->file('sick_attachment');
-            $ext      = strtolower($file->getClientOriginalExtension());
-            $safeName = Str::slug($employee?->employee_name ?? 'employee');
-            $fileName = $safeName . '-' . now()->timestamp . '-sick.' . $ext;
-            $folder   = 'employee-sickness';
-
-            Storage::disk('s3')->putFileAs($folder, $file, $fileName);
-            $sickAttachmentPath = $folder . '/' . $fileName;
+            // Foto dikompres & dibersihkan, PDF apa adanya; ekstensi dari isi file
+            $sickAttachmentPath = app(\App\Services\UploadStorage::class)->put(
+                $request->file('sick_attachment'), 'employee-sickness', ($employee?->employee_name ?? 'employee') . '-sick',
+                ['jpg', 'jpeg', 'png', 'pdf'], 's3', false, 'sick_attachment'
+            );
 
             Log::info('[SICK] Upload selesai', [
                 'path'   => $sickAttachmentPath,
@@ -691,9 +675,7 @@ if ($hasStore) {
             'success'     => true,
             'roster'      => $roster->load('shift'),
             'roster_name' => $roster->shift?->shift_name ?? $request->day_type,
-            'roster_time' => $roster->shift
-                ? substr($roster->shift->start_time, 0, 5) . '-' . substr($roster->shift->end_time, 0, 5)
-                : '',
+            'roster_time' => $roster->shift?->time_label ?? '',
         ]);
     }
     public function destroy(Request $request)
@@ -1606,7 +1588,7 @@ if ($hasStore) {
             'employee:id,employee_name,status_employee',
             'employee.department' => fn($q) => $q->wherePivot('is_primary', true),
             'employee.position'   => fn($q) => $q->wherePivot('is_primary', true),
-            'shift:id,shift_name,start_time,end_time',
+            'shift:id,shift_name,start_time,end_time,is_split,break_start,break_end',
         ])
             ->whereBetween('date', [$request->start_date, $request->end_date])
             ->whereHas('employee', function ($q) use ($request, $myEmployee, $canManageAll, $canManageSPV, $canViewOwn) {
@@ -1684,6 +1666,7 @@ elseif ($canViewOwn) {
                         'shift_name' => $r->shift?->shift_name ?? '-',
                         'start_time' => $r->shift ? substr($r->shift->start_time, 0, 5) : '',
                         'end_time'   => $r->shift ? substr($r->shift->end_time, 0, 5) : '',
+                        'time_label' => $r->shift?->time_label ?? '',
                         'notes'      => $r->notes ?? '-',
                     ])->values(),
                 ];

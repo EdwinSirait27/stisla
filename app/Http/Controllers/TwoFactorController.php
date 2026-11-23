@@ -77,9 +77,12 @@ class TwoFactorController extends Controller
         $rateLimiterKey = "2fa:{$user->id}";
 
         if (RateLimiter::tooManyAttempts($rateLimiterKey, 10)) {
+            // Sesi kode diakhiri: user kembali ke login dan tahu harus menunggu, bukan terus mencoba
+            // sampai terbentur batas route (HTTP 429).
             $this->log2FAEvent($user, 'failed', $request);
+            $request->session()->forget('2fa');
             $minutes = max(1, (int) ceil(RateLimiter::availableIn($rateLimiterKey) / 60));
-            return back()->withErrors(['code' => "Terlalu banyak percobaan. Coba lagi dalam {$minutes} menit."]);
+            return redirect()->route('login')->withErrors(['throttle' => "Terlalu banyak kode 2FA yang salah. Coba login lagi dalam {$minutes} menit."]);
         }
 
         $inputCode  = strtoupper(trim($request->code));
@@ -99,7 +102,8 @@ class TwoFactorController extends Controller
         if (!$valid) {
             RateLimiter::hit($rateLimiterKey, 300);
             $this->log2FAEvent($user, 'failed', $request);
-            return back()->withErrors(['code' => 'Kode tidak valid atau sudah dipakai. Tunggu kode berikutnya di aplikasi Authenticator.']);
+            $left = max(0, 10 - RateLimiter::attempts($rateLimiterKey));
+            return back()->withErrors(['code' => 'Kode tidak valid atau sudah dipakai. Tunggu kode berikutnya di aplikasi Authenticator.' . ($left <= 5 ? " Sisa {$left} percobaan." : '')]);
         }
 
         RateLimiter::clear($rateLimiterKey);
@@ -138,7 +142,8 @@ class TwoFactorController extends Controller
                     ->withProperties(['channel' => 'web-2fa-email', 'ip' => $request->ip(), 'user_agent' => substr((string) $request->userAgent(), 0, 255)])
                     ->log('Percobaan login email + 2FA gagal: kode salah');
             }
-            return back()->withErrors(['code' => 'Kode tidak valid atau sudah dipakai. Tunggu kode berikutnya di aplikasi Authenticator.']);
+            $left = max(0, self::EMAIL_MODE_MAX_FAILS - RateLimiter::attempts($limitKey));
+            return back()->withErrors(['code' => 'Kode tidak valid atau sudah dipakai. Tunggu kode berikutnya di aplikasi Authenticator.' . " Sisa {$left} percobaan sebelum login dengan 2FA dikunci 24 jam."]);
         }
 
         RateLimiter::clear($limitKey);
@@ -173,11 +178,11 @@ class TwoFactorController extends Controller
             return redirect()->route('login')->withErrors(['/' => 'Akun ini tidak dapat digunakan untuk login. Hubungi HR.']);
         }
 
-        Auth::login($user); // tanpa "ingat saya": cookie remember akan melewati 2FA di kunjungan berikutnya
+        Auth::login($user); // tanpa "ingat saya"
         $request->session()->regenerate();
         $this->log2FAEvent($user, $event, $request);
 
-        return $loginSession->finish($request, $user, false, false);
+        return $loginSession->finish($request, $user, false);
     }
 
     /**

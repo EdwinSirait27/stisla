@@ -289,8 +289,10 @@ class ContractController extends Controller
             // FILE
             // ========================================================
             if ($request->hasFile('file_path')) {
-                $validated['file_path'] = $request->file('file_path')
-                    ->store('contracts', 'public');
+                // Dokumen kontrak disimpan di S3 privat (bukan disk public yang bisa dibuka tanpa login)
+                $validated['file_path'] = app(\App\Services\UploadStorage::class)->put(
+                    $request->file('file_path'), 'contracts', 'contract-' . $employee->employee_name, ['pdf'], 's3', false, 'file_path'
+                );
             }
             // ========================================================
             // CREATE

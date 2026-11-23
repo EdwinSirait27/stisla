@@ -110,11 +110,11 @@
                                 <div class="emp-field is-wide">
                                     <span class="emp-label">Status kepegawaian</span>
                                     <div class="lt-chips">
-                                        @foreach ($statusOptions as $s)
-                                            <label class="emp-check lt-chip"><input type="checkbox" name="allowed_status[]" value="{{ $s }}" @checked(in_array($s, (array) $statusSel, true))><span><strong>{{ $s }}</strong></span></label>
+                                        @foreach ($statusOptions as $s => $label)
+                                            <label class="emp-check lt-chip"><input type="checkbox" name="allowed_status[]" value="{{ $s }}" @checked(in_array($s, (array) $statusSel, true))><span><strong>{{ $label }}</strong></span></label>
                                         @endforeach
                                     </div>
-                                    <span class="emp-help">Tidak dicentang sama sekali berarti semua status. DW, On Job Training, dan Resign selalu ditolak karena tidak punya hak cuti.</span>
+                                    <span class="emp-help">Tidak dicentang sama sekali berarti semua status kecuali DW dan On Job Training (keduanya tidak punya hak cuti secara default). Centang DW atau On Job Training kalau cuti ini memang berlaku untuk mereka.</span>
                                     @error('allowed_status')<span class="emp-error">{{ $message }}</span>@enderror
                                     @error('allowed_status.*')<span class="emp-error">{{ $message }}</span>@enderror
                                 </div>

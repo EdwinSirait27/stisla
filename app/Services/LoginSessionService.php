@@ -27,9 +27,16 @@ class LoginSessionService
     public const PENDING_TTL = 120; // detik
 
     /** Dipanggil saat user SUDAH lolos password (dan 2FA kalau aktif) dan sudah Auth::login. */
-    public function finish(Request $request, User $user, bool $force, bool $remember): RedirectResponse
+    public function finish(Request $request, User $user, bool $force): RedirectResponse
     {
         $currentSessionId = $request->session()->getId();
+
+        // Catatan sesi yang sudah habis bukan "perangkat lain": hapus supaya tidak memicu konfirmasi palsu
+        UserSession::where('user_id', $user->id)
+            ->where('session_id', '!=', $currentSessionId)
+            ->where(fn($q) => $q->whereNull('last_activity')
+                ->orWhere('last_activity', '<', now()->subMinutes(UserSessionService::staleAfterMinutes())))
+            ->delete();
 
         $hasOtherSession = UserSession::where('user_id', $user->id)
             ->where('session_id', '!=', $currentSessionId)
@@ -43,7 +50,6 @@ class LoginSessionService
             $request->session()->put(self::PENDING_KEY, [
                 'token_hash' => hash('sha256', $token),
                 'user_id'    => $user->id,
-                'remember'   => $remember,
                 'expires_at' => now()->addSeconds(self::PENDING_TTL)->timestamp,
             ]);
 
@@ -54,9 +60,8 @@ class LoginSessionService
         }
 
         if ($hasOtherSession) {
-            UserSession::where('user_id', $user->id)
-                ->where('session_id', '!=', $currentSessionId)
-                ->delete();
+            // Hancurkan juga session Redis-nya, bukan hanya catatannya
+            app(UserSessionService::class)->terminateWebSessions($user, $currentSessionId);
             Log::info('Other device sessions terminated by force login', ['user_id' => $user->id, 'ip' => $request->ip()]);
         }
 

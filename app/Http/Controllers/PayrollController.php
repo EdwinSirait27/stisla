@@ -1262,7 +1262,7 @@ class PayrollController extends Controller
         }
 
         $request->validate([
-            'file' => 'required|mimes:xlsx,xls',
+            'file' => 'required|mimes:xlsx,xls|max:10240',
         ]);
 
         try {

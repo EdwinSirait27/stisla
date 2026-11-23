@@ -123,11 +123,21 @@ class LeaverequestController extends Controller
             ], 422);
         }
 
-        // 2b. GUARD: DW / On Job Training tidak punya hak cuti.
-        if ($this->isBlockedStatus($employee->status_employee ?? null)) {
+        // 2a'. Jenis cuti yang dinonaktifkan HR tidak bisa diajukan lagi walau saldonya masih ada.
+        if ($rules && !$rules->is_active) {
             return response()->json([
                 'title' => 'Gagal',
-                'text'  => 'Status karyawan Anda (' . ($employee->status_employee ?? '-') . ') tidak memiliki hak cuti.',
+                'text'  => $leaveTypeName . ' sudah tidak aktif. Hubungi HR.',
+                'icon'  => 'error',
+            ], 422);
+        }
+
+        // 2b. GUARD: DW / On Job Training tidak punya hak cuti, kecuali jenis cuti khusus ini
+        //     mencentang status mereka secara eksplisit (Master Jenis cuti → Status kepegawaian).
+        if (!$this->statusAllowed($employee->status_employee ?? null, $rules)) {
+            return response()->json([
+                'title' => 'Gagal',
+                'text'  => 'Status karyawan Anda (' . ($employee->status_employee ?? '-') . ') tidak memiliki hak ' . $leaveTypeName . '.',
                 'icon'  => 'error',
             ], 422);
         }
@@ -237,6 +247,15 @@ class LeaverequestController extends Controller
             : [];
         $totalDays = $start->diffInDays($end) + 1 - count($phDates);
 
+        // Batas durasi maksimal per pengajuan (cuti khusus dengan durasi tidak dikunci)
+        if ($isSpecial && empty($rules->fixed_days) && !empty($rules->max_days) && $totalDays > (int) $rules->max_days) {
+            return response()->json([
+                'title' => 'Gagal',
+                'text'  => $leaveTypeName . ' maksimal ' . (int) $rules->max_days . ' hari per pengajuan, Anda mengajukan ' . $totalDays . ' hari.',
+                'icon'  => 'error',
+            ], 422);
+        }
+
         if ($totalDays <= 0) {
             return response()->json([
                 'title' => 'Tidak Perlu Cuti',
@@ -280,7 +299,11 @@ class LeaverequestController extends Controller
         // 8. Simpan lampiran ke S3 (jika ada)
         $attachmentPath = null;
         if ($request->hasFile('attachment')) {
-            $attachmentPath = $request->file('attachment')->store('leave-attachments', 's3');
+            // Foto dikompres & dibersihkan, PDF apa adanya; ekstensi dari isi file
+            $attachmentPath = app(\App\Services\UploadStorage::class)->put(
+                $request->file('attachment'), 'leave-attachments', 'leave-attachment',
+                ['jpg', 'jpeg', 'png', 'pdf'], 's3', false, 'attachment'
+            );
         }
 
         // 9. Simpan pengajuan
@@ -319,11 +342,28 @@ class LeaverequestController extends Controller
         return $dayType !== '' ? $dayType : 'Leave';
     }
 
-    /** DW / On Job Training tidak punya hak cuti. */
+    /** DW / On Job Training tidak punya hak cuti secara default. */
     private function isBlockedStatus(?string $statusEmployee): bool
     {
-        $status = strtoupper($statusEmployee ?? '');
+        $status = strtoupper(trim($statusEmployee ?? ''));
         return $status === 'DW' || $status === 'ON JOB TRAINING';
+    }
+
+    /**
+     * Status boleh memakai jenis cuti ini? DW / On Job Training hanya boleh kalau jenis cuti khusus
+     * mencantumkan statusnya di allowed_status (sama dengan aturan leave:generate-special).
+     */
+    private function statusAllowed(?string $statusEmployee, $rules): bool
+    {
+        if (!$this->isBlockedStatus($statusEmployee)) {
+            return true;
+        }
+        if (!($rules->is_special ?? false)) {
+            return false;
+        }
+        $allowed = array_map(fn($s) => strtoupper(trim($s)), explode(',', (string) ($rules->allowed_status ?? '')));
+
+        return in_array(strtoupper(trim((string) $statusEmployee)), $allowed, true);
     }
 
     public function approve(Request $request, $id)
@@ -382,7 +422,7 @@ class LeaverequestController extends Controller
         $employee = $balance->employees;
         $rules    = $balance->leaves;
 
-        if ($rosterEmployeeId && !$this->isBlockedStatus($employee?->status_employee)) {
+        if ($rosterEmployeeId && $this->statusAllowed($employee?->status_employee, $rules)) {
             $dayType = $this->resolveDayType($rules);
             $current = Carbon::parse($leaveRequest->start_date);
             $end     = Carbon::parse($leaveRequest->end_date);

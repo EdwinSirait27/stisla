@@ -432,7 +432,7 @@ class RosterShiftSheet implements WithEvents, WithTitle
                 $storeName = Stores::find($this->storeId)?->name ?? '-';
                 $shifts    = Shifts::where('store_id', $this->storeId)
                     ->orderBy('shift_name')
-                    ->get(['shift_name', 'start_time', 'end_time','code']);
+                    ->get(['shift_name', 'start_time', 'end_time', 'code', 'is_split', 'break_start', 'break_end']);
  
                 // ── Judul ──
                 $sheet->setCellValue('A1', "Daftar Shift — {$storeName}");
@@ -468,8 +468,10 @@ class RosterShiftSheet implements WithEvents, WithTitle
                     foreach ($shifts as $idx => $shift) {
                         $r = $idx + 3;
                         $sheet->setCellValue("A{$r}", $shift->shift_name);
-                        $sheet->setCellValue("B{$r}", substr($shift->start_time, 0, 5));
-                        $sheet->setCellValue("C{$r}", substr($shift->end_time, 0, 5));
+                        // Split shift: "07:00 / 17:00" di jam mulai, "11:00 / 21:00" di jam selesai
+                        $blocks = $shift->blocks();
+                        $sheet->setCellValue("B{$r}", collect($blocks)->map(fn($bl) => substr((string) $bl[0], 0, 5))->implode(' / '));
+                        $sheet->setCellValue("C{$r}", collect($blocks)->map(fn($bl) => substr((string) $bl[1], 0, 5))->implode(' / '));
                         $sheet->setCellValue("D{$r}", strtoupper($shift->code)); // ← pakai code
  
                         $sheet->getStyle("A{$r}:D{$r}")->applyFromArray([

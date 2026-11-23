@@ -35,23 +35,21 @@ class DashManagerController extends Controller
 
         $employee = Auth::user()->employee;
 
-        // Bawahan langsung (approval cuti)
-        $team = $teams->subordinates($employee);
-        $teamToday = $teams->today($team);
-        $pending = $teams->pendingLeaves($team->pluck('id')->all());
+        // Approval cuti tetap hanya dari bawahan langsung (approver = atasan, sama dengan LeaverequestController)
+        $pending = $teams->pendingLeaves($teams->subordinates($employee)->pluck('id')->all());
 
-        // Seluruh karyawan di store utama manager
-        $stores = $employee ? $employee->primaryStore()->get(['stores_tables.id', 'stores_tables.name']) : collect();
-        $storeToday = $teams->today($teams->storeEmployees($stores->pluck('id')->all()));
+        // Kehadiran tim: store + departemen yang sama, ditambah bawahan langsung.
+        // Dulu memakai seluruh karyawan store utama, jadi manager di Holding melihat seluruh Holding.
+        $team = $teams->teamEmployees($employee);
+        $teamToday = $teams->today($team);
+        $hasPlacement = $employee && $employee->store()->exists() && $employee->department()->exists();
 
         return view('pages.dashboardManager.dashboardManager', array_merge($viewData, [
             'teamToday'     => $teamToday['rows'],
             'teamStats'     => $teamToday['stats'],
             'pendingLeaves' => $pending['items'],
             'pendingCount'  => $pending['count'],
-            'stores'        => $stores,
-            'storeToday'    => $storeToday['rows'],
-            'storeStats'    => $storeToday['stats'],
+            'hasPlacement'  => $hasPlacement,
         ]));
     }
 

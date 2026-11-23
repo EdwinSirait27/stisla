@@ -218,7 +218,7 @@ public function index()
         //     ->whereBetween('date', [$startDate->toDateString(), $endDate->toDateString()])
         //     ->get()
         //     ->keyBy(fn($r) => $r->employee_id . '_' . Carbon::parse($r->date)->toDateString());
-        $rosters = Roster::with('shift:id,start_time,end_time')
+        $rosters = Roster::with('shift:id,start_time,end_time,is_split,break_start,break_end')
     ->whereIn('employee_id', $employeeIds)
     ->whereBetween('date', [$startDate->toDateString(), $endDate->toDateString()])
     ->get()
@@ -281,7 +281,7 @@ foreach ($rawScans as $scan) {
         if ($isPrevOvernight && !$hasTimeInToday) {
             // ← Scan pulang ini milik shift hari sebelumnya
             if (!isset($grouped[$pin][$prevDate])) {
-                $grouped[$pin][$prevDate] = ['time_in' => null, 'time_out' => null, 'device_sn' => $sn];
+                $grouped[$pin][$prevDate] = ['time_in' => null, 'time_out' => null, 'device_sn' => $sn, 'scans' => []];
             }
             $grouped[$pin][$prevDate]['time_out'] = $time;
             continue; // ← jangan masukkan ke tanggal hari ini
@@ -289,8 +289,10 @@ foreach ($rawScans as $scan) {
     }
 
     if (!isset($grouped[$pin][$date])) {
-        $grouped[$pin][$date] = ['time_in' => null, 'time_out' => null, 'device_sn' => $sn];
+        $grouped[$pin][$date] = ['time_in' => null, 'time_out' => null, 'device_sn' => $sn, 'scans' => []];
     }
+    // Semua scan hari itu disimpan untuk split shift (dua pasang masuk/pulang)
+    $grouped[$pin][$date]['scans'][] = [$time, $mode];
 
     if ($mode === 1 && $grouped[$pin][$date]['time_in'] === null) {
         $grouped[$pin][$date]['time_in'] = $time;
@@ -347,6 +349,15 @@ foreach ($rawScans as $scan) {
                 $timeIn   = $times['time_in'];
                 $timeOut  = $times['time_out'];
                 $deviceSn = $times['device_sn'];
+                $breakOut = null;
+                $breakIn  = null;
+
+                // Split shift: scan dipisah per blok di titik tengah jeda
+                $roster     = $rosters->get($key);
+                $splitShift = ($roster && $roster->day_type === 'Work' && $roster->shift?->isSplit()) ? $roster->shift : null;
+                if ($splitShift) {
+                    [$timeIn, $breakOut, $breakIn, $timeOut] = self::splitScans($times['scans'] ?? [], $splitShift->splitBoundary());
+                }
 
                 // Override dari edited_fingerprint kalau ada
                 $editedKey = $pin . '_' . $date;
@@ -357,19 +368,14 @@ foreach ($rawScans as $scan) {
                     $timeOut = $edited->in_2 ?? $timeOut;
                 }
 
-                // Hitung durasi
-                $duration = null;
-                if ($timeIn && $timeOut) {
-                    $dtIn  = Carbon::parse($date . ' ' . $timeIn);
-                    $dtOut = Carbon::parse($date . ' ' . $timeOut);
-                    if ($dtOut->lt($dtIn)) $dtOut->addDay();
-                    $duration = (int) $dtIn->diffInMinutes($dtOut);
-                }
+                // Hitung durasi (split shift: jumlah kedua blok, jeda tidak dihitung)
+                $duration = $splitShift
+                    ? self::splitDuration($date, $timeIn, $breakOut, $breakIn, $timeOut)
+                    : self::pairDuration($date, $timeIn, $timeOut);
 
                 // ── Cek roster untuk tentukan is_counted ──
-                $roster    = $rosters->get($key);
                 $isWorkDay = $roster && $roster->day_type === 'Work';
-                $hasScan   = ($timeIn || $timeOut);
+                $hasScan   = ($timeIn || $timeOut || $breakOut || $breakIn);
 $isPHOnSunday = false;
 if ($roster && $roster->day_type === 'Public Holiday') {
     $carbonDate     = Carbon::parse($date);
@@ -393,6 +399,8 @@ if ($roster && $roster->day_type === 'Public Holiday') {
                     [
                         'pin'              => $pin,
                         'time_in'          => $timeIn,
+                        'break_out'        => $breakOut,
+                        'break_in'         => $breakIn,
                         'time_out'         => $timeOut,
                         'duration_minutes' => $duration,
                         'is_counted'       => $isCounted,
@@ -470,6 +478,48 @@ if ($roster && $roster->day_type === 'Public Holiday') {
         ]);
     }
     /** Batas tanggal untuk non-HR: 26 dua bulan lalu sampai 25 bulan depan. */
+    /**
+     * Scan split shift dibagi dua blok di titik tengah jeda.
+     * Hasil: [masuk blok 1, pulang blok 1, masuk blok 2, pulang blok 2].
+     * Masuk = scan masuk (inoutmode 1) pertama di blok, pulang = scan pulang (inoutmode 2) terakhir di blok.
+     */
+    private static function splitScans(array $scans, string $boundary): array
+    {
+        $in1 = $out1 = $in2 = $out2 = null;
+        foreach ($scans as [$time, $mode]) {
+            $first = $time < $boundary;
+            if ($mode === 1) {
+                if ($first && $in1 === null) $in1 = $time;
+                if (!$first && $in2 === null) $in2 = $time;
+            } elseif ($mode === 2) {
+                if ($first) $out1 = $time; else $out2 = $time;
+            }
+        }
+
+        return [$in1, $out1, $in2, $out2];
+    }
+
+    private static function pairDuration(string $date, ?string $in, ?string $out): ?int
+    {
+        if (!$in || !$out) return null;
+        $dtIn  = Carbon::parse($date . ' ' . $in);
+        $dtOut = Carbon::parse($date . ' ' . $out);
+        if ($dtOut->lt($dtIn)) $dtOut->addDay();
+
+        return (int) $dtIn->diffInMinutes($dtOut);
+    }
+
+    /** Durasi split shift: blok yang lengkap saja yang dihitung. Null kalau tidak ada blok lengkap. */
+    private static function splitDuration(string $date, ?string $in1, ?string $out1, ?string $in2, ?string $out2): ?int
+    {
+        $parts = array_filter([
+            ($in1 && $out1 && $out1 > $in1) ? self::pairDuration($date, $in1, $out1) : null,
+            ($in2 && $out2 && $out2 > $in2) ? self::pairDuration($date, $in2, $out2) : null,
+        ], fn($v) => $v !== null);
+
+        return $parts ? array_sum($parts) : null;
+    }
+
     private function allowedRange(): array
     {
         $first = today()->startOfMonth();
@@ -571,7 +621,7 @@ if ($roster && $roster->day_type === 'Public Holiday') {
 
         $raw['roster'] = null;
         if ($employee) {
-            $r = Roster::with('shift:id,shift_name,start_time,end_time')
+            $r = Roster::with('shift:id,shift_name,start_time,end_time,is_split,break_start,break_end')
                 ->where('employee_id', $employee->id)->whereDate('date', $date)->first();
             if ($r) {
                 $raw['roster'] = [
@@ -640,7 +690,7 @@ private function buildFingerprintResult(
         ->keyBy(fn($e) => $e->pin . '_' . Carbon::parse($e->scan_date)->toDateString());
     $editedKeys = $editedFingerprints->keys()->toArray();
 
-    $rosters = Roster::with('shift:id,shift_name,start_time,end_time')
+    $rosters = Roster::with('shift:id,shift_name,start_time,end_time,is_split,break_start,break_end')
         ->select('id', 'employee_id', 'shift_id', 'date', 'day_type')
         ->whereIn('employee_id', $employeeIds)
         ->whereBetween('date', [$startDate->toDateString(), $endDate->toDateString()])
@@ -1034,7 +1084,7 @@ $spvPin = !$canManage ? $user->employee?->pin : null;
         $employees   = $employeesQuery->get()->keyBy('pin');
         $employeeIds = $employees->pluck('id')->filter()->values()->toArray();
 
-        $rosters = Roster::with('shift:id,shift_name,start_time,end_time')
+        $rosters = Roster::with('shift:id,shift_name,start_time,end_time,is_split,break_start,break_end')
             ->select('id', 'employee_id', 'shift_id', 'date', 'day_type')
             ->whereIn('employee_id', $employeeIds)
             ->whereBetween('date', [$startDate->toDateString(), $endDate->toDateString()])
@@ -1401,9 +1451,11 @@ $employeeId = $employee->id;
                     }
                 }
                 foreach ($request->file('attachments') as $file) {
-                    $fileName = Str::slug($info['employee_name'] ?: 'employee') . '-' . now()->timestamp . '-'
-                        . str_replace('-', '', $date) . '-' . uniqid() . '.' . strtolower($file->getClientOriginalExtension());
-                    $path = Storage::disk('s3')->putFileAs('employees-edited-fingerprints', $file, $fileName);
+                    // Dikompres & dibersihkan; ekstensi dari isi file
+                    $path = app(\App\Services\UploadStorage::class)->put(
+                        $file, 'employees-edited-fingerprints', ($info['employee_name'] ?: 'employee') . '-' . str_replace('-', '', $date),
+                        \App\Services\UploadStorage::IMAGES, 's3', false, 'attachments'
+                    );
                     \App\Models\EditedFingerprintAttachment::create(['edited_fingerprint_id' => $editedFingerprint->id, 'attachment' => $path]);
                 }
             }

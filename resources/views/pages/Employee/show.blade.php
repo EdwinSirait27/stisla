@@ -1455,7 +1455,7 @@
                     </div>
                     <div><dt>Bawahan langsung</dt><dd>{{ $emp->bawahanList->count() }} orang</dd></div>
                     @if ($canManage)
-                        <div><dt>PIN fingerprint</dt><dd>{{ $emp->pin ?: 'Belum diisi' }}<small>{{ $emp->attendance_type ?: 'tipe absen belum diatur' }}</small></dd></div>
+                        <div><dt>PIN fingerprint</dt><dd>{{ $emp->pin ?: 'Belum diisi' }}<small>{{ \App\Models\Employee::getAttendanceTypeLabels()[$emp->attendance_type] ?? 'tipe absen belum diatur' }}</small></dd></div>
                     @endif
                 </dl>
             </section>

@@ -27,7 +27,7 @@ class AttendanceimportController extends Controller
     public function importattendance(Request $request)
     {
         $request->validate([
-            'file' => 'required|mimes:xlsx,xls,csv'
+            'file' => 'required|mimes:xlsx,xls,csv|max:10240'
         ]);
         $import = new AttendaceImport();
         Excel::import($import, $request->file('file'));

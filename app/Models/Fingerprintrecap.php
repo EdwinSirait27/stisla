@@ -13,6 +13,8 @@ class Fingerprintrecap extends Model
         'period_in',
         'period_out',
         'time_in',
+        'break_out',
+        'break_in',
         'time_out',
         'duration_minutes',
         'is_counted',

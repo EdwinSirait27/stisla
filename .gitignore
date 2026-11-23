@@ -4,7 +4,9 @@
 /public/storage
 /storage/*.key
 /vendor
+/hallmark
 .env
+.CLAUDE.md
 .env.backup
 .phpunit.result.cache
 Homestead.json

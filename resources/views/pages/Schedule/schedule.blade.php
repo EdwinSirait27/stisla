@@ -251,8 +251,7 @@
                                                 }
 
                                                 if ($schedule->roster?->shift) {
-                                                    $badgeTime = substr($schedule->roster->shift->start_time, 0, 5)
-                                                        . '-' . substr($schedule->roster->shift->end_time, 0, 5);
+                                                    $badgeTime = $schedule->roster->shift->time_label;
                                                 }
                                             } elseif ($isWeekend) {
                                                 $badgeClass = 's-badge s-off';
@@ -278,8 +277,13 @@
                                                     @endif
                                                     @if($fp)
                                                         <span class="s-fp">
-                                                            {{ substr($fp->time_in ?? '-', 0, 5) }} →
-                                                            {{ substr($fp->time_out ?? '-', 0, 5) }}
+                                                            @if($fp->break_out || $fp->break_in)
+                                                                {{ substr($fp->time_in ?? '-', 0, 5) }} → {{ substr($fp->break_out ?? '-', 0, 5) }} /
+                                                                {{ substr($fp->break_in ?? '-', 0, 5) }} → {{ substr($fp->time_out ?? '-', 0, 5) }}
+                                                            @else
+                                                                {{ substr($fp->time_in ?? '-', 0, 5) }} →
+                                                                {{ substr($fp->time_out ?? '-', 0, 5) }}
+                                                            @endif
                                                         </span>
                                                     @endif
                                                 </span>

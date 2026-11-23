@@ -267,6 +267,7 @@ public function bulkDelete(Request $request)
 
     public function Importpayrolls(Request $request)
 {
+    $request->validate(['file' => 'required|file|mimes:xlsx,xls|max:10240']);
 
 try {
     Excel::import(new PayrollsImport, $request->file('file'));

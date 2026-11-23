@@ -1720,97 +1720,177 @@
         .am-verdict li.is-muted i { color: var(--pr-muted); }
         .am-verdict small { display: block; color: var(--pr-ink-2); }
 
-        @media (max-width: 64rem) { .am-grid { grid-template-columns: minmax(0, 1fr); } }
+        /* ── Kartu status & tahap persetujuan ── */
+        .am-status { padding: var(--pr-space-lg); display: grid; gap: var(--pr-space-md); }
+        .am-status-head { display: flex; align-items: center; justify-content: space-between; gap: var(--pr-space-sm); }
+        .am-status-head h2 { margin: 0; font-size: var(--pr-text-md); font-weight: 700; color: var(--pr-ink); }
+        .am-status-text { margin: 0; font-size: var(--pr-text-sm); color: var(--pr-ink-2); line-height: 1.5; }
+        .am-steps { margin: 0; padding: 0; list-style: none; display: grid; gap: 0; }
+        .am-steps li { position: relative; display: grid; grid-template-columns: 24px minmax(0, 1fr); gap: var(--pr-space-sm); padding-bottom: var(--pr-space-md); }
+        .am-steps li:last-child { padding-bottom: 0; }
+        .am-steps li::before { content: ''; position: absolute; left: 11px; top: 24px; bottom: 0; width: 2px; background: var(--pr-rule); }
+        .am-steps li:last-child::before { display: none; }
+        .am-steps li.is-done::before { background: var(--pr-success); }
+        .am-step-dot { width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; background: var(--pr-paper-2); color: var(--pr-muted); box-shadow: inset 0 0 0 2px var(--pr-rule); position: relative; z-index: 1; }
+        .is-done .am-step-dot { background: var(--pr-success); color: var(--pr-panel); box-shadow: none; }
+        .is-current .am-step-dot { background: var(--pr-panel); color: var(--pr-accent); box-shadow: inset 0 0 0 2px var(--pr-accent); }
+        .am-step-body strong { display: block; font-size: var(--pr-text-sm); color: var(--pr-ink); }
+        .is-todo .am-step-body strong { color: var(--pr-muted); font-weight: 600; }
+        .am-step-body small { display: block; font-size: var(--pr-text-xs); color: var(--pr-muted); line-height: 1.45; overflow-wrap: anywhere; }
+        .am-reason { margin: 0; padding: var(--pr-space-sm) var(--pr-space-md); border-radius: var(--pr-radius-sm); background: var(--pr-paper-2); font-size: var(--pr-text-sm); color: var(--pr-ink); line-height: 1.5; overflow-wrap: anywhere; }
+        .am-reason.is-bad { background: var(--pr-error-soft); color: var(--pr-error); }
+        .am-reason span { display: block; font-size: var(--pr-text-xs); font-weight: 700; color: var(--pr-muted); margin-bottom: 2px; }
+        .am-reason.is-bad span { color: var(--pr-error); }
+        .am-actions { display: grid; gap: var(--pr-space-xs); padding-top: var(--pr-space-md); border-top: 1px solid var(--pr-rule); }
+        .am-actions form { margin: 0; }
+        .am-actions .pr-btn { width: 100%; justify-content: center; white-space: normal; text-align: center; line-height: 1.3; height: auto; min-height: 36px; }
+        .am-actions-more { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 130px), 1fr)); gap: var(--pr-space-xs); }
+        .am-actions-note { margin: 0; font-size: var(--pr-text-xs); color: var(--pr-muted); }
+        .am-device { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: var(--pr-text-xs); font-weight: 500; overflow-wrap: anywhere; }
+        /* min-width: 0 supaya isi (tombol, koordinat) tidak memaksa kolom melebar melewati layar */
+        .am-side { display: grid; gap: var(--pr-space-lg); align-content: start; min-width: 0; }
+        .am-main { display: grid; gap: var(--pr-space-lg); align-content: start; min-width: 0; }
+        .am-status, .am-status-head > * { min-width: 0; }
+        .am-status-head { flex-wrap: wrap; }
+        /* Keterangan kecil di bawah nilai (NIP, tanggal), bukan menempel sebaris */
+        .fp-meta dd small { display: block; margin-top: 2px; font-size: var(--pr-text-xs); font-weight: 400; color: var(--pr-muted); }
+        .am-grid > div > .pr-panel { margin-bottom: 0; }
+
+        @media (max-width: 64rem) {
+            .am-grid { grid-template-columns: minmax(0, 1fr); }
+            /* Di layar sempit status & aksi tampil lebih dulu */
+            .am-side { order: -1; }
+        }
     </style>
 @endpush
 
 
 @section('main')
     @php
-        $statusMap = ['approved' => ['Disetujui', 'is-approved'], 'pending' => ['Menunggu persetujuan', 'is-pending'], 'flagged' => ['Ditandai', 'is-rejected']];
-        [$stLabel, $stClass] = $statusMap[$log->status] ?? [ucfirst((string) $log->status), 'is-draft'];
+        $tz = config('app.timezone');
+        $statusMap = [
+            'pending'     => ['Menunggu checker', 'is-pending', 'Entri manual ini menunggu dicek SPV atau manager.'],
+            'approved'    => ['Menunggu HR', 'is-open', 'Sudah lolos pengecekan. Tinggal persetujuan akhir HR.'],
+            'approved_hr' => ['Disetujui HR', 'is-approved', 'Sudah final, tidak perlu tindakan lagi.'],
+            'flagged'     => ['Ditandai', 'is-rejected', 'HR menandai absensi ini bermasalah. Lihat alasannya di bawah.'],
+        ];
+        [$stLabel, $stClass, $stText] = $statusMap[$log->status] ?? [ucfirst((string) $log->status), 'is-draft', ''];
+        $who = fn($u) => $u?->employee?->employee_name ?? $u?->username ?? 'Tidak diketahui';
+        $when = fn($t) => $t?->timezone($tz)->locale('id')->translatedFormat('d M Y, H:i');
+
         $isIn = $log->type === 'checkin';
+        $typeLabel = ($isIn ? 'Check-in' : 'Check-out') . ((int) ($log->session ?? 1) > 1 ? ' blok ' . $log->session : '');
         $workDate = $log->work_date ? \Carbon\Carbon::parse($log->work_date)->locale('id')->translatedFormat('l, d F Y') : '-';
-        $loggedAt = $log->logged_at?->timezone('Asia/Makassar');
+        $loggedAt = $log->logged_at?->timezone($tz);
         $radius = $log->store?->geofence_radius;
         $wfa = !$log->store_id;
         $shift = $roster?->shift;
+        $schedule = $roster
+            ? ($roster->day_type === 'Work' ? trim(($shift?->shift_name ?? 'Kerja') . ($shift ? ', ' . $shift->time_label : '')) : $roster->day_type)
+            : 'Belum ada roster';
+        $pairMins = $pair ? ($isIn ? $log->logged_at->diffInMinutes($pair->logged_at, false) : $pair->logged_at->diffInMinutes($log->logged_at, false)) : null;
+
+        // Tahap persetujuan: diajukan → dicek → disetujui HR
+        $checked = (bool) $log->checked_by || (!$isManual && in_array($log->status, ['approved', 'approved_hr'], true));
+        $steps = [
+            [
+                'title' => $isManual ? 'Diajukan' : 'Absen dari aplikasi',
+                'note'  => $isManual ? $who($log->createdBy) . ', ' . $when($log->created_at) : $when($log->logged_at),
+                'state' => 'is-done',
+            ],
+            [
+                'title' => 'Dicek',
+                'note'  => $log->checked_by
+                    ? $who($log->checkedBy) . ', ' . $when($log->checked_at)
+                    : ($checked ? 'Otomatis lewat verifikasi wajah dan GPS' : ($log->status === 'pending' ? 'Menunggu SPV atau manager' : 'Belum')),
+                'state' => $checked ? 'is-done' : ($log->status === 'pending' ? 'is-current' : 'is-todo'),
+            ],
+            [
+                'title' => 'Disetujui HR',
+                'note'  => $log->hr_approved_by ? $who($log->hrApprovedBy) . ', ' . $when($log->hr_approved_at) : ($log->status === 'approved' ? 'Menunggu HR' : 'Belum'),
+                'state' => $log->status === 'approved_hr' ? 'is-done' : ($log->status === 'approved' ? 'is-current' : 'is-todo'),
+            ],
+        ];
+        $stepIcon = ['is-done' => 'fa-check', 'is-current' => 'fa-ellipsis', 'is-todo' => 'fa-minus'];
+
+        // Aksi: satu tombol utama sesuai status, sisanya tombol kecil
+        $primary = null;
+        $secondary = [];
+        if ($canManage) {
+            $primary = $log->status === 'approved_hr' ? null : ['approved_hr', 'Setujui HR', 'pr-btn-primary', 'fa-check-double'];
+            // Dari "menunggu checker", pindah ke "menunggu HR" berarti meloloskan pengecekan, bukan mengembalikan
+            if ($log->status !== 'approved') {
+                $secondary[] = ['approved', $log->status === 'pending' ? 'Loloskan pengecekan' : 'Kembalikan ke menunggu HR', '', null];
+            }
+            if ($log->status !== 'pending') {
+                $secondary[] = ['pending', 'Kembalikan ke checker', '', null];
+            }
+            if ($log->status !== 'flagged') $secondary[] = ['flagged', 'Tandai bermasalah', 'pr-btn-danger', null];
+        } elseif ($approveLevel === 'checker') {
+            $primary = ['approved', 'Setujui sebagai checker', 'pr-btn-primary', 'fa-check'];
+        }
     @endphp
     <div class="main-content pr">
         <section class="section">
             <nav aria-label="Breadcrumb"><ol class="pr-crumbs"><li><a href="{{ route('pages.AttendanceMobile') }}">Absensi mobile</a></li><li aria-current="page">Detail</li></ol></nav>
             <header class="pr-head">
                 <div>
-                    <h1 class="pr-title">{{ $isIn ? 'Check-in' : 'Check-out' }} {{ $loggedAt?->format('H:i') ?? '' }}, {{ $log->employee?->employee_name ?? '-' }}</h1>
-                    <p class="pr-lede">{{ $workDate }}. {{ $isManual ? 'Entri manual, tanpa GPS dan selfie.' : 'Dari aplikasi mobile.' }}</p>
+                    <h1 class="pr-title">{{ $typeLabel }} {{ $loggedAt?->format('H:i') ?? '' }}</h1>
+                    <p class="pr-lede">{{ $log->employee?->employee_name ?? '-' }}, {{ $workDate }}. {{ $isManual ? 'Entri manual, tanpa GPS dan selfie.' : 'Dari aplikasi mobile.' }}</p>
                 </div>
-                <div class="pr-actions">
-                    <span class="status-badge {{ $stClass }}">{{ $stLabel }}</span>
-                    @if ($pairUrl)<a href="{{ $pairUrl }}" class="pr-btn">Lihat {{ $isIn ? 'check-out' : 'check-in' }} {{ $pair->logged_at?->timezone('Asia/Makassar')->format('H:i') }}</a>@endif
-                </div>
+                @if ($pairUrl)
+                    <div class="pr-actions">
+                        <a href="{{ $pairUrl }}" class="pr-btn">Lihat {{ $isIn ? 'check-out' : 'check-in' }} {{ $pair->logged_at?->timezone($tz)->format('H:i') }}</a>
+                    </div>
+                @endif
             </header>
 
-            @if ($log->flag_reason)
-                <p class="fp-note {{ $log->status === 'flagged' ? '' : 'is-info' }}" role="note"><strong>{{ $isManual ? 'Alasan entri manual' : 'Catatan' }}:</strong> {{ $log->flag_reason }}</p>
-            @endif
-
-            @if ($canManage)
-                <section class="pr-panel" aria-labelledby="dec-title">
-                    <div class="pr-panel-head">
-                        <div>
-                            <h2 class="pr-panel-title" id="dec-title">Keputusan HR</h2>
-                            <span class="pr-panel-sub">{{ $log->status === 'pending' ? 'Entri ini menunggu persetujuan Anda.' : 'Status bisa diubah kalau ada koreksi.' }}</span>
-                        </div>
-                        <div class="pr-actions">
-                            @foreach (['flagged' => ['Tandai', 'pr-btn-danger'], 'pending' => ['Kembalikan ke menunggu', ''], 'approved' => ['Setujui', 'pr-btn-primary']] as $st => [$lbl, $cls])
-                                @continue($log->status === $st)
-                                <form method="POST" action="{{ route('attendancemobile.status', $hash) }}" class="js-status" data-status="{{ $st }}">
-                                    @csrf
-                                    <input type="hidden" name="status" value="{{ $st }}"><input type="hidden" name="note" value="">
-                                    <button type="submit" class="pr-btn {{ $cls }}">{{ $lbl }}</button>
-                                </form>
-                            @endforeach
-                        </div>
-                    </div>
-                </section>
-            @endif
-
             <div class="am-grid">
-                <div>
-                    <section class="pr-panel" aria-label="Data absensi">
+                {{-- Kiri: data absensi --}}
+                <div class="am-main">
+                    <section class="pr-panel" aria-labelledby="d-title">
+                        <div class="pr-panel-head"><div><h2 class="pr-panel-title" id="d-title">Data absensi</h2></div></div>
                         <dl class="fp-meta">
-                            <div><dt>Karyawan</dt><dd>{{ $log->employee?->employee_name ?? '-' }}</dd></div>
-                            <div><dt>NIP</dt><dd>{{ $log->employee?->employee_pengenal ?? '-' }}</dd></div>
+                            <div><dt>Karyawan</dt><dd>{{ $log->employee?->employee_name ?? '-' }}<small>{{ $log->employee?->employee_pengenal ? 'NIP ' . $log->employee->employee_pengenal : '' }}</small></dd></div>
                             <div><dt>Lokasi</dt><dd>{{ $log->store?->name ?? 'Work From Anywhere' }}</dd></div>
-                            <div><dt>Jadwal hari itu</dt><dd>{{ $roster ? ($roster->day_type === 'Work' ? trim(($shift?->shift_name ?? 'Kerja') . ' ' . ($shift ? substr($shift->start_time, 0, 5) . '–' . substr($shift->end_time, 0, 5) : '')) : $roster->day_type) : 'Belum ada roster' }}</dd></div>
+                            <div><dt>Jadwal hari itu</dt><dd>{{ $schedule }}</dd></div>
+                            <div><dt>Jam tercatat</dt><dd>{{ $loggedAt?->format('H:i') ?? '-' }}<small>{{ $loggedAt?->locale('id')->translatedFormat('d M Y') }}</small></dd></div>
                         </dl>
                         <div class="fp-compare">
                             <div>
                                 <h2>Waktu</h2>
                                 <dl class="fp-kv">
-                                    <dt>Tipe</dt><dd>{{ $isIn ? 'Check-in' : 'Check-out' }}</dd>
+                                    <dt>Tipe</dt><dd>{{ $typeLabel }}</dd>
                                     <dt>Tanggal kerja</dt><dd>{{ $workDate }}</dd>
-                                    <dt>Jam tercatat</dt><dd>{{ $loggedAt?->locale('id')->translatedFormat('d F Y, H:i') ?? '-' }}</dd>
-                                    @if ($pair)
-                                        <dt>{{ $isIn ? 'Check-out' : 'Check-in' }}</dt><dd>{{ $pair->logged_at?->timezone('Asia/Makassar')->format('d M Y H:i') }}
-                                            @php $mins = $isIn ? $log->logged_at->diffInMinutes($pair->logged_at, false) : $pair->logged_at->diffInMinutes($log->logged_at, false); @endphp
-                                            @if ($mins > 0)<small>durasi kerja {{ intdiv($mins, 60) }} jam {{ $mins % 60 }} menit</small>@endif
-                                        </dd>
-                                    @else
-                                        <dt>{{ $isIn ? 'Check-out' : 'Check-in' }}</dt><dd>belum ada</dd>
+                                    <dt>{{ $isIn ? 'Check-out' : 'Check-in' }}</dt>
+                                    <dd>
+                                        @if ($pair)
+                                            {{ $pair->logged_at?->timezone($tz)->locale('id')->translatedFormat('d M Y, H:i') }}
+                                            @if ($pairMins > 0)<small>durasi kerja {{ intdiv((int) $pairMins, 60) }} jam {{ (int) $pairMins % 60 }} menit</small>@endif
+                                        @else
+                                            Belum ada
+                                        @endif
+                                    </dd>
+                                    @if (!$isManual)
+                                        <dt>Perangkat</dt><dd><span class="am-device" title="{{ $log->device_id }}">{{ $log->device_id ? \Illuminate\Support\Str::limit($log->device_id, 18) : '-' }}</span></dd>
                                     @endif
-                                    <dt>Perangkat</dt><dd style="font-weight:500">{{ $log->device_id ?? '-' }}</dd>
                                 </dl>
                             </div>
                             <div>
                                 <h2>Lokasi</h2>
                                 <dl class="fp-kv">
-                                    <dt>Koordinat</dt><dd style="font-weight:500">{{ $log->latitude !== null ? $log->latitude . ', ' . $log->longitude : 'tidak ada (entri manual)' }}</dd>
-                                    <dt>Jarak ke lokasi</dt><dd>{{ $log->distance_from_store !== null ? number_format($log->distance_from_store, 0, ',', '.') . ' m' : ($wfa ? 'bebas lokasi' : '-') }}@if ($radius && !$wfa)<small>radius yang diizinkan {{ $radius }} m</small>@endif</dd>
+                                    <dt>Jarak ke lokasi</dt>
+                                    <dd>{{ $log->distance_from_store !== null ? number_format($log->distance_from_store, 0, ',', '.') . ' m' : ($isManual ? 'Tidak diukur, entri manual' : ($wfa ? 'Bebas lokasi' : '-')) }}@if ($radius && !$wfa && $log->distance_from_store !== null)<small>radius yang diizinkan {{ $radius }} m</small>@endif</dd>
+                                    <dt>Koordinat</dt>
+                                    <dd>
+                                        @if ($log->latitude !== null)
+                                            <span class="am-device">{{ $log->latitude }}, {{ $log->longitude }}</span>
+                                            <small><a href="https://www.google.com/maps?q={{ $log->latitude }},{{ $log->longitude }}" target="_blank" rel="noopener" class="lv-link">Buka di Google Maps</a></small>
+                                        @else
+                                            Tidak ada, entri manual
+                                        @endif
+                                    </dd>
                                 </dl>
-                                @if ($log->latitude !== null)
-                                    <a href="https://www.google.com/maps?q={{ $log->latitude }},{{ $log->longitude }}" target="_blank" rel="noopener" class="lv-link" style="display:inline-block;margin-top:var(--pr-space-xs)">Buka di Google Maps</a>
-                                @endif
                             </div>
                         </div>
                         @if ($log->latitude !== null)
@@ -1824,22 +1904,78 @@
                             <div class="pr-panel-head"><div><h2 class="pr-panel-title" id="h-title">Riwayat</h2></div></div>
                             <ol class="fp-timeline">
                                 @foreach ($history as $h)
-                                    <li>{{ $h->description }}<small>{{ $h->causer?->employee?->employee_name ?? $h->causer?->username ?? 'Sistem' }}, {{ $h->created_at->timezone('Asia/Makassar')->format('d M Y H:i') }}</small></li>
+                                    <li>{{ $h->description }}<small>{{ $h->causer?->employee?->employee_name ?? $h->causer?->username ?? 'Sistem' }}, {{ $h->created_at->timezone($tz)->locale('id')->translatedFormat('d M Y, H:i') }}</small></li>
                                 @endforeach
                             </ol>
                         </section>
                     @endif
                 </div>
 
-                <div>
+                {{-- Kanan: status, aksi, bukti, verifikasi --}}
+                <div class="am-side">
+                    <section class="pr-panel am-status" aria-labelledby="st-title">
+                        <div class="am-status-head">
+                            <h2 id="st-title">Status</h2>
+                            <span class="status-badge {{ $stClass }}">{{ $stLabel }}</span>
+                        </div>
+                        @if ($stText)<p class="am-status-text">{{ $stText }}</p>@endif
+
+                        <ol class="am-steps" aria-label="Tahap persetujuan">
+                            @foreach ($steps as $step)
+                                <li class="{{ $step['state'] }}">
+                                    <span class="am-step-dot" aria-hidden="true"><i class="fas {{ $stepIcon[$step['state']] }}"></i></span>
+                                    <span class="am-step-body">
+                                        <strong>{{ $step['title'] }}<span class="sr-only">, {{ ['is-done' => 'selesai', 'is-current' => 'sedang berjalan', 'is-todo' => 'belum'][$step['state']] }}</span></strong>
+                                        <small>{{ $step['note'] }}</small>
+                                    </span>
+                                </li>
+                            @endforeach
+                        </ol>
+
+                        @if ($log->flag_reason)
+                            <p class="am-reason {{ $log->status === 'flagged' ? 'is-bad' : '' }}">
+                                <span>{{ $log->status === 'flagged' ? 'Alasan ditandai' : ($isManual ? 'Alasan entri manual' : 'Catatan') }}</span>
+                                {{ $log->flag_reason }}
+                            </p>
+                        @endif
+
+                        @if ($primary || $secondary)
+                            <div class="am-actions">
+                                @if ($primary)
+                                    <form method="POST" action="{{ route('attendancemobile.status', $hash) }}" class="js-status" data-status="{{ $primary[0] }}">
+                                        @csrf
+                                        <input type="hidden" name="status" value="{{ $primary[0] }}"><input type="hidden" name="note" value="">
+                                        <button type="submit" class="pr-btn {{ $primary[2] }}"><i class="fas {{ $primary[3] }}" aria-hidden="true"></i> {{ $primary[1] }}</button>
+                                    </form>
+                                @endif
+                                @if ($secondary)
+                                    <div class="am-actions-more">
+                                        @foreach ($secondary as [$st, $lbl, $cls])
+                                            <form method="POST" action="{{ route('attendancemobile.status', $hash) }}" class="js-status" data-status="{{ $st }}">
+                                                @csrf
+                                                <input type="hidden" name="status" value="{{ $st }}"><input type="hidden" name="note" value="">
+                                                <button type="submit" class="pr-btn pr-btn-sm {{ $cls }}">{{ $lbl }}</button>
+                                            </form>
+                                        @endforeach
+                                    </div>
+                                @endif
+                                @if ($approveLevel === 'checker' && !$canManage)
+                                    <p class="am-actions-note">Setelah Anda setujui, absensi diteruskan ke HR.</p>
+                                @endif
+                            </div>
+                        @elseif ($log->status === 'pending' && $isOwnEntry)
+                            <p class="am-actions-note">Ini ajuan Anda sendiri, jadi dicek oleh SPV atau manager lain.</p>
+                        @endif
+                    </section>
+
                     <section class="pr-panel" aria-labelledby="ph-title">
                         <div class="pr-panel-head"><div><h2 class="pr-panel-title" id="ph-title">{{ $isManual ? 'Bukti pendukung' : 'Selfie absen' }}</h2></div></div>
                         @if ($photoUrl && $isPdf)
-                            <p style="padding:var(--pr-space-md) var(--pr-space-lg);margin:0"><a href="{{ $photoUrl }}" target="_blank" rel="noopener" class="pr-btn">Buka surat (PDF)</a></p>
+                            <p style="padding:var(--pr-space-md) var(--pr-space-lg);margin:0"><a href="{{ $photoUrl }}" target="_blank" rel="noopener" class="pr-btn"><i class="fas fa-file-pdf" aria-hidden="true"></i> Buka surat (PDF)</a></p>
                         @elseif ($photoUrl)
                             <button type="button" class="am-photo" id="openPhoto" aria-label="Perbesar foto"><img src="{{ $photoUrl }}" alt="{{ $isManual ? 'Bukti pendukung' : 'Selfie absen' }} {{ $log->employee?->employee_name }}"></button>
                         @else
-                            <p class="pr-empty-note" style="padding:var(--pr-space-md) var(--pr-space-lg);margin:0">{{ $log->photo_path ? 'Foto gagal dimuat dari penyimpanan.' : 'Tidak ada foto.' }}</p>
+                            <p class="pr-empty-note" style="padding:var(--pr-space-md) var(--pr-space-lg);margin:0">{{ $log->photo_path ? 'Foto gagal dimuat dari penyimpanan.' : ($isManual ? 'Pengaju tidak melampirkan foto atau surat. Periksa alasannya, atau minta bukti ke pengaju.' : 'Tidak ada foto.') }}</p>
                         @endif
                     </section>
 
@@ -1847,11 +1983,13 @@
                         <div class="pr-panel-head"><div><h2 class="pr-panel-title" id="v-title">Verifikasi</h2></div></div>
                         <ul class="am-verdict">
                             @if ($isManual)
-                                <li class="is-muted"><i class="fas fa-user-pen" aria-hidden="true"></i><span>Entri manual<small>Tidak melalui verifikasi wajah dan GPS. Cek bukti pendukung.</small></span></li>
+                                <li class="is-muted"><i class="fas fa-user-pen" aria-hidden="true"></i><span>Entri manual<small>Tidak melalui verifikasi wajah dan GPS. {{ $log->photo_path ? 'Cek bukti pendukung.' : 'Tanpa bukti pendukung, jadi periksa alasannya.' }}</small></span></li>
                             @else
                                 <li class="{{ $log->liveness_passed ? '' : 'is-bad' }}"><i class="fas {{ $log->liveness_passed ? 'fa-circle-check' : 'fa-circle-xmark' }}" aria-hidden="true"></i><span>{{ $log->liveness_passed ? 'Wajah cocok dengan foto karyawan' : 'Wajah tidak cocok' }}@if ($log->liveness_score !== null)<small>jarak wajah {{ number_format($log->liveness_score, 2, ',', '.') }}, makin kecil makin mirip</small>@endif</span></li>
                                 <li class="{{ $log->is_mock_location ? 'is-bad' : '' }}"><i class="fas {{ $log->is_mock_location ? 'fa-circle-xmark' : 'fa-circle-check' }}" aria-hidden="true"></i><span>{{ $log->is_mock_location ? 'Terdeteksi GPS palsu' : 'GPS asli, bukan lokasi palsu' }}</span></li>
-                                @if ($wfa)
+                                @if ($log->is_offsite)
+                                    <li class="is-muted"><i class="fas fa-location-dot" aria-hidden="true"></i><span>Di luar lokasi kerja<small>Karyawan bebas lokasi. {{ $log->distance_from_store !== null ? number_format($log->distance_from_store, 0, ',', '.') . ' m dari ' . ($log->store?->name ?? 'store terdekat') . '.' : '' }}</small></span></li>
+                                @elseif ($wfa)
                                     <li class="is-muted"><i class="fas fa-location-dot" aria-hidden="true"></i><span>Bebas lokasi<small>Karyawan ini boleh absen dari mana saja.</small></span></li>
                                 @else
                                     <li class="{{ $log->is_within_geofence ? '' : 'is-bad' }}"><i class="fas {{ $log->is_within_geofence ? 'fa-circle-check' : 'fa-circle-xmark' }}" aria-hidden="true"></i><span>{{ $log->is_within_geofence ? 'Di dalam radius lokasi' : 'Di luar radius lokasi' }}@if ($log->distance_from_store !== null)<small>{{ number_format($log->distance_from_store, 0, ',', '.') }} m dari {{ $log->store?->name }}{{ $radius ? ', batas ' . $radius . ' m' : '' }}</small>@endif</span></li>
@@ -1888,7 +2026,7 @@
                 const f = this, st = f.dataset.status, flag = st === 'flagged';
                 Swal.fire({
                     icon: flag ? 'warning' : 'question',
-                    title: { approved: 'Setujui absensi ini?', flagged: 'Tandai absensi ini?', pending: 'Kembalikan ke menunggu?' }[st],
+                    title: { approved_hr: 'Setujui HR absensi ini?', approved: @json($canManage) ? @json($log->status === 'pending' ? 'Loloskan pengecekan absensi ini?' : 'Kembalikan ke menunggu HR?') : 'Setujui sebagai checker?', flagged: 'Tandai absensi ini bermasalah?', pending: 'Kembalikan ke checker?' }[st],
                     input: flag ? 'textarea' : undefined, inputPlaceholder: 'Alasan, wajib diisi',
                     inputValidator: flag ? v => (!v || v.trim().length < 5) ? 'Tulis alasan minimal 5 karakter.' : undefined : undefined,
                     showCancelButton: true, confirmButtonText: 'Ya', cancelButtonText: 'Batal', confirmButtonColor: flag ? '#dc2626' : '#4f46e5',

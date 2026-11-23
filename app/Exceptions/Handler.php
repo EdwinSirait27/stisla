@@ -3,6 +3,9 @@
 namespace App\Exceptions;
 
 use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
+use Illuminate\Http\Exceptions\ThrottleRequestsException;
+use Illuminate\Http\Request;
+use Symfony\Component\HttpKernel\Exception\HttpException;
 use Throwable;
 
 class Handler extends ExceptionHandler
@@ -41,19 +44,32 @@ class Handler extends ExceptionHandler
      *
      * @return void
      */
-    // public function register()
-    // {
-    //     $this->reportable(function (Throwable $e) {
-    //         //
-    //     });
-    // }
     public function register()
-{
-    $this->renderable(function (\Illuminate\Http\Request $request, Throwable $e) {
-        // Jika nginx redirect ke /forbidden, tampilkan view 403
-        if ($request->is('forbidden')) {
-            abort(403, 'Akses ditolak oleh server');
-        }
-    });
-}
+    {
+        // Nginx mengarahkan request terlarang ke /forbidden: tampilkan halaman 403.
+        // Parameter pertama renderable harus exception-nya; Laravel memakai tipenya untuk memilih callback.
+        $this->renderable(function (Throwable $e, Request $request) {
+            if ($request->is('forbidden')) {
+                return $this->renderHttpException(new HttpException(403, 'Akses ditolak oleh server'));
+            }
+            return null;
+        });
+
+        // Batas percobaan (throttle) untuk API & AJAX: pesan Indonesia + kode yang dikenali aplikasi mobile.
+        // Halaman web biasa tetap memakai resources/views/errors/429.blade.php.
+        $this->renderable(function (ThrottleRequestsException $e, Request $request) {
+            if (!$request->is('api/*') && !$request->expectsJson()) {
+                return null;
+            }
+            $headers = $e->getHeaders();
+            $retry   = max(1, (int) ($headers['Retry-After'] ?? 60));
+
+            return response()->json([
+                'success'     => false,
+                'message'     => "Terlalu banyak percobaan. Coba lagi dalam {$retry} detik.",
+                'code'        => 'TOO_MANY_ATTEMPTS',
+                'retry_after' => $retry,
+            ], 429, $headers);
+        });
+    }
 }

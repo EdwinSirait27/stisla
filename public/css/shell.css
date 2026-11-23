@@ -1,0 +1,108 @@
+/* Hallmark · shape: app screen (shell) · genre: modern-minimal · theme: brand · redesign: full
+ * paper: oklch(98.4% 0.004 265) · accent: oklch(61% 0.17 276) · display: Nunito · body: Nunito
+ * nav: kept (Stisla sidebar + top bar) · signature: the top bar tells you where and when you are working (date and WITA clock, your role and primary location), and warns before the idle sign-out instead of dropping you · states: no employee record, no photo, idle warning, reduced motion
+ * axes: light/rounded-sans/chromatic-indigo · posture: app · contrast: pass · v2.0.0 */
+/* Hallmark · pre-emit critique: P4 H4 E4 S4 R4 V4 · weakest: E, the bar said only "Hi, name" and the footer trailed off; answered by date, clock, role and location, and a footer that states the time zone and the idle rule */
+
+:root {
+    --shell-ink: oklch(27% 0.03 265);
+    --shell-ink-2: oklch(42% 0.03 265);
+    --shell-muted: oklch(50% 0.025 265);
+    --shell-rule: oklch(91.5% 0.008 265);
+    --shell-panel: oklch(100% 0 0);
+    --shell-paper-2: oklch(96.6% 0.006 265);
+    --shell-bar: oklch(22% 0.02 265);
+    --shell-on-bar: oklch(98% 0.004 265);
+    --shell-on-bar-2: oklch(82% 0.01 265);
+    --shell-accent: oklch(52% 0.18 276);
+    --shell-accent-soft: oklch(95% 0.03 276);
+    --shell-focus: oklch(45% 0.17 276);        /* di permukaan terang (sidebar, menu, dialog) */
+    --shell-focus-on-bar: oklch(80% 0.12 276); /* di bar atas yang gelap */
+    --shell-warn: oklch(52% 0.12 70);
+    --shell-warn-soft: oklch(96.5% 0.045 85);
+    --shell-error: oklch(52% 0.19 27);
+    --shell-scrim: oklch(20% 0.02 265 / .45);
+    --shell-shadow: oklch(27% 0.03 265 / .18);
+    --shell-font: "Nunito", "Segoe UI", system-ui, sans-serif;
+    --shell-text-xs: 0.75rem;
+    --shell-text-sm: 0.8125rem;
+    --shell-text-md: 0.9375rem;
+    --shell-radius: 8px;
+    --shell-dur: 120ms;
+}
+
+html, body { overflow-x: clip; }
+
+/* ── Lewati ke konten (keyboard) ── */
+.shell-skip {
+    position: absolute; left: 12px; top: -48px; z-index: 2000;
+    padding: 8px 16px; border-radius: var(--shell-radius);
+    background: var(--shell-panel); color: var(--shell-ink); font-family: var(--shell-font); font-weight: 700;
+    box-shadow: 0 4px 16px var(--shell-shadow);
+}
+.shell-skip:focus-visible { top: 12px; outline: 2px solid var(--shell-focus); outline-offset: 2px; text-decoration: none; color: var(--shell-ink); }
+
+/* ── Fokus keyboard di sidebar & bar atas (Stisla tidak punya; nicescroll mematikan outline lewat style inline) ── */
+.main-sidebar:focus-visible,
+#sidebar-wrapper:focus-visible { outline: 2px solid var(--shell-focus) !important; outline-offset: -2px; }
+.main-sidebar .sidebar-menu li a:focus-visible,
+.main-navbar .dropdown-item:focus-visible { outline: 2px solid var(--shell-focus); outline-offset: -2px; }
+.main-navbar > form .nav-link:focus-visible,
+.main-navbar > .navbar-right > li > .nav-link:focus-visible { outline: 2px solid var(--shell-focus-on-bar); outline-offset: 2px; }
+
+/* Teks menu sidebar: kontras cukup di atas putih (Stisla: 3.9:1) */
+.main-sidebar .sidebar-menu li a { color: var(--shell-ink-2); }
+.main-sidebar .sidebar-menu li.active > a,
+.main-sidebar .sidebar-menu li a:hover { color: var(--shell-accent); }
+
+/* ── Bar atas ── */
+.main-navbar { font-family: var(--shell-font); }
+.shell-toggle { display: inline-flex; align-items: center; justify-content: center; min-width: 44px; min-height: 44px; }
+.shell-today { display: flex; flex-direction: column; justify-content: center; margin-left: 4px; line-height: 1.25; color: var(--shell-on-bar); }
+.shell-today strong { font-size: var(--shell-text-md); font-weight: 700; }
+.shell-today span { font-size: var(--shell-text-xs); color: var(--shell-on-bar-2); font-variant-numeric: tabular-nums; }
+
+.shell-user { display: flex; align-items: center; gap: 10px; white-space: nowrap; }
+.shell-user img { width: 32px; height: 32px; object-fit: cover; }
+.shell-user-text { display: flex; flex-direction: column; min-width: 0; max-width: 220px; line-height: 1.25; text-align: left; }
+.shell-user-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: var(--shell-text-sm); font-weight: 700; color: var(--shell-on-bar); }
+.shell-user-meta { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: var(--shell-text-xs); color: var(--shell-on-bar-2); }
+
+.shell-menu { min-width: 260px; padding: 0; overflow: hidden; border: 1px solid var(--shell-rule); border-radius: var(--shell-radius); font-family: var(--shell-font); }
+.shell-menu-head { padding: 12px 16px; border-bottom: 1px solid var(--shell-rule); background: var(--shell-paper-2); }
+.shell-menu-head strong { display: block; font-size: var(--shell-text-md); color: var(--shell-ink); overflow-wrap: anywhere; }
+.shell-menu-head dl { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 2px 12px; margin: 8px 0 0; font-size: var(--shell-text-xs); }
+.shell-menu-head dt { font-weight: 600; color: var(--shell-muted); }
+.shell-menu-head dd { margin: 0; color: var(--shell-ink); overflow-wrap: anywhere; }
+.shell-menu .dropdown-item { display: flex; align-items: center; gap: 10px; min-height: 40px; padding: 8px 16px; font-size: var(--shell-text-sm); font-weight: 600; color: var(--shell-ink); }
+.shell-menu .dropdown-item:hover { background: var(--shell-accent-soft); color: var(--shell-ink); }
+.shell-menu .dropdown-item i { width: 16px; color: var(--shell-muted); }
+.shell-menu form { margin: 0; border-top: 1px solid var(--shell-rule); }
+.shell-menu button.dropdown-item { width: 100%; border: 0; background: none; cursor: pointer; color: var(--shell-error); }
+.shell-menu button.dropdown-item i { color: var(--shell-error); }
+
+/* ── Footer ── */
+.main-footer.shell-footer { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 4px 24px; font-family: var(--shell-font); font-size: var(--shell-text-sm); color: var(--shell-ink-2); }
+.shell-footer .footer-left, .shell-footer .footer-right { float: none; }
+
+/* ── Peringatan keluar otomatis ── */
+.shell-idle { position: fixed; inset: 0; z-index: 2100; display: flex; align-items: center; justify-content: center; padding: 16px; background: var(--shell-scrim); }
+.shell-idle[hidden] { display: none; }
+.shell-idle-box { width: min(100%, 420px); padding: 24px; border-radius: var(--shell-radius); background: var(--shell-panel); box-shadow: 0 12px 40px var(--shell-shadow); font-family: var(--shell-font); color: var(--shell-ink); }
+.shell-idle-box h2 { margin: 0 0 8px; font-size: 1.125rem; font-weight: 700; color: var(--shell-ink); }
+.shell-idle-box p { margin: 0 0 16px; font-size: var(--shell-text-md); line-height: 1.5; color: var(--shell-ink-2); }
+.shell-idle-box strong { font-variant-numeric: tabular-nums; color: var(--shell-warn); }
+.shell-idle-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px; }
+.shell-idle-actions button { min-height: 40px; padding: 0 16px; border: 1px solid var(--shell-rule); border-radius: 6px; background: var(--shell-panel); font-family: var(--shell-font); font-size: var(--shell-text-sm); font-weight: 600; color: var(--shell-ink); cursor: pointer; transition: background-color var(--shell-dur) ease; }
+.shell-idle-actions button:hover { background: var(--shell-paper-2); }
+.shell-idle-actions button.is-primary { border-color: var(--shell-accent); background: var(--shell-accent); color: var(--shell-panel); }
+.shell-idle-actions button.is-primary:hover { background: oklch(45% 0.17 276); }
+.shell-idle-actions button:focus-visible { outline: 2px solid var(--shell-focus); outline-offset: 2px; }
+
+@media (max-width: 1024px) {
+    .shell-today, .shell-user-text { display: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .shell-idle-actions button { transition: none; }
+}

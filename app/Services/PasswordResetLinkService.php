@@ -136,17 +136,10 @@ class PasswordResetLinkService
         });
     }
 
-    /** Hapus semua sesi aktif user (session Redis + catatan user_sessions). */
+    /** Keluarkan user dari semua perangkat: sesi web (Redis + user_sessions) dan token aplikasi mobile. */
     public function logoutEverywhere(User $user): void
     {
-        $handler = app('session')->getHandler();
-
-        foreach (UserSession::where('user_id', $user->id)->get() as $session) {
-            if ($session->session_id) {
-                $handler->destroy($session->session_id);
-            }
-            $session->forceDelete();
-        }
+        app(UserSessionService::class)->logoutEverywhere($user, null, 'password reset via link');
     }
 
     /** Batalkan link aktif (dipakai saat admin mengganti password manual). */

@@ -27,7 +27,10 @@
             ['Fingerprint', 'fa-fingerprint', 'pages.Fingerprints', ['ManageFingerspot', 'ManageFingerspotSPVManager', 'ViewFingerspot']],
             ['Rekap fingerprint', 'fa-table-list', 'fingerprint-recap.index', ['ManageFingerspot']],
             ['Roster', 'fa-calendar-days', 'roster.index', ['ManageRoster', 'ManageRosterSPVManager', 'ViewRoster']],
+            ['Pengaturan roster', 'fa-calendar-check', 'rostersetting.index', ['ManageRosterSetting']],
             ['Absensi mobile', 'fa-mobile-screen', 'pages.AttendanceMobile', ['ManageAttendanceMobile', 'ManageAttendanceMobileSPVManager', 'ViewAttendanceMobile']],
+            ['Absensi lembur', 'fa-user-clock', 'pages.OvertimeAttendanceMobile', ['ManageOvertimeAttendanceMobile', 'ManageOvertimeAttendanceMobileSPVManager', 'ViewOvertimeAttendanceMobile']],
+            ['Device terdaftar', 'fa-mobile-retro', 'pages.RegisteredDevice', ['ManageRegisteredDevice', 'ManageRegisteredDeviceSPVManager', 'ViewRegisteredDevice']],
         ],
         'TOIL' => [
             ['Saldo TOIL saya', 'fa-hourglass-half', 'toil.balance', ['toil']],
@@ -56,7 +59,7 @@
             ['Shift', 'fa-business-time', 'pages.Shifts', ['ManageShifts', 'ManageShiftsSPVManager', 'ViewShifts']],
             ['Hari libur', 'fa-umbrella-beach', 'pages.Pubholi', ['ManagePH', 'ManagePHSPVManager', 'ViewPH']],
             ['Jenis cuti', 'fa-calendar-minus', 'pages.Leavestype', ['ManageLeavestype']],
-            ['Bank', 'fa-building-columns', 'pages.Banks', ['ManageBanks']],
+            ['Bank', 'fa-building-columns', 'pages.Bank', ['bank.view']],
         ],
         'Pengguna' => [
             ['Akun pengguna', 'fa-users-gear', 'pages.dashboardAdmin', ['dashboardAdmin']],
@@ -105,7 +108,7 @@
     // Tiga pintasan: menu pertama yang boleh diakses dari urutan prioritas ini
     $navShortLabels = [
         'pages.Employee' => 'Karyawan', 'pages.Fingerprints' => 'Fingerprint', 'roster.index' => 'Roster',
-        'leave.list.index' => 'Cuti', 'pages.AttendanceMobile' => 'Absensi', 'toil.balance' => 'TOIL',
+        'leave.list.index' => 'Cuti', 'pages.AttendanceMobile' => 'Absensi', 'pages.OvertimeAttendanceMobile' => 'Lembur', 'pages.RegisteredDevice' => 'Device', 'toil.balance' => 'TOIL',
         'payrollperiod.index' => 'Payroll', 'contract' => 'Kontrak', 'pages.Team' => 'Tim',
     ];
     $navShortcuts = [];

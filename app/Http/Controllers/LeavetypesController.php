@@ -31,8 +31,14 @@ class LeavetypesController extends Controller
     /** Annual Leave: dipakai langsung oleh command leave:anniversary (GiveAnnualLeave). */
     public const ANNUAL_LEAVE_ID = '019ab134-12f3-73ab-a003-d096b76b25f0';
 
-    /** Status kepegawaian yang memang tidak punya hak cuti (LeaverequestController::isBlockedStatus). */
-    private const BLOCKED_STATUSES = ['DW', 'ON JOB TRAINING', 'RESIGN'];
+    /** Status kepegawaian yang bisa dipilih di cuti khusus: nilai simpan (huruf besar) => label. */
+    private const STATUS_OPTIONS = ['DW' => 'DW', 'ON JOB TRAINING' => 'On Job Training', 'PKWT' => 'PKWT', 'PKWTT' => 'PKWTT'];
+
+    /**
+     * Tanpa hak cuti secara default (LeaverequestController::isBlockedStatus). Tetap bisa memakai
+     * cuti khusus yang mencentang statusnya secara eksplisit.
+     */
+    private const DEFAULT_BLOCKED = ['DW', 'ON JOB TRAINING'];
 
     public function index()
     {
@@ -161,15 +167,14 @@ class LeavetypesController extends Controller
         return Leavetypes::get()->first(fn($t) => hash_equals($this->hashId($t->id), $hashedId));
     }
 
-    /** Status kepegawaian yang bisa dipilih: yang ada di data karyawan, kecuali yang memang tanpa hak cuti. */
+    /** Pilihan status kepegawaian: daftar tetap, ditambah nilai lama yang sudah tersimpan di jenis cuti ini. */
     private function statusOptions(?Leavetypes $type): array
     {
-        $fromDb = DB::table('employees_tables')->whereNotNull('status_employee')->distinct()->pluck('status_employee')
-            ->map(fn($s) => strtoupper(trim($s)))
-            ->reject(fn($s) => $s === '' || in_array($s, self::BLOCKED_STATUSES, true));
         $current = collect(explode(',', (string) $type?->allowed_status))->map(fn($s) => strtoupper(trim($s)))->filter();
 
-        return $fromDb->merge($current)->unique()->sort()->values()->all();
+        return collect(self::STATUS_OPTIONS)
+            ->union($current->mapWithKeys(fn($s) => [$s => $s]))
+            ->all();
     }
 
     private function formData(?Leavetypes $type): array
@@ -202,7 +207,7 @@ class LeavetypesController extends Controller
         return [
             'type'           => $type,
             'eligibility'    => $eligibility,
-            'blockedStatuses'=> self::BLOCKED_STATUSES,
+            'blockedStatuses'=> self::DEFAULT_BLOCKED,
             'isAnnual'       => $type?->id === self::ANNUAL_LEAVE_ID,
             'usage'          => $usage,
             'genderRules'    => self::GENDER_RULES,
@@ -231,7 +236,7 @@ class LeavetypesController extends Controller
             'require_attachment' => ['nullable', 'boolean'],
             'require_married'    => ['nullable', 'boolean'],
             'allowed_status'     => ['nullable', 'array'],
-            'allowed_status.*'   => ['string', Rule::in($this->statusOptions($current))],
+            'allowed_status.*'   => ['string', Rule::in(array_keys($this->statusOptions($current)))],
             'roster_day_type'    => ['nullable', Rule::in(self::ROSTER_DAY_TYPES)],
         ], [
             'name.required'          => 'Nama jenis cuti wajib diisi.',
@@ -312,7 +317,7 @@ class LeavetypesController extends Controller
         return array_values(array_filter([
             $t->gender_rule === 'female' ? 'Khusus perempuan' : ($t->gender_rule === 'male' ? 'Khusus laki-laki' : null),
             $t->require_married ? 'Sudah menikah' : null,
-            $t->allowed_status ? 'Status ' . str_replace(',', ', ', $t->allowed_status) : null,
+            $t->allowed_status ? 'Status ' . collect(explode(',', $t->allowed_status))->map(fn($s) => self::STATUS_OPTIONS[strtoupper(trim($s))] ?? trim($s))->implode(', ') : null,
             $t->fixed_days ? "Tepat {$t->fixed_days} hari kalender" : ($t->max_days ? "Maksimal {$t->max_days} hari" : null),
             $t->require_attachment ? 'Wajib lampiran' : null,
             ($t->roster_day_type ?: 'Leave') !== 'Leave' ? "Roster: {$t->roster_day_type}" : null,

@@ -21,7 +21,7 @@
     ];
     $genderLabel = ['Male' => 'Laki-laki', 'Female' => 'Perempuan', 'MD' => 'MD'];
     $marriageLabel = ['Yes' => 'Menikah', 'No' => 'Belum menikah'];
-    $attLabel = ['store_bound' => 'Terikat lokasi: absen lewat aplikasi harus di radius store utama', 'flexible' => 'Fleksibel: absen lewat aplikasi tanpa batas lokasi'];
+    $attTitle = \App\Models\Employee::getAttendanceTypeLabels();
 
     $sections = [
         'sec-personal' => ['Data pribadi', ['employee_name', 'gender', 'religion', 'place_of_birth', 'date_of_birth', 'blood_type', 'marriage', 'child', 'biological_mother_name', 'last_education', 'institution']],
@@ -314,7 +314,7 @@
                                     @foreach ($opt['attendance'] as $key => $label)
                                         <label class="emp-check">
                                             <input type="radio" name="attendance_type" value="{{ $key }}" @checked($v('attendance_type') === $key)>
-                                            <span><strong>{{ $key === 'store_bound' ? 'Terikat lokasi' : 'Fleksibel' }}</strong><small>{{ $attLabel[$key] ?? $label }}</small></span>
+                                            <span><strong>{{ $attTitle[$key] ?? $key }}</strong><small>{{ $label }}</small></span>
                                         </label>
                                     @endforeach
                                 </div>

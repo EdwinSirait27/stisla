@@ -3,6 +3,7 @@
     (function() {
         const DATA = @json($eligibility);
         const BLOCKED = @json($blockedStatuses);
+        const LABELS = @json($statusOptions);
         const form = document.getElementById('lt-form');
         const special = document.getElementById('is_special');
         const box = document.getElementById('special-box');
@@ -25,21 +26,22 @@
             const statuses = isSpecial ? checked('input[name="allowed_status[]"]') : [];
 
             const total = DATA.reduce((a, r) => a + r.c, 0);
-            const blocked = DATA.filter(r => BLOCKED.includes(r.s)).reduce((a, r) => a + r.c, 0);
-            const ok = DATA.filter(r => !BLOCKED.includes(r.s)
+            // Status dicentang: hanya status itu (DW/OJT ikut kalau dicentang). Tidak dicentang: semua kecuali DW/OJT.
+            const statusOk = s => statuses.length ? statuses.includes(s) : !BLOCKED.includes(s);
+            const blocked = DATA.filter(r => !statusOk(r.s)).reduce((a, r) => a + r.c, 0);
+            const ok = DATA.filter(r => statusOk(r.s)
                 && (gender === 'all' || r.g === gender)
-                && (!married || r.m)
-                && (!statuses.length || statuses.includes(r.s))).reduce((a, r) => a + r.c, 0);
+                && (!married || r.m)).reduce((a, r) => a + r.c, 0);
 
             document.getElementById('sum-count').textContent = fmt(ok);
             document.getElementById('sum-of').textContent = `dari ${fmt(total)} karyawan aktif`;
             document.getElementById('sum-bar').style.transform = `scaleX(${total ? ok / total : 0})`;
 
-            const rules = [`${fmt(blocked)} karyawan DW, On Job Training, atau Resign selalu ditolak.`];
+            const rules = [statuses.length ? `${fmt(blocked)} karyawan dengan status lain tidak bisa mengajukan.` : `${fmt(blocked)} karyawan DW atau On Job Training tidak punya hak cuti ini.`];
             if (isSpecial) {
                 if (gender !== 'all') rules.push(gender === 'female' ? 'Hanya perempuan.' : 'Hanya laki-laki.');
                 if (married) rules.push('Hanya yang sudah menikah.');
-                if (statuses.length) rules.push('Hanya status ' + statuses.join(', ') + '.');
+                if (statuses.length) rules.push('Hanya status ' + statuses.map(s => LABELS[s] || s).join(', ') + '.');
                 const f = document.getElementById('fixed_days').value, m = document.getElementById('max_days').value;
                 if (mode() === 'fixed' && f) rules.push(`Durasi tepat ${f} hari kalender, tanggal selesai terkunci.`);
                 if (mode() === 'max' && m) rules.push(`Maksimal ${m} hari per pengajuan.`);

@@ -71,7 +71,7 @@ public function index()
 public function sinkronkanPIN(Request $request)
 {
     $request->validate([
-        'file' => 'required|mimes:xls,xlsx,csv',
+        'file' => 'required|mimes:xls,xlsx,csv|max:10240',
     ]);
 
     $import = new SinkronPinFingerspotImport();

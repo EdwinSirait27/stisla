@@ -95,7 +95,7 @@ class RosterHistorySheet implements WithEvents, WithTitle, ShouldAutoSize
                     'employee.department:id,department_name',
                     'employee.position'  => fn($q) => $q->wherePivot('is_primary', true),
                     'employee.store'     => fn($q) => $q->wherePivot('is_primary', true),
-                    'shift:id,shift_name,code,start_time,end_time',
+                    'shift:id,shift_name,code,start_time,end_time,is_split,break_start,break_end',
                 ])
                 ->whereBetween('date', [$this->startDate, $this->endDate])
                 ->whereHas('employee', function ($q) {
@@ -449,7 +449,7 @@ class RosterHistoryShiftSheet implements WithEvents, WithTitle
                 if ($this->storeId) {
                     $query->where('store_id', $this->storeId);
                 }
-                $shifts = $query->get(['shift_name', 'code', 'start_time', 'end_time']);
+                $shifts = $query->get(['shift_name', 'code', 'start_time', 'end_time', 'is_split', 'break_start', 'break_end']);
 
                 $sheet->setCellValue('A1', "Daftar Shift — {$storeName}");
                 $sheet->mergeCells('A1:D1');
@@ -482,8 +482,10 @@ class RosterHistoryShiftSheet implements WithEvents, WithTitle
                         $r = $idx + 3;
                         $sheet->setCellValue("A{$r}", $shift->shift_name);
                         $sheet->setCellValue("B{$r}", strtoupper($shift->code));
-                        $sheet->setCellValue("C{$r}", substr($shift->start_time, 0, 5));
-                        $sheet->setCellValue("D{$r}", substr($shift->end_time, 0, 5));
+                        // Split shift: "07:00 / 17:00" di jam mulai, "11:00 / 21:00" di jam selesai
+                        $blocks = $shift->blocks();
+                        $sheet->setCellValue("C{$r}", collect($blocks)->map(fn($bl) => substr((string) $bl[0], 0, 5))->implode(' / '));
+                        $sheet->setCellValue("D{$r}", collect($blocks)->map(fn($bl) => substr((string) $bl[1], 0, 5))->implode(' / '));
 
                         $sheet->getStyle("A{$r}:D{$r}")->applyFromArray([
                             'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER],
@@ -587,7 +589,7 @@ class RosterHistoryShiftSheet implements WithEvents, WithTitle
 //                     'employee.department:id,department_name',
 //                     'employee.position'  => fn($q) => $q->wherePivot('is_primary', true),
 //                     'employee.store'     => fn($q) => $q->wherePivot('is_primary', true),
-//                     'shift:id,shift_name,code,start_time,end_time',
+//                     'shift:id,shift_name,code,start_time,end_time,is_split,break_start,break_end',
 //                 ])
 //                 ->whereBetween('date', [$this->startDate, $this->endDate])
 //                 ->whereHas('employee', function ($q) {

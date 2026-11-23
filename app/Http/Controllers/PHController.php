@@ -237,7 +237,7 @@ public function getPubholidays(Request $request)
             abort(403, 'Unauthorized');
         }
     $request->validate([
-        'file' => 'required|mimes:xlsx,csv,xls'
+        'file' => 'required|mimes:xlsx,csv,xls|max:10240'
     ], [
         'file.required' => 'Please select an Excel file to import.',
         'file.mimes'    => 'File format must be Excel (xlsx, xls) or CSV.',

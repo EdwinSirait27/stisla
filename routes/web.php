@@ -18,9 +18,12 @@ use App\Http\Controllers\DashboardSupervisorController;
 use App\Http\Controllers\UserprofileController;
 use App\Http\Controllers\DashManagerController;
 use App\Http\Controllers\AttendanceMobileController;
+use App\Http\Controllers\OvertimeAttendanceMobileController;
+use App\Http\Controllers\RegisteredDeviceController;
+use App\Http\Controllers\RosterSettingController;
 use App\Http\Controllers\CompanyController;
 use App\Http\Controllers\StoreController;
-use App\Http\Controllers\BanksController;
+use App\Http\Controllers\BankController;
 use App\Http\Controllers\ActivityController;
 use App\Http\Controllers\FingerspotController;
 use App\Http\Controllers\AttendanceimportController;
@@ -92,7 +95,9 @@ Route::middleware(['auth'])->group(function () {
 
     Route::get('/change-password', [UserprofileController::class, 'indexpassword'])
         ->name('pages.change-password');
+    // Dibatasi supaya password saat ini tidak bisa ditebak berulang-ulang
     Route::put('/change-password/update', [UserprofileController::class, 'updatePassword'])
+        ->middleware('throttle:6,1')
         ->name('change-password.update');
     // ── Logout ──
     Route::post('/logout', [LoginController::class, 'destroy'])
@@ -500,10 +505,33 @@ Route::get('manual-recap/signed-url', [ManualRecapController::class, 'signedUrl'
         Route::get('/AttendanceMobile/show/{hashedId}', [AttendanceMobileController::class, 'show'])->name('attendancemobile.show');
         Route::post('attendancemobile/store', [AttendanceMobileController::class, 'store'])->name('attendancemobile.store');
         Route::post('/AttendanceMobile/{hashedId}/status', [AttendanceMobileController::class, 'updateStatus'])->name('attendancemobile.status');
+        // Persetujuan bertingkat (checker → HR) dan riwayat aktivitas; hak akses dicek di controller
+        Route::post('/AttendanceMobile/bulk-approve', [AttendanceMobileController::class, 'bulkApprove'])->name('attendancemobile.bulk-approve');
+        Route::get('/AttendanceMobile/activities', [AttendanceMobileController::class, 'getActivities'])->name('attendancemobile.activities');
 // Route::put('attendancemobile/{idHashed}', [AttendanceMobileController::class, 'update'])->name('attendancemobile.update');
 // Route::get('attendancemobile/{idHashed}/edit-data', [AttendanceMobileController::class, 'editData'])->name('attendancemobile.editdata');
            Route::get('/attendancemobiles/attendancemobiles', [AttendanceMobileController::class, 'getAttendanceMobiles'])->name('attendancemobiles.attendancemobiles');
     // });
+
+    // ── Absensi lembur mobile ── (hak ubah status & entri manual dicek lagi di controller)
+    Route::group(['middleware' => ['permission:ManageOvertimeAttendanceMobile|ManageOvertimeAttendanceMobileSPVManager|ViewOvertimeAttendanceMobile']], function () {
+        Route::get('/OvertimeAttendanceMobile', [OvertimeAttendanceMobileController::class, 'index'])->name('pages.OvertimeAttendanceMobile');
+        Route::get('/OvertimeAttendanceMobile/show/{hashedId}', [OvertimeAttendanceMobileController::class, 'show'])->name('overtimeattendancemobile.show');
+        Route::get('/OvertimeAttendanceMobile/overtime-of', [OvertimeAttendanceMobileController::class, 'overtimeOf'])->name('overtimeattendancemobile.overtime-of');
+        Route::post('/OvertimeAttendanceMobile/store', [OvertimeAttendanceMobileController::class, 'store'])->name('overtimeattendancemobile.store');
+        // Didaftarkan sebelum /{hashedId}/... supaya tidak tertangkap sebagai hash
+        Route::post('/OvertimeAttendanceMobile/bulk-approve', [OvertimeAttendanceMobileController::class, 'bulkApprove'])->name('overtimeattendancemobile.bulk-approve');
+        Route::get('/OvertimeAttendanceMobile/activities', [OvertimeAttendanceMobileController::class, 'getActivities'])->name('overtimeattendancemobile.activities');
+        Route::post('/OvertimeAttendanceMobile/{hashedId}/status', [OvertimeAttendanceMobileController::class, 'updateStatus'])->name('overtimeattendancemobile.status');
+        Route::get('/overtimeattendancemobiles/data', [OvertimeAttendanceMobileController::class, 'getOvertimeAttendanceMobiles'])->name('overtimeattendancemobiles.data');
+    });
+
+    // ── Device mobile terdaftar ── (hak reset dicek lagi di controller: hanya ManageRegisteredDevice)
+    Route::group(['middleware' => ['permission:ManageRegisteredDevice|ManageRegisteredDeviceSPVManager|ViewRegisteredDevice']], function () {
+        Route::get('/RegisteredDevice', [RegisteredDeviceController::class, 'index'])->name('pages.RegisteredDevice');
+        Route::get('/registereddevices/data', [RegisteredDeviceController::class, 'getRegisteredDevices'])->name('registereddevices.data');
+        Route::post('/RegisteredDevice/{hashedId}/reset', [RegisteredDeviceController::class, 'reset'])->name('registereddevice.reset');
+    });
 
     Route::group(['middleware' => ['permission:ManageAssetcategories']], function () {
         Route::get('/AssetCategories', [AssetCategoriesController::class, 'index'])
@@ -678,14 +706,17 @@ Route::get('manual-recap/signed-url', [ManualRecapController::class, 'signedUrl'
     });
 
     // ── Banks ──
-    Route::group(['middleware' => ['permission:ManageBanks']], function () {
-        Route::get('/Banks', [BanksController::class, 'index'])
-            ->name('pages.Banks');
-        Route::get('Banks/create', [BanksController::class, 'create'])->name('Banks.create');
-        Route::post('/Banks', [BanksController::class, 'store'])->name('Banks.store');
-        Route::get('/Banks/edit/{hashedId}', [BanksController::class, 'edit'])->name('Banks.edit');
-        Route::put('/Banks/{hashedId}', [BanksController::class, 'update'])->name('Banks.update');
-        Route::get('/banks/banks', [BanksController::class, 'getBanks'])->name('banks.banks');
+    Route::middleware('permission:bank.view')->group(function () {
+        Route::get('/Bank', [BankController::class, 'index'])->name('pages.Bank');
+        Route::get('/banks/banks', [BankController::class, 'getBanks'])->name('banks.banks');
+    });
+    Route::middleware('permission:bank.create')->group(function () {
+        Route::get('/Bank/create', [BankController::class, 'create'])->name('Bank.create');
+        Route::post('/Bank', [BankController::class, 'store'])->name('Bank.store');
+    });
+    Route::middleware('permission:bank.update')->group(function () {
+        Route::get('/Bank/edit/{hashedId}', [BankController::class, 'edit'])->name('Bank.edit');
+        Route::put('/Bank/{hashedId}', [BankController::class, 'update'])->name('Bank.update');
     });
 
     // ── Companies ──
@@ -1002,6 +1033,15 @@ Route::get('manual-recap/signed-url', [ManualRecapController::class, 'signedUrl'
     // ════════════════════════════════════════════════════════════════
     //   ROSTER & RELATED (di luar grup auth+role utama)
     // ════════════════════════════════════════════════════════════════
+
+    // ── Pengaturan roster: jendela tanggal SPV/manager boleh mengubah roster ──
+    Route::middleware(['permission:ManageRosterSetting'])->prefix('roster-setting')->name('rostersetting.')->group(function () {
+        Route::get('/', [RosterSettingController::class, 'index'])->name('index');
+        Route::get('/create', [RosterSettingController::class, 'create'])->name('create');
+        Route::post('/', [RosterSettingController::class, 'store'])->name('store');
+        Route::get('/{hashedId}/edit', [RosterSettingController::class, 'edit'])->name('edit');
+        Route::put('/{hashedId}', [RosterSettingController::class, 'update'])->name('update');
+    });
 
     Route::prefix('roster')->name('roster.')->group(function () {
 

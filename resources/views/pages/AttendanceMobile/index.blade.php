@@ -1709,6 +1709,20 @@
         .am-time { display: block; margin-top: 2px; font-size: var(--pr-text-lg); font-weight: 800; font-variant-numeric: tabular-nums; color: var(--pr-ink); }
         #attendance-table td { vertical-align: top; }
 
+        /* ── Persetujuan bertingkat ── */
+        .am-flow { display: flex; flex-wrap: wrap; align-items: center; gap: var(--pr-space-xs); margin: 0; padding: var(--pr-space-sm) var(--pr-space-lg); list-style: none; border-top: 1px solid var(--pr-rule); font-size: var(--pr-text-xs); color: var(--pr-muted); }
+        .am-flow li { display: flex; align-items: center; gap: var(--pr-space-xs); }
+        .am-flow i { font-size: 10px; color: var(--pr-muted); }
+        .am-bulk { display: flex; flex-wrap: wrap; align-items: center; gap: var(--pr-space-sm); margin: 0 var(--pr-space-lg) var(--pr-space-sm); padding: var(--pr-space-sm) var(--pr-space-md); border-radius: var(--pr-radius-sm); background: var(--pr-accent-soft); color: var(--pr-accent-deep); font-size: var(--pr-text-sm); font-weight: 600; }
+        .am-bulk[hidden] { display: none; }
+        .am-bulk span { margin-right: auto; }
+        .am-select { width: 18px; height: 18px; accent-color: var(--pr-accent); cursor: pointer; }
+        .am-select:focus-visible { outline: 2px solid var(--pr-focus); outline-offset: 2px; }
+        #attendance-table th.am-col-select, #attendance-table td.am-col-select { width: 36px; }
+        .am-col-select .pr-muted { font-size: var(--pr-text-xs); }
+        #activity-table td { vertical-align: top; }
+        .am-activity[hidden] { display: none; }
+
         .am-grid { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 1fr); gap: var(--pr-space-lg); align-items: start; }
         .am-photo { display: block; width: 100%; padding: 0; border: 0; background: var(--pr-paper); cursor: zoom-in; }
         .am-photo img { display: block; width: 100%; max-height: 420px; object-fit: contain; }
@@ -1735,23 +1749,35 @@
                     <h1 class="pr-title">Absensi mobile</h1>
                     <p class="pr-lede">Check-in dan check-out dari aplikasi, diverifikasi dengan selfie, GPS, dan radius lokasi. Entri manual dari atasan atau HR juga tercatat di sini.</p>
                 </div>
-                @if ($canManage || $canSpvManager)
-                    <div class="pr-actions">
-                        <button type="button" class="pr-btn pr-btn-primary" data-toggle="modal" data-target="#modalCreateAttendance"><i class="fas fa-plus" aria-hidden="true"></i> Entri manual</button>
-                    </div>
-                @endif
+                <div class="pr-actions">
+                    @if ($canManage)
+                        <button type="button" class="pr-btn" id="btnActivity" aria-controls="am-activity"><i class="fas fa-clock-rotate-left" aria-hidden="true"></i> Riwayat aktivitas</button>
+                    @endif
+                    @if ($canCreate)
+                        <button type="button" class="pr-btn pr-btn-primary" data-toggle="modal" data-target="#modalCreateAttendance"><i class="fas fa-plus" aria-hidden="true"></i> Ajukan entri manual</button>
+                    @endif
+                </div>
             </header>
 
             <section class="pr-panel" aria-label="Ringkasan">
                 <dl class="tl-stats">
-                    <div id="pending-box"><dt>Menunggu persetujuan</dt><dd id="st-pending">–</dd>
-                        <button type="button" class="lv-link" id="btn-pending" hidden>Tampilkan</button>
-                        <span>{{ $canManage ? 'entri manual dari atasan, perlu Anda cek' : 'entri manual, menunggu HR' }}</span></div>
+                    <div id="pending-box"><dt>Menunggu checker</dt><dd id="st-pending">–</dd>
+                        <button type="button" class="lv-link" data-status="pending" hidden>Tampilkan</button>
+                        <span>{{ $canSpvManager ? 'entri manual yang perlu Anda cek' : 'entri manual, dicek SPV atau manager' }}</span></div>
+                    <div id="approved-box"><dt>Menunggu HR</dt><dd id="st-approved">–</dd>
+                        <button type="button" class="lv-link" data-status="approved" hidden>Tampilkan</button>
+                        <span>{{ $canManage ? 'lolos checker atau verifikasi aplikasi, perlu Anda setujui' : 'lolos checker atau verifikasi aplikasi' }}</span></div>
+                    <div><dt>Disetujui HR</dt><dd id="st-approved-hr">–</dd><span>final</span></div>
                     <div id="flag-box"><dt>Ditandai</dt><dd id="st-flagged">–</dd><span>perlu ditinjau</span></div>
-                    <div><dt>Check-in</dt><dd id="st-in">–</dd><span id="st-emp">dari – karyawan</span></div>
-                    <div><dt>Check-out</dt><dd id="st-out">–</dd><span id="st-out-sub">pasangan check-in</span></div>
+                    <div><dt>Absen</dt><dd id="st-in">–</dd><span id="st-emp">dari – karyawan</span></div>
                     <div><dt>Entri manual</dt><dd id="st-manual">–</dd><span>tanpa GPS dan selfie</span></div>
                 </dl>
+                <ol class="am-flow" aria-label="Alur persetujuan">
+                    <li>Entri manual diajukan</li><li><i class="fas fa-chevron-right" aria-hidden="true"></i>Menunggu checker</li>
+                    <li><i class="fas fa-chevron-right" aria-hidden="true"></i>SPV atau manager mengecek</li><li><i class="fas fa-chevron-right" aria-hidden="true"></i>Menunggu HR</li>
+                    <li><i class="fas fa-chevron-right" aria-hidden="true"></i>HR menyetujui</li><li><i class="fas fa-chevron-right" aria-hidden="true"></i>Disetujui HR</li>
+                    <li>Absen dari aplikasi yang lolos verifikasi wajah dan GPS langsung menunggu HR.</li>
+                </ol>
             </section>
 
             <section class="pr-panel" aria-labelledby="am-title">
@@ -1772,9 +1798,9 @@
                     <div class="pr-field"><label for="filterType">Tipe</label>
                         <select id="filterType" class="emp-select"><option value="">Semua</option><option value="checkin">Check-in</option><option value="checkout">Check-out</option></select></div>
                     <div class="pr-field"><label for="filterStatus">Status</label>
-                        <select id="filterStatus" class="emp-select"><option value="">Semua</option><option value="approved">Disetujui</option><option value="pending">Menunggu</option><option value="flagged">Ditandai</option></select></div>
+                        <select id="filterStatus" class="emp-select"><option value="">Semua</option><option value="pending">Menunggu checker</option><option value="approved">Menunggu HR</option><option value="approved_hr">Disetujui HR</option><option value="flagged">Ditandai</option></select></div>
                     <div class="pr-field"><label for="filterSource">Sumber</label>
-                        <select id="filterSource" class="emp-select"><option value="">Semua</option><option value="app">Aplikasi</option><option value="manual">Entri manual</option></select></div>
+                        <select id="filterSource" class="emp-select"><option value="">Semua</option><option value="app">Aplikasi</option><option value="manual">Entri manual</option><option value="offsite">Di luar lokasi</option></select></div>
                     @if ($canManage)
                         <div class="pr-field"><label for="filterCompany">Perusahaan</label>
                             <select id="filterCompany" class="emp-select js-s2"><option value="">Semua perusahaan</option>
@@ -1785,7 +1811,7 @@
                                 @foreach ($departments as $d)<option value="{{ $d->id }}">{{ $d->department_name }}</option>@endforeach
                             </select></div>
                     @endif
-                    @if ($canManage || $canSpvManager)
+                    @if ($canManage || $canSpvManager || $canView)
                         <div class="pr-field"><label for="filterStore">Lokasi</label>
                             <select id="filterStore" class="emp-select js-s2"><option value="">Semua lokasi</option>
                                 @foreach ($stores as $st)<option value="{{ $st->id }}">{{ $st->name }}</option>@endforeach
@@ -1800,10 +1826,23 @@
                         <button type="button" class="pr-btn pr-btn-sm pr-btn-primary" id="btnFilter">Terapkan</button>
                     </div>
                 </div>
+                @if ($canManage || $canSpvManager)
+                    <div class="am-bulk" id="am-bulk" role="region" aria-live="polite" aria-label="Persetujuan massal" hidden>
+                        <span id="am-bulk-count">0 dipilih</span>
+                        @if ($canSpvManager)
+                            <button type="button" class="pr-btn pr-btn-sm pr-btn-primary" id="btnBulkChecker" hidden>Setujui sebagai checker</button>
+                        @endif
+                        @if ($canManage)
+                            <button type="button" class="pr-btn pr-btn-sm pr-btn-primary" id="btnBulkHr" hidden>Setujui HR</button>
+                        @endif
+                        <button type="button" class="pr-btn pr-btn-sm" id="btnBulkClear">Batal pilih</button>
+                    </div>
+                @endif
                 <div class="pr-table-wrap">
                     <table class="table" id="attendance-table">
                         <thead>
                             <tr>
+                                <th class="am-col-select">@if ($canManage || $canSpvManager)<input type="checkbox" class="am-select" id="am-select-all" aria-label="Pilih semua yang bisa disetujui di halaman ini">@else<span class="sr-only">Pilih</span>@endif</th>
                                 <th>Karyawan</th>
                                 <th>Lokasi</th>
                                 <th>Tanggal kerja</th>
@@ -1816,27 +1855,52 @@
                     </table>
                 </div>
             </section>
+
+            @if ($canManage)
+                <section class="pr-panel am-activity" id="am-activity" aria-labelledby="act-title">
+                    <div class="pr-panel-head">
+                        <div>
+                            <h2 class="pr-panel-title" id="act-title">Riwayat aktivitas</h2>
+                            <span class="pr-panel-sub">Siapa mengajukan, mengecek, menyetujui, atau menandai absensi mobile.</span>
+                        </div>
+                    </div>
+                    <div class="pr-table-wrap">
+                        <table class="table" id="activity-table">
+                            <thead>
+                                <tr>
+                                    <th>Waktu</th>
+                                    <th>Oleh</th>
+                                    <th>Aktivitas</th>
+                                    <th>Absensi</th>
+                                    <th class="text-right"><span class="sr-only">Aksi</span></th>
+                                </tr>
+                            </thead>
+                        </table>
+                    </div>
+                </section>
+            @endif
         </section>
     </div>
 
-    @if ($canManage || $canSpvManager)
+    @if ($canCreate)
         <div class="modal fade" id="modalCreateAttendance" tabindex="-1" role="dialog" aria-labelledby="mc-title">
             <div class="modal-dialog modal-lg" role="document">
                 <form class="modal-content" id="formCreateAttendance" novalidate>
                     @csrf
                     <div class="modal-header">
-                        <h2 class="modal-title" id="mc-title">Entri absensi manual</h2>
+                        <h2 class="modal-title" id="mc-title">Ajukan entri absensi manual</h2>
                         <button type="button" class="close" data-dismiss="modal" aria-label="Tutup"><span aria-hidden="true">&times;</span></button>
                     </div>
                     <div class="modal-body">
-                        <p class="emp-help" style="margin:0 0 var(--pr-space-sm)">Untuk karyawan yang lupa absen di aplikasi. {{ $canManage ? 'Bisa langsung disetujui.' : 'Entri dari atasan masuk sebagai menunggu dan perlu disetujui HR.' }}</p>
+                        <p class="emp-help" style="margin:0 0 var(--pr-space-sm)">Untuk karyawan yang lupa absen di aplikasi. {{ $canManage ? 'Sebagai HR, Anda bisa langsung memfinalkannya.' : 'Entri masuk sebagai menunggu checker: dicek SPV atau manager, lalu disetujui HR.' }}</p>
                         <div class="emp-fields" style="padding:0">
                             <div class="emp-field is-wide">
                                 <label for="create_employee_id">Karyawan <span class="emp-req" aria-hidden="true">*</span></label>
                                 <select class="emp-select" id="create_employee_id" name="employee_id" required style="width:100%">
                                     <option value="">Pilih karyawan</option>
-                                    @foreach ($employees as $e)<option value="{{ $e->id }}">{{ $e->employee_name }}{{ $e->employee_pengenal ? ' (' . $e->employee_pengenal . ')' : '' }}</option>@endforeach
+                                    @foreach ($employees as $e)<option value="{{ $e->id }}" data-flex="{{ $e->attendance_type === 'location_flexible' ? 1 : 0 }}">{{ $e->employee_name }}{{ $e->employee_pengenal ? ' (' . $e->employee_pengenal . ')' : '' }}</option>@endforeach
                                 </select>
+                                @if (!$canManage && !$canSpvManager)<span class="emp-help">Anda hanya bisa mengajukan entri untuk diri sendiri.</span>@endif
                             </div>
                             <div class="emp-field">
                                 <span class="emp-label">Tipe <span class="emp-req" aria-hidden="true">*</span></span>
@@ -1846,25 +1910,32 @@
                                 </div>
                             </div>
                             <div class="emp-field">
-                                <label for="create_store_id">Lokasi</label>
-                                <select class="emp-select" id="create_store_id" name="store_id" style="width:100%">
-                                    @if ($canManage)<option value="">Work From Anywhere</option>@endif
-                                    @foreach ($stores as $st)<option value="{{ $st->id }}">{{ $st->name }}</option>@endforeach
-                                </select>
+                                <span class="emp-label">Blok</span>
+                                <div class="tl-choice" role="radiogroup">
+                                    <label class="emp-check"><input type="radio" name="session" value="1" checked> <strong>Blok 1</strong></label>
+                                    <label class="emp-check"><input type="radio" name="session" value="2"> <strong>Blok 2</strong></label>
+                                </div>
+                                <span class="emp-help">Blok 2 hanya untuk karyawan yang jadwalnya split shift di tanggal itu. Shift biasa selalu blok 1.</span>
+                            </div>
+                            <div class="emp-field">
+                                <label for="create_store_id">Lokasi <span class="emp-req" aria-hidden="true">*</span></label>
+                                <select class="emp-select" id="create_store_id" name="store_id" style="width:100%" aria-describedby="create_store_help"></select>
+                                <span class="emp-help" id="create_store_help">Pilih karyawan dulu. Hanya lokasi kerja karyawan itu yang bisa dipilih.</span>
                             </div>
                             <div class="emp-field">
                                 <label for="create_work_date">Tanggal kerja <span class="emp-req" aria-hidden="true">*</span></label>
-                                <input type="date" class="emp-input" id="create_work_date" name="work_date" max="{{ today()->toDateString() }}" required>
+                                <input type="date" class="emp-input" id="create_work_date" name="work_date" @if ($entryMin) min="{{ $entryMin }}" @endif max="{{ $entryMax }}" required>
+                                @if ($entryMin)<span class="emp-help">Periode berjalan: {{ $periodLabel }}. Periode sebelumnya sudah cut off, hanya HR yang bisa mengisi. Pengecualian: check-out shift malam tanggal 25 masih bisa diajukan pada tanggal 26.</span>@endif
                             </div>
                             <div class="emp-field">
                                 <label for="create_logged_at">Jam absen <span class="emp-req" aria-hidden="true">*</span></label>
-                                <input type="datetime-local" class="emp-input" id="create_logged_at" name="logged_at" required>
+                                <input type="datetime-local" class="emp-input" id="create_logged_at" name="logged_at" @if ($entryMin) min="{{ $entryMin }}T00:00" max="{{ $entryMax }}T23:59" @endif required>
                                 <span class="emp-help">Di tanggal kerja, atau dini hari besoknya untuk shift malam.</span>
                             </div>
                             @if ($canManage)
                                 <div class="emp-field">
                                     <label for="create_status">Status <span class="emp-req" aria-hidden="true">*</span></label>
-                                    <select class="emp-select" id="create_status" name="status" required><option value="approved">Langsung disetujui</option><option value="pending">Menunggu</option></select>
+                                    <select class="emp-select" id="create_status" name="status" required><option value="approved_hr">Langsung disetujui HR (final)</option><option value="pending">Menunggu checker</option></select>
                                 </div>
                             @endif
                             <div class="emp-field is-wide">
@@ -1872,9 +1943,9 @@
                                 <textarea class="emp-input" id="create_flag_reason" name="flag_reason" rows="2" maxlength="255" required placeholder="Mis. HP mati saat jam masuk, sudah dikonfirmasi SPV"></textarea>
                             </div>
                             <div class="emp-field is-wide">
-                                <label for="create_photo">Foto atau surat pendukung <span class="emp-req" aria-hidden="true">*</span></label>
-                                <input type="file" class="emp-input" id="create_photo" name="photo_path" accept=".jpg,.jpeg,.png,.pdf" required>
-                                <span class="emp-help">jpg, png, atau pdf, maksimal 5 MB.</span>
+                                <label for="create_photo">Foto atau surat pendukung</label>
+                                <input type="file" class="emp-input" id="create_photo" name="photo_path" accept=".jpg,.jpeg,.png,.webp,.pdf" aria-describedby="create_photo_help">
+                                <span class="emp-help" id="create_photo_help">Opsional, tapi membantu checker dan HR menyetujui lebih cepat. Foto (jpg, png, webp, maksimal 10 MB) otomatis dikecilkan sebelum disimpan. PDF maksimal 5 MB.</span>
                             </div>
                         </div>
                     </div>
@@ -1898,14 +1969,16 @@
             const esc = v => String(v ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
             const fmtDate = s => s ? new Date(s + 'T00:00:00').toLocaleDateString('id-ID', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' }) : '-';
             const DEF = { from: @json($defaultFrom), to: @json($defaultTo) };
-            const STATUS = { approved: ['Disetujui', 'is-approved'], pending: ['Menunggu', 'is-pending'], flagged: ['Ditandai', 'is-rejected'] };
+            const STATUS = { pending: ['Menunggu checker', 'is-pending'], approved: ['Menunggu HR', 'is-open'], approved_hr: ['Disetujui HR', 'is-approved'], flagged: ['Ditandai', 'is-rejected'] };
+            const CAN_BULK = @json($canManage || $canSpvManager);
+            const selected = new Map(); // hash -> level ('checker' | 'hr')
             $('.js-s2').each(function() { $(this).select2({ width: '100%' }); });
 
             const table = $('#attendance-table').DataTable({
                 processing: true, serverSide: true, autoWidth: false,
                 dom: 'rt<"pr-dt-bottom"<"pr-dt-left"li>p>',
                 pageLength: 25, lengthMenu: [[10, 25, 50, 100], [10, 25, 50, 100]],
-                order: [[3, 'desc']],
+                order: [[4, 'desc']],
                 language: {
                     processing: 'Memuat', lengthMenu: 'Tampilkan _MENU_', info: '_START_ sampai _END_ dari _TOTAL_', infoEmpty: 'Tidak ada data',
                     infoFiltered: '', zeroRecords: 'Tidak ada absensi yang cocok dengan filter ini.', emptyTable: 'Belum ada absensi di periode ini.',
@@ -1920,49 +1993,159 @@
                     },
                 },
                 columns: [
+                    { data: 'approve_level', orderable: false, searchable: false, className: 'am-col-select', render: (d, t, r) => {
+                        if (!CAN_BULK) return '';
+                        if (d) return `<input type="checkbox" class="am-select am-row" data-hash="${esc(r.hash)}" data-level="${esc(d)}" ${selected.has(r.hash) ? 'checked' : ''} aria-label="Pilih absensi ${esc(r.employee_name)}">`;
+                        return r.status === 'pending' && r.is_mine ? '<span class="pr-muted" title="Ajuan Anda sendiri dicek orang lain">ajuan Anda</span>' : '';
+                    } },
                     { data: 'employee_name', name: 'employee_name', render: (d, t, r) => `<span class="pr-cell-name">${esc(d)}</span><span class="pr-cell-sub">${esc([r.employee_pengenal !== '-' ? r.employee_pengenal : null, r.department_name !== '-' ? r.department_name : null].filter(Boolean).join(', '))}</span>` },
                     { data: 'store_name', name: 'store_name', searchable: false, render: (d, t, r) => `<span class="pr-cell-name">${esc(d)}</span>${r.distance_from_store !== null ? `<span class="pr-cell-sub">${Math.round(r.distance_from_store).toLocaleString('id-ID')} m${r.geofence_radius ? ' dari ' + r.geofence_radius + ' m' : ''}</span>` : ''}` },
                     { data: 'work_date', name: 'attendance_logs.work_date', searchable: false, render: d => `<span class="pr-cell-name">${esc(fmtDate(d))}</span>` },
-                    { data: 'logged_at', name: 'attendance_logs.logged_at', searchable: false, render: (d, t, r) => `<span class="am-type ${r.type === 'checkout' ? 'is-out' : ''}">${r.type === 'checkin' ? 'Check-in' : 'Check-out'}</span><span class="am-time">${esc(r.logged_time)}</span>${r.logged_date && r.work_date && r.logged_date !== r.work_date ? '<span class="pr-cell-sub">' + esc(r.logged_full) + '</span>' : ''}` },
+                    { data: 'logged_at', name: 'attendance_logs.logged_at', searchable: false, render: (d, t, r) => `<span class="am-type ${r.type === 'checkout' ? 'is-out' : ''}">${r.type === 'checkin' ? 'Check-in' : 'Check-out'}${r.is_split_session ? ' · Blok ' + esc(r.session) : ''}</span><span class="am-time">${esc(r.logged_time)}</span>${r.logged_date && r.work_date && r.logged_date !== r.work_date ? '<span class="pr-cell-sub">' + esc(r.logged_full) + '</span>' : ''}` },
                     { data: 'is_within_geofence', orderable: false, searchable: false, render: (d, t, r) => {
                         if (r.is_manual) return '<div class="am-checks"><span class="am-chip is-muted">Entri manual</span></div>';
                         return '<div class="am-checks">'
                             + (r.liveness_passed ? '<span class="am-chip">Wajah cocok</span>' : '<span class="am-chip is-bad">Wajah gagal</span>')
                             + (r.is_mock_location ? '<span class="am-chip is-bad">GPS palsu</span>' : '<span class="am-chip">GPS asli</span>')
-                            + (r.store_name === 'Work From Anywhere' ? '<span class="am-chip is-muted">Bebas lokasi</span>' : (r.is_within_geofence ? '<span class="am-chip">Dalam radius</span>' : '<span class="am-chip is-bad">Luar radius</span>'))
+                            + (r.is_offsite ? '<span class="am-chip is-bad">Di luar lokasi</span>' : (r.store_name === 'Work From Anywhere' ? '<span class="am-chip is-muted">Bebas lokasi</span>' : (r.is_within_geofence ? '<span class="am-chip">Dalam radius</span>' : '<span class="am-chip is-bad">Luar radius</span>')))
+                            + (r.attendance_mode_label ? `<span class="am-chip is-muted">${esc(r.attendance_mode_label)}</span>` : '')
                             + '</div>';
                     } },
-                    { data: 'status', name: 'attendance_logs.status', searchable: false, render: (d, t, r) => { const [l, c] = STATUS[d] ?? [d, 'is-draft']; return `<span class="status-badge ${c}">${esc(l)}</span>${r.flag_reason ? `<span class="pr-cell-sub" title="${esc(r.flag_reason)}">${esc(String(r.flag_reason).slice(0, 48))}${String(r.flag_reason).length > 48 ? '…' : ''}</span>` : ''}`; } },
+                    { data: 'status', name: 'attendance_logs.status', searchable: false, render: (d, t, r) => { const [l, c] = STATUS[d] ?? [d, 'is-draft']; return `<span class="status-badge ${c}">${esc(l)}</span>${r.submitted_by ? `<span class="pr-cell-sub">Diajukan ${esc(r.submitted_by)}</span>` : ''}${r.flag_reason ? `<span class="pr-cell-sub" title="${esc(r.flag_reason)}">${esc(String(r.flag_reason).slice(0, 48))}${String(r.flag_reason).length > 48 ? '…' : ''}</span>` : ''}`; } },
                     { data: 'show_url', orderable: false, searchable: false, className: 'text-right', render: (d, t, r) => `<a href="${esc(d)}" class="pr-btn pr-btn-sm" aria-label="Detail absensi ${esc(r.employee_name)}">Detail</a>` },
                 ],
                 drawCallback: function(settings) {
                     const j = settings.json; if (!j) return;
                     const n = v => Number(v || 0).toLocaleString('id-ID'), s = j.stats || {};
                     $('#am-count').text(`${n(j.recordsFiltered)} log`);
-                    $('#st-pending').text(n(s.pending)); $('#st-flagged').text(n(s.flagged)); $('#st-in').text(n(s.checkin)); $('#st-out').text(n(s.checkout));
-                    $('#st-manual').text(n(s.manual_entries)); $('#st-emp').text(`dari ${n(s.employees)} karyawan`);
-                    $('#st-out-sub').text(s.checkin > s.checkout ? `${n(s.checkin - s.checkout)} check-in belum check-out` : 'semua check-in sudah check-out');
-                    $('#pending-box').toggleClass('is-warn', s.pending > 0); $('#btn-pending').prop('hidden', !(s.pending > 0)); $('#flag-box').toggleClass('is-warn', s.flagged > 0);
+                    $('#st-pending').text(n(s.pending)); $('#st-approved').text(n(s.approved)); $('#st-approved-hr').text(n(s.approved_hr)); $('#st-flagged').text(n(s.flagged));
+                    $('#st-in').text(`${n(s.checkin)} / ${n(s.checkout)}`); $('#st-emp').text(`check-in / check-out dari ${n(s.employees)} karyawan`);
+                    $('#st-manual').text(n(s.manual_entries));
+                    const mePending = @json($canSpvManager) && s.pending_checkable > 0, meApproved = @json($canManage) && s.approved > 0;
+                    $('#pending-box').toggleClass('is-warn', mePending).find('[data-status]').prop('hidden', !(s.pending > 0));
+                    $('#approved-box').toggleClass('is-warn', meApproved).find('[data-status]').prop('hidden', !(s.approved > 0));
+                    $('#flag-box').toggleClass('is-warn', s.flagged > 0);
+                    syncSelectAll();
                 },
             });
 
             let ts; $('#am-search').on('input', function() { clearTimeout(ts); const v = this.value; ts = setTimeout(() => table.search(v).draw(), 400); });
             $('#filterType, #filterStatus, #filterSource, #filterStore, #filterCompany, #filterDepartment, #filterEmployee').on('change', () => table.ajax.reload());
             $('#btnFilter').on('click', () => table.ajax.reload());
-            $('#btn-pending').on('click', () => { $('#filterStatus').val('pending'); table.ajax.reload(); document.getElementById('am-title').scrollIntoView({ behavior: 'smooth' }); });
+            $('.tl-stats [data-status]').on('click', function() { $('#filterStatus').val(this.dataset.status); table.ajax.reload(); document.getElementById('am-title').scrollIntoView({ behavior: 'smooth' }); });
+
+            // ── Persetujuan massal ──
+            function renderBulk() {
+                const levels = [...selected.values()];
+                const checker = levels.filter(l => l === 'checker').length, hr = levels.filter(l => l === 'hr').length;
+                $('#am-bulk').prop('hidden', selected.size === 0);
+                $('#am-bulk-count').text(`${selected.size} dipilih`);
+                $('#btnBulkChecker').prop('hidden', !checker).text(`Setujui ${checker} sebagai checker`);
+                $('#btnBulkHr').prop('hidden', !hr).text(`Setujui HR ${hr}`);
+            }
+            function syncSelectAll() {
+                const boxes = $('#attendance-table .am-row');
+                $('#am-select-all').prop('checked', boxes.length > 0 && boxes.filter(':checked').length === boxes.length).prop('disabled', boxes.length === 0);
+            }
+            $('#attendance-table').on('change', '.am-row', function() {
+                this.checked ? selected.set(this.dataset.hash, this.dataset.level) : selected.delete(this.dataset.hash);
+                renderBulk(); syncSelectAll();
+            });
+            $('#am-select-all').on('change', function() {
+                const on = this.checked;
+                $('#attendance-table .am-row').each(function() { this.checked = on; on ? selected.set(this.dataset.hash, this.dataset.level) : selected.delete(this.dataset.hash); });
+                renderBulk();
+            });
+            $('#btnBulkClear').on('click', () => { selected.clear(); $('#attendance-table .am-row, #am-select-all').prop('checked', false); renderBulk(); });
+            // Filter berubah: pilihan lama dibuang supaya tidak menyetujui baris yang sudah tidak terlihat
+            table.on('preXhr.dt', (e, settings, data) => { if (data.start === 0 && settings.iDraw > 0 && settings._bulkKeep !== true) { selected.clear(); renderBulk(); } });
+
+            function bulkApprove(level) {
+                const hashes = [...selected].filter(([, l]) => l === level).map(([h]) => h);
+                if (!hashes.length) return;
+                const isHr = level === 'hr';
+                Swal.fire({
+                    icon: 'question',
+                    title: isHr ? `Setujui HR ${hashes.length} absensi?` : `Setujui ${hashes.length} absensi sebagai checker?`,
+                    text: isHr ? 'Status menjadi Disetujui HR (final).' : 'Status menjadi Menunggu HR dan diteruskan ke HR.',
+                    showCancelButton: true, confirmButtonText: 'Setujui', cancelButtonText: 'Batal', confirmButtonColor: '#4f46e5',
+                    showLoaderOnConfirm: true,
+                    preConfirm: () => $.ajax({ url: '{{ route('attendancemobile.bulk-approve') }}', method: 'POST', data: { level, hashes, _token: '{{ csrf_token() }}' } })
+                        .catch(x => Swal.showValidationMessage(x.responseJSON?.errors ? Object.values(x.responseJSON.errors).flat().join(' ') : (x.responseJSON?.message ?? 'Terjadi kesalahan.'))),
+                    allowOutsideClick: () => !Swal.isLoading(),
+                }).then(r => {
+                    if (!r.isConfirmed || !r.value) return;
+                    hashes.forEach(h => selected.delete(h)); renderBulk();
+                    Swal.fire({ icon: r.value.approved ? 'success' : 'info', title: r.value.approved ? 'Disetujui' : 'Tidak ada yang disetujui', text: r.value.message });
+                    table.ajax.reload(null, false);
+                    if (activityTable) activityTable.ajax.reload(null, false);
+                });
+            }
+            $('#btnBulkChecker').on('click', () => bulkApprove('checker'));
+            $('#btnBulkHr').on('click', () => bulkApprove('hr'));
+
+            // ── Riwayat aktivitas (HR) ──
+            let activityTable = null;
+            // Tampil langsung di bawah tabel absensi (hanya HR); tombol di header cukup menggulir ke panel
+            if (document.getElementById('activity-table')) {
+                activityTable = $('#activity-table').DataTable({
+                    processing: true, serverSide: true, autoWidth: false, searching: true,
+                    dom: '<"pr-dt-top"f>rt<"pr-dt-bottom"<"pr-dt-left"li>p>',
+                    pageLength: 25, order: [[0, 'desc']],
+                    language: { processing: 'Memuat', search: 'Cari', lengthMenu: 'Tampilkan _MENU_', info: '_START_ sampai _END_ dari _TOTAL_', infoEmpty: 'Tidak ada data', infoFiltered: '', zeroRecords: 'Tidak ada aktivitas yang cocok.', emptyTable: 'Belum ada aktivitas.', paginate: { previous: 'Sebelumnya', next: 'Berikutnya' } },
+                    ajax: { url: '{{ route('attendancemobile.activities') }}' },
+                    columns: [
+                        { data: 'time', name: 'time', searchable: false, render: d => `<span class="pr-cell-name">${esc(d)}</span>` },
+                        { data: 'causer_name', orderable: false, searchable: false, render: d => esc(d) },
+                        { data: 'description', orderable: false, searchable: false, render: (d, t, r) => `<span class="pr-cell-name">${esc(d)}</span>${r.status_from || r.status_to ? `<span class="pr-cell-sub">${esc(r.status_from ?? 'baru')} ke ${esc(r.status_to ?? '-')}</span>` : ''}${r.note ? `<span class="pr-cell-sub">${esc(r.note)}</span>` : ''}` },
+                        { data: 'employee_name', orderable: false, searchable: false, render: (d, t, r) => `<span class="pr-cell-name">${esc(d)}</span><span class="pr-cell-sub">${esc([r.type === 'checkin' ? 'Check-in' : r.type === 'checkout' ? 'Check-out' : null, r.work_date].filter(Boolean).join(', '))}</span>` },
+                        { data: 'show_url', orderable: false, searchable: false, className: 'text-right', render: d => d ? `<a href="${esc(d)}" class="pr-btn pr-btn-sm">Detail</a>` : '' },
+                    ],
+                });
+            }
+            $('#btnActivity').on('click', () => document.getElementById('am-activity')?.scrollIntoView({ behavior: 'smooth' }));
             $('#btnReset').on('click', () => {
+                selected.clear(); renderBulk();
                 $('#filterDateFrom').val(DEF.from); $('#filterDateTo').val(DEF.to); $('#filterType, #filterStatus, #filterSource').val('');
                 $('#filterStore, #filterCompany, #filterDepartment, #filterEmployee').val('').trigger('change.select2'); $('#am-search').val(''); table.search('').ajax.reload();
             });
 
             const $m = $('#modalCreateAttendance');
+            // Lokasi kerja tiap karyawan; pilihan lokasi di form mengikuti karyawan yang dipilih
+            const EMP_STORES = @json($employeeStores ?? []);
+            const STORE_NAMES = @json(($entryStores ?? collect())->pluck('name', 'id'));
+            function fillStores() {
+                const $emp = $('#create_employee_id'), $st = $('#create_store_id'), id = $emp.val();
+                const flex = $emp.find('option:selected').data('flex') == 1;
+                const ids = (EMP_STORES[id] || []).filter(s => STORE_NAMES[s]);
+                $st.empty();
+                if (!id) {
+                    $st.append(new Option('Pilih karyawan dulu', '', true, true)).prop('disabled', true);
+                } else {
+                    $st.prop('disabled', false);
+                    if (flex) $st.append(new Option('Work From Anywhere (karyawan bebas lokasi)', '', false, false));
+                    else if (ids.length !== 1) $st.append(new Option('Pilih lokasi', '', true, true));
+                    ids.forEach(s => $st.append(new Option(STORE_NAMES[s], s, ids.length === 1, ids.length === 1)));
+                    if (!flex && !ids.length) $st.empty().append(new Option('Karyawan ini belum punya lokasi kerja', '', true, true)).prop('disabled', true);
+                }
+                $('#create_store_help').text(!id ? 'Pilih karyawan dulu. Hanya lokasi kerja karyawan itu yang bisa dipilih.'
+                    : flex ? 'Karyawan bebas lokasi boleh tanpa lokasi (Work From Anywhere).'
+                    : ids.length ? 'Hanya lokasi kerja karyawan ini yang bisa dipilih.' : 'Atur lokasi kerja karyawan ini dulu di data karyawan.');
+                $st.trigger('change.select2');
+            }
+            $('#create_employee_id').on('change', fillStores);
             $m.on('shown.bs.modal', function() {
                 $('#create_employee_id, #create_store_id').each(function() {
                     if ($(this).hasClass('select2-hidden-accessible')) $(this).select2('destroy');
                     $(this).select2({ width: '100%', dropdownParent: $m });
                 });
             });
-            $m.on('show.bs.modal', () => { $('#formCreateAttendance')[0].reset(); $('#create_employee_id, #create_store_id').val(null).trigger('change'); });
+            $m.on('show.bs.modal', () => {
+                $('#formCreateAttendance')[0].reset();
+                // Pengaju (View) hanya punya dirinya sendiri di daftar: langsung terpilih
+                const only = $('#create_employee_id option[value!=""]');
+                $('#create_employee_id').val(only.length === 1 ? only.val() : null).trigger('change');
+            });
             $('#create_work_date').on('change', function() { if (this.value && !$('#create_logged_at').val()) $('#create_logged_at').val(this.value + 'T' + ($('input[name=type]:checked').val() === 'checkout' ? '17:00' : '08:00')); });
 
             $('#formCreateAttendance').on('submit', function(e) {
@@ -1971,11 +2154,25 @@
                 if (!$('#create_employee_id').val()) miss.push('karyawan');
                 if (!$('#create_work_date').val()) miss.push('tanggal kerja');
                 if (!$('#create_logged_at').val()) miss.push('jam absen');
+                // Cut off tanggal 25 untuk selain HR (dicek ulang di server)
+                const PMIN = @json($entryMin), PMAX = @json($entryMax);
+                if (PMIN && !miss.length) {
+                    const wd = $('#create_work_date').val(), la = $('#create_logged_at').val().slice(0, 10);
+                    // Check-out shift malam tanggal 25 diputuskan server (cek roster shift malam)
+                    const nightCheckout = $('input[name=type]:checked').val() === 'checkout' && wd === PMIN && la > wd;
+                    if (!nightCheckout && (wd < PMIN || wd > PMAX || la < PMIN || la > PMAX)) {
+                        return Swal.fire({ icon: 'error', title: 'Di luar periode', text: @json('Entri manual hanya bisa untuk periode berjalan, ' . ($periodLabel ?? '') . '. Periode sebelumnya sudah cut off, hubungi HR.') });
+                    }
+                }
+                const flex = $('#create_employee_id option:selected').data('flex') == 1;
+                if ($('#create_employee_id').val() && !flex && !$('#create_store_id').val()) miss.push('lokasi');
                 if (($('#create_flag_reason').val() || '').trim().length < 5) miss.push('alasan (minimal 5 karakter)');
-                const file = $('#create_photo')[0].files[0];
-                if (!file) miss.push('foto atau surat pendukung');
                 if (miss.length) return Swal.fire({ icon: 'error', title: 'Belum lengkap', text: 'Isi dulu: ' + miss.join(', ') + '.' });
-                if (file.size > 5 * 1024 * 1024) return Swal.fire({ icon: 'error', title: 'File terlalu besar', text: 'Maksimal 5 MB.' });
+                const file = $('#create_photo')[0].files[0];
+                if (file) {
+                    const isPdf = /\.pdf$/i.test(file.name);
+                    if (file.size > (isPdf ? 5 : 10) * 1024 * 1024) return Swal.fire({ icon: 'error', title: 'File terlalu besar', text: isPdf ? 'PDF maksimal 5 MB.' : 'Foto maksimal 10 MB.' });
+                }
                 const name = $('#create_employee_id option:selected').text(), type = $('input[name=type]:checked').val() === 'checkin' ? 'check-in' : 'check-out';
                 Swal.fire({ icon: 'question', title: 'Simpan entri manual?', text: `${name}, ${type} ${$('#create_logged_at').val().replace('T', ' ')}.`, showCancelButton: true, confirmButtonText: 'Simpan', cancelButtonText: 'Batal', confirmButtonColor: '#4f46e5' })
                     .then(r => {
