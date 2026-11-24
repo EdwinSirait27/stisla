@@ -1609,12 +1609,12 @@
                     <div class="emp-field">
                         <label for="end_date">Sampai <span class="emp-req" aria-hidden="true">*</span></label>
                         <input type="date" class="emp-input" name="end_date" id="end_date" required>
-                        <span class="emp-help">Sama dengan tanggal mulai kalau hanya 1 hari. Maksimal 31 hari.</span>
+                        <span class="emp-help">Sama dengan tanggal mulai kalau hanya 1 hari. Maksimal {{ \App\Models\ToilSetting::current()->max_leave_range_days }} hari.</span>
                     </div>
                     <div class="emp-field is-wide">
                         <span class="emp-label">Perkiraan potongan</span>
                         <div class="tl-box" id="total-box"><span id="total-display">Pilih karyawan dan tanggal dulu</span></div>
-                        <span class="emp-help">1 hari = 8 jam. Hari yang di roster berstatus Off (atau hari Minggu tanpa roster) tidak dipotong. Tanggal yang sudah PH, cuti, sakit, atau TOIL Off ditolak.</span>
+                        <span class="emp-help">1 hari = {{ \App\Models\ToilSetting::num(\App\Models\ToilSetting::current()->hours_per_day) }} jam. Hari yang di roster berstatus Off (atau hari Minggu tanpa roster) tidak dipotong. Tanggal yang sudah PH, cuti, sakit, atau TOIL Off ditolak.</span>
                     </div>
                     <div class="emp-field is-wide">
                         <label for="reason">Alasan <span class="emp-req" aria-hidden="true">*</span></label>
@@ -1702,7 +1702,7 @@
     @include('pages.Toil._helpers')
     <script>
         $(function() {
-            const T = window.TOIL, HPD = 8;
+            const T = window.TOIL, HPD = @json(\App\Models\ToilSetting::current()->hours_per_day);
             let available = 0;
             $.ajaxSetup({ headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') } });
             $('#employee_id').select2({ placeholder: 'Pilih karyawan', allowClear: true, width: '100%' });

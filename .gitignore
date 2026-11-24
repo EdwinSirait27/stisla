@@ -6,7 +6,7 @@
 /vendor
 /.hallmark
 .env
-.CLAUDE.md
+CLAUDE.md
 .env.backup
 .phpunit.result.cache
 Homestead.json

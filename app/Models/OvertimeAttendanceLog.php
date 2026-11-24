@@ -14,8 +14,11 @@ class OvertimeAttendanceLog extends Model
 {
     protected $table = 'overtime_attendance_logs';
 
-    /** Check-in lembur paling cepat sekian menit sebelum jam mulai lembur. */
-    public const CHECKIN_EARLY_MINUTES = 60;
+    /** Check-in lembur paling cepat sekian menit sebelum jam mulai lembur (Pengaturan TOIL, default 60). */
+    public static function checkinEarlyMinutes(): int
+    {
+        return ToilSetting::current()->checkin_early_minutes;
+    }
 
     /**
      * Persetujuan bertingkat:

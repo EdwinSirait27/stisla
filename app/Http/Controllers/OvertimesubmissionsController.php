@@ -7,6 +7,7 @@ use App\Models\Overtimesubmissions;
 use App\Models\Payroll;
 use App\Models\User;
 use App\Models\Toilbalances;
+use App\Models\ToilSetting;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -109,6 +110,7 @@ class OvertimesubmissionsController extends Controller
 
     public function store(Request $request)
     {
+        $ts = ToilSetting::current();
         [$minDate, $maxDate] = $this->currentPeriodRange();
 
         $periodMsg = "harus di periode berjalan ({$minDate->format('d-m-Y')} s/d {$maxDate->format('d-m-Y')}).";
@@ -124,7 +126,7 @@ class OvertimesubmissionsController extends Controller
             // Wajib: kolomnya NOT NULL, dan total jam dihitung server dari jam ini
             'start_time'        => 'required|date_format:H:i',
             'end_time'          => 'required|date_format:H:i',
-            'total_hours'       => 'required|numeric|min:0.5|max:24',
+            'total_hours'       => 'required|numeric|min:' . $ts->min_overtime_hours . '|max:' . $ts->max_overtime_hours,
             'compensation_type' => 'required|in:Cash,Toil',
             'reason'            => 'required|string|min:10|max:1000',
         ], [
@@ -136,8 +138,8 @@ class OvertimesubmissionsController extends Controller
         // Jam per hari dihitung ulang di server dari start/end time (jangan percaya input)
         if (!empty($validated['start_time']) && !empty($validated['end_time'])) {
             $hours = $this->calculateHours($validated['start_time'], $validated['end_time']);
-            if ($hours < 0.5) {
-                return response()->json(['success' => false, 'message' => 'Jam selesai harus setelah jam mulai (minimal 0.5 jam).'], 422);
+            if ($error = $this->hoursError($hours, $ts)) {
+                return response()->json(['success' => false, 'message' => $error], 422);
             }
             $validated['total_hours'] = $hours;
         }
@@ -250,6 +252,7 @@ if (!empty($invalidIds)) {
 
     public function update(Request $request, $id)
     {
+        $ts = ToilSetting::current();
         [$minDate, $maxDate] = $this->currentPeriodRange();
         $periodMsg = "Tanggal harus di periode berjalan ({$minDate->format('d-m-Y')} s/d {$maxDate->format('d-m-Y')}).";
 
@@ -258,7 +261,7 @@ if (!empty($invalidIds)) {
             // Isi keduanya atau tidak sama sekali, supaya total jam selalu cocok dengan jamnya
             'start_time'  => 'sometimes|required|date_format:H:i|required_with:end_time',
             'end_time'    => 'sometimes|required|date_format:H:i|required_with:start_time',
-            'total_hours' => 'sometimes|numeric|min:0.5|max:24',
+            'total_hours' => 'sometimes|numeric|min:' . $ts->min_overtime_hours . '|max:' . $ts->max_overtime_hours,
             'reason'      => 'sometimes|string|min:10|max:1000',
         ], [
             'date.after_or_equal'  => $periodMsg,
@@ -268,8 +271,8 @@ if (!empty($invalidIds)) {
         // Jam dihitung ulang di server dari start/end time
         if (!empty($validated['start_time']) && !empty($validated['end_time'])) {
             $hours = $this->calculateHours($validated['start_time'], $validated['end_time']);
-            if ($hours < 0.5) {
-                return response()->json(['success' => false, 'message' => 'Jam selesai harus setelah jam mulai (minimal 0.5 jam).'], 422);
+            if ($error = $this->hoursError($hours, $ts)) {
+                return response()->json(['success' => false, 'message' => $error], 422);
             }
             $validated['total_hours'] = $hours;
         }
@@ -418,6 +421,24 @@ if (!empty($invalidIds)) {
      * Range periode payroll berjalan: 26 bulan lalu – 25 bulan ini
      * (atau 26 bulan ini – 25 bulan depan kalau hari ini >= 26).
      */
+    /** Batas jam lembur per hari dari Pengaturan TOIL. */
+    private function hoursError(float $hours, ToilSetting $ts): ?string
+    {
+        $min = ToilSetting::num($ts->min_overtime_hours);
+        $max = ToilSetting::num($ts->max_overtime_hours);
+
+        if ($hours <= 0) {
+            return 'Jam selesai harus setelah jam mulai.';
+        }
+        if ($hours < $ts->min_overtime_hours) {
+            return "Lembur minimal {$min} jam per hari.";
+        }
+        if ($hours > $ts->max_overtime_hours) {
+            return "Lembur maksimal {$max} jam per hari.";
+        }
+        return null;
+    }
+
     private function currentPeriodRange(): array
     {
         $today = today();

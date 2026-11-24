@@ -1906,7 +1906,7 @@
                                     <i class="fas fa-cloud-arrow-up" aria-hidden="true"></i>
                                     <span><strong>Klik</strong> atau tarik file ke sini</span>
                                     <small>JPG, PNG, GIF, PDF, DOC, DOCX, XLS, XLSX, maksimal 5 MB per file</small>
-                                    <input type="file" id="evidenceFiles" multiple accept=".jpg,.jpeg,.png,.gif,.webp,.pdf,.doc,.docx,.xls,.xlsx" hidden>
+                                    <input type="file" id="evidenceFiles" data-no-compress multiple accept=".jpg,.jpeg,.png,.gif,.webp,.pdf,.doc,.docx,.xls,.xlsx" hidden>
                                 </div>
                                 <div id="evidenceFileList" class="evidence-file-list"></div>
                             </div>
@@ -2229,6 +2229,7 @@
                     fileInput.click();
                 });
                 fileInput.addEventListener('change', e => handleFiles(e.target.files));
+                // Foto dikompres dulu di handleFiles (HRXImage), termasuk yang di-drop
 
                 ['dragenter', 'dragover'].forEach(ev =>
                     dropzone.addEventListener(ev, e => {
@@ -2247,7 +2248,10 @@
                 evidenceDropzoneInitialized = true;
             }
 
-            function handleFiles(fileList) {
+            async function handleFiles(fileList) {
+                // Foto HP dikompres & dibersihkan dulu (public/js/image-upload.js); batas server 512 KB per file
+                fileList = window.HRXImage ? await window.HRXImage.compressFiles(fileList, { maxKb: 512 }) : Array.from(fileList);
+
                 const allowedTypes = [
                     'image/jpeg', 'image/png', 'image/gif', 'image/webp',
                     'application/pdf',
@@ -2256,7 +2260,7 @@
                     'application/vnd.ms-excel',
                     'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
                 ];
-                const maxSize = 5 * 1024 * 1024;
+                const maxSize = 512 * 1024; // sama dengan ManualRecapController (evidence_files.* max:512)
 
                 Array.from(fileList).forEach(file => {
                     if (!allowedTypes.includes(file.type)) {
@@ -2272,7 +2276,7 @@
                         Swal.fire({
                             icon: 'error',
                             title: 'File is too large',
-                            html: `<strong>${FP.esc(file.name)}</strong><br><small>Maximum file size 5 MB file.</small>`,
+                            html: `<strong>${FP.esc(file.name)}</strong><br><small>Maximum file size 512 KB.</small>`,
                             confirmButtonColor: '#dc2626'
                         });
                         return;

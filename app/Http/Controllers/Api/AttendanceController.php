@@ -183,7 +183,7 @@ class AttendanceController extends Controller
                 return response()->json(['success' => false, 'message' => 'Wajah tidak cocok dengan data karyawan, absen ditolak', 'code' => 'FACE_MISMATCH'], 422);
             }
 
-            // Selfie dikompres sebelum disimpan (verifikasi wajah di atas tetap memakai file asli)
+            // Selfie dikompres & dibersihkan sebelum disimpan (yang dikirim ke DeepFace juga sudah dikompres, lihat selfieForVerification)
             $photoPath = app(\App\Services\UploadStorage::class)->put(
                 $request->file('photo'), 'attendance/' . now()->format('Y/m'), 'selfie-' . $type, \App\Services\UploadStorage::IMAGES, 's3', false, 'photo'
             );

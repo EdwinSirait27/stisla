@@ -71,6 +71,9 @@ return [
             'region' => env('AWS_DEFAULT_REGION'),
             'bucket' => env('AWS_BUCKET'),
             'url'    => env('AWS_URL'),
+            // Alamat publik untuk link sementara (temporaryUrl). Kosong = pakai AWS_ENDPOINT (IP MinIO).
+            // Production: https://hrx.asianbay.co.id, lalu nginx meneruskan /<bucket>/ ke MinIO.
+            'temporary_url' => env('AWS_TEMPORARY_URL'),
             'endpoint' => env('AWS_ENDPOINT'),
             'use_path_style_endpoint' => env('AWS_USE_PATH_STYLE_ENDPOINT', true),
         ],

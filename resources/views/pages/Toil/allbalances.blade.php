@@ -1670,7 +1670,7 @@
                         $('#summary-toil').text(T.hours(s.total_toil_remaining)); $('#summary-cash').text(T.hours(s.total_cash));
                         $('#summary-expired').text(T.hours(s.total_expired)); $('#summary-employees').text(s.active_employees ?? 0);
                         $('#summary-records').text(s.total_records ?? 0); $('#summary-soon').text(s.expiring_soon ?? 0);
-                        const dd = Math.floor((s.total_toil_remaining || 0) / 8); $('#summary-toil-days').text(s.total_toil_remaining > 0 && !dd ? 'belum cukup untuk 1 hari libur' : `setara ${dd} hari libur`);
+                        const dd = Math.floor((s.total_toil_remaining || 0) / @json(\App\Models\ToilSetting::current()->hours_per_day)); $('#summary-toil-days').text(s.total_toil_remaining > 0 && !dd ? 'belum cukup untuk 1 hari libur' : `setara ${dd} hari libur`);
                         $('#soon-box').toggleClass('is-warn', (s.expiring_soon || 0) > 0); $('#btn-soon').prop('hidden', !(s.expiring_soon > 0));
                         const rows = soonOnly ? json.data.filter(r => r.status === 'active' && r.compensation_type === 'Toil' && r.days_left !== null && r.days_left <= 7) : json.data;
                         $('#all-count').text(`${rows.length} catatan${soonOnly ? ', hangus dalam 7 hari' : ''}`);

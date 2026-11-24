@@ -1982,7 +1982,7 @@
                                             <i class="fas fa-file-image" id="signature-import-placeholder" aria-hidden="true" style="font-size:2rem;color:var(--pr-muted)"></i>
                                             <div>
                                                 <label for="signature_file" class="pr-btn pr-btn-sm pf-file-label">Pilih file</label>
-                                                <input type="file" name="signature_file" id="signature_file" class="pf-visually-hidden"
+                                                <input type="file" name="signature_file" id="signature_file" class="pf-visually-hidden" data-max-kb="512" data-keep-alpha
                                                     accept=".jpg,.jpeg,.png,.webp" onchange="previewSignatureImport(event)">
                                                 <span class="pf-hint" id="signature-file-name">JPG, PNG, WEBP, maks 512 KB. Latar putih atau transparan.</span>
                                             </div>

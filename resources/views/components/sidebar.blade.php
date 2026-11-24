@@ -1,367 +1,183 @@
-<div class="main-sidebar sidebar-style-2">
-    <aside id="sidebar-wrapper">
-        <div class="sidebar-brand bg-dark">
-            <img src="{{ asset('img/AsianBay.png') }}" alt="logo" width="70" class="light mb-5 mt-10">
+{{--
+    Sidebar (layar lebar). Isinya ditentukan PERMISSION (Spatie) lewat $user->can(), sama seperti @can sebelumnya.
+    - Grup yang tidak punya satu pun menu yang boleh diakses tidak ditampilkan.
+    - Menu dengan tujuan sama (mis. Employee List dari 3 permission) hanya muncul sekali.
+    - Menu aktif dihitung dari path URL, dan grupnya otomatis terbuka (Stisla membuka li.active).
+    - Route bernama yang belum terdaftar dilewati, supaya satu route hilang tidak membuat semua halaman error.
+    Tampilan: public/css/shell.css bagian "Sidebar".
+--}}
+@php
+    /** @var \App\Models\User|null $sbUser */
+    $sbUser = auth()->user();
+
+    // Tujuan: string = url(path), ['route', 'nama.route'] = route(nama)
+    // [label, tujuan, permission (salah satu cukup; [] = semua user login)]
+    $sbSections = [
+        null => [
+            ['Profile', 'fa-user', [
+                ['Profile', 'feature-profile', []],
+                ['Roles & Responsibilities', 'rnr', []],
+            ]],
+            ['Dashboards', 'fa-house', [
+                ['Dashboard', 'dashboardHuman', ['dashboardHuman']],
+                ['Dashboard Manager', 'dashboardManager', ['dashboardManager']],
+                ['Dashboard HR', 'dashboardHR', ['dashboardHR']],
+                ['Dashboard', 'dashboardSupervisor', ['dashboardSupervisor']],
+                ['Dashboard', 'dashboardDirector', ['dashboardDirector']],
+                ['Dashboard', 'dashboardAdmin', ['dashboardAdmin']],
+            ]],
+        ],
+        'People' => [
+            ['Employee', 'fa-users', [
+                ['Team List', 'Team', ['ManageTeam']],
+                ['Overtime Rate', 'overtime-rate', ['ManageOvertimeRate']],
+                ['Employee List', 'Employee', ['ManageEmployee', 'ManageEmployeeSPVManager', 'ViewEmployee']],
+                ['Leaves List', ['route', 'leave.list.index'], ['leave.list.view', 'leave.list.view.manager', 'leave.list.view.human']],
+            ]],
+            ['Training', 'fa-graduation-cap', [
+                ['Employee', 'employee-training', ['ManageEmployeeTraining']],
+            ]],
+            ['Contracts', 'fa-file-contract', [
+                ['Employees Contracts', 'contract', ['ManageContracts']],
+            ]],
+            ['Documents', 'fa-folder-open', [
+                ['Documents', 'document', ['ManageDocument']],
+            ]],
+            ['SK', 'fa-file-signature', [
+                ['SK Type', 'Sktype', ['ManageSktypes', 'ManageSkLetters']],
+                ['SK Letters', 'SkLetters', ['ManageSktypes', 'ManageSkLetters']],
+            ]],
+        ],
+        'Time & attendance' => [
+            ['Attendance', 'fa-fingerprint', [
+                ['Fingerprints Data', 'Fingerprints', ['ManageFingerspot', 'ManageFingerspotSPVManager', 'ViewFingerspot']],
+                ['Fingerprint Recap', ['route', 'fingerprint-recap.index'], ['ManageFingerspot']],
+                
+            ]],
+            ['Attendance Mobile', 'fa-mobile-screen', [
+                ['Attendance Data', 'AttendanceMobile', ['ManageAttendanceMobile', 'ViewAttendanceMobile', 'ManageAttendanceMobileSPVManager']],
+                ['Overtime Attendance', ['route', 'pages.OvertimeAttendanceMobile'], ['ManageOvertimeAttendanceMobile', 'ViewOvertimeAttendanceMobile', 'ManageOvertimeAttendanceMobileSPVManager']],
+            ]],
+            ['TOIL', 'fa-business-time', [
+                ['Balance', ['route', 'toil.balance'], ['toil']],
+                ['History', ['route', 'toil.history'], ['toil']],
+                ['All Balances', ['route', 'toil.all-balances'], ['allbalances']],
+                ['Overtime Assignment', ['route', 'toil.assignment.index'], ['assignment']],
+                ['Approval', ['route', 'toil.approval.index'], ['assignment']],
+                ['TOIL Setting', ['route', 'toilsetting.index'], ['ManageToilSetting']],
+            ]],
+        ],
+        'Schedule' => [
+            ['Roster', 'fa-database', [
+               ['Roster & Schedule', ['route', 'roster.index'], ['ManageRoster', 'ManageRosterSPVManager', 'ViewRoster']],
+                ['Roster Setting', ['route', 'rostersetting.index'], ['ManageRosterSetting']],
+            ]],
+            
+        ],
+        'Payroll' => [
+            ['Payrolls', 'fa-wallet', [
+                ['Payroll Components', 'payrollcomponents', ['payroll.component.view']],
+                ['Employee Salary', 'employee-salary', ['employee.salary.view']],
+                ['Payroll Period', 'payroll-period', ['payroll.period.view']],
+            ]],
+        ],
+        'Administration' => [
+            ['Master Data', 'fa-database', [
+                ['Banks', ['route', 'pages.Bank'], ['bank.view']],
+                ['Companies', 'Company', ['ManageCompanies']],
+                ['Positions', 'Position', ['ManagePositions']],
+                ['Departments', 'Department', ['ManageDepartments']],
+                ['Locations', 'Store', ['ManageStores']],
+                ['Gradings', 'Grading', ['ManageGrading']],
+                ['Public Holidays', 'Pubholi', ['ManagePH', 'ManageShiftSPVManager', 'ViewShifts', 'ManagePHSPVManager', 'ViewPH']],
+                ['Shifts', 'Shifts', ['ManageShifts', 'ManageShiftSPVManager', 'ViewShifts', 'ManagePHSPVManager', 'ViewPH']],
+                ['Leaves', 'Leavestype', ['ManageLeavestype']],
+            ]],
+            ['Users', 'fa-user-shield', [
+                ['List Users', 'dashboardAdmin', ['dashboardAdmin']],
+                ['Activity Logs', 'Activity', ['activity.view']],
+                ['Roles', 'roles', ['dashboardAdmin']],
+                ['Permission', 'permissions', ['dashboardAdmin']],
+                ['Registered Device', ['route', 'pages.RegisteredDevice'], ['ManageRegisteredDevice', 'ViewRegisteredDevice', 'ManageRegisteredDeviceSPVManager']],
+            ]],
+        ],
+    ];
+
+    $sbAllowed = function (array $perms) use ($sbUser) {
+        if (!$sbUser) return false;
+        if (!$perms) return true;
+        foreach ($perms as $p) {
+            if ($sbUser->can($p)) return true;
+        }
+        return false;
+    };
+
+    $sbPath = '/' . ltrim(request()->path(), '/');
+    $sbMenu = [];
+    $sbOpened = false; // hanya satu grup yang terbuka, walau satu URL ada di dua grup
+    foreach ($sbSections as $title => $groups) {
+        foreach ($groups as [$groupLabel, $icon, $items]) {
+            $links = [];
+            $seen = [];
+            $groupActive = false;
+            foreach ($items as [$label, $target, $perms]) {
+                if (!$sbAllowed($perms)) continue;
+                if (is_array($target)) {
+                    if (!\Illuminate\Support\Facades\Route::has($target[1])) continue;
+                    $url = route($target[1]);
+                } else {
+                    $url = url($target);
+                }
+                if (isset($seen[$url])) continue;
+                $seen[$url] = true;
+                $path = '/' . ltrim((string) parse_url($url, PHP_URL_PATH), '/');
+                $active = $path !== '/' && ($sbPath === $path || str_starts_with($sbPath, rtrim($path, '/') . '/'));
+                $groupActive = $groupActive || $active;
+                $links[] = compact('label', 'url', 'active');
+            }
+            if (!$links) continue;
+            $open = $groupActive && !$sbOpened;
+            $sbOpened = $sbOpened || $open;
+            $sbMenu[$title ?? ''][] = ['label' => $groupLabel, 'icon' => $icon, 'links' => $links, 'open' => $open];
+        }
+    }
+
+    $sbHomeRoute = $sbUser ? \App\Services\DashboardRedirectService::routeNameFor($sbUser) : null;
+    $sbHome = $sbHomeRoute && \Illuminate\Support\Facades\Route::has($sbHomeRoute) ? route($sbHomeRoute) : url('feature-profile');
+@endphp
+
+<div class="main-sidebar sidebar-style-2 sb">
+    <aside id="sidebar-wrapper" aria-label="Menu utama">
+        <div class="sidebar-brand sb-brand">
+            <a href="{{ $sbHome }}" aria-label="Asian Bay Development, ke dashboard">
+                <img src="{{ asset('img/AsianBay.png') }}" alt="Asian Bay Development" width="70">
+            </a>
         </div>
-        <div class="sidebar-brand sidebar-brand-sm">
-            <a href="">ABD</a>
+        <div class="sidebar-brand sidebar-brand-sm sb-brand">
+            <a href="{{ $sbHome }}" aria-label="Asian Bay Development, ke dashboard">ABD</a>
         </div>
+
         <ul class="sidebar-menu">
-            <li class="nav-item dropdown ">
-                <a href="#" class="nav-link has-dropdown" data-toggle="dropdown"><i class="fas fa-user"></i>
-                    <span>Profile</span></a>
-                <ul class="dropdown-menu">
-                    <li class="{{ Request::is('feature-profile') ? 'active' : '' }}">
-                        <a class="nav-link" href="{{ url('feature-profile') }}">Profile</a>
+            @foreach ($sbMenu as $title => $groups)
+                @if ($title !== '')
+                    <li class="menu-header">{{ $title }}</li>
+                @endif
+                @foreach ($groups as $group)
+                    <li class="nav-item dropdown {{ $group['open'] ? 'active' : '' }}">
+                        <a href="#" class="nav-link has-dropdown" data-toggle="dropdown" aria-expanded="{{ $group['open'] ? 'true' : 'false' }}">
+                            <i class="fas {{ $group['icon'] }}" aria-hidden="true"></i>
+                            <span>{{ $group['label'] }}</span>
+                        </a>
+                        <ul class="dropdown-menu">
+                            @foreach ($group['links'] as $link)
+                                <li class="{{ $link['active'] ? 'active' : '' }}">
+                                    <a class="nav-link" href="{{ $link['url'] }}" @if ($link['active']) aria-current="page" @endif>{{ $link['label'] }}</a>
+                                </li>
+                            @endforeach
+                        </ul>
                     </li>
-                    <li class="{{ Request::is('rnr') ? 'active' : '' }}">
-                        <a class="nav-link" href="{{ url('rnr') }}">Roles & Responsibilities</a>
-                    </li>
-
-                </ul>
-            </li>
-            <li class="nav-item dropdown ">
-                <a href="#" class="nav-link has-dropdown" data-toggle="dropdown"><i class="fas fa-house"></i>
-                    <span>Dashboards</span></a>
-                <ul class="dropdown-menu">
-                    @can('dashboardHuman')
-                        <li class="{{ Request::is('dashboardHuman') ? 'active' : '' }}">
-                            <a class="nav-link" href="{{ url('dashboardHuman') }}">Dashboard</a>
-                        </li>
-                    @endcan
-                    @can('dashboardManager')
-                        <li class="{{ Request::is('dashboardManager') ? 'active' : '' }}">
-                            <a class="nav-link" href="{{ url('dashboardManager') }}">Dashboard Manager</a>
-                        </li>
-                    @endcan
-                    @can('dashboardHR')
-                        <li class="{{ Request::is('dashboardHR') ? 'active' : '' }}">
-                            <a class="nav-link" href="{{ url('dashboardHR') }}">Dashboard HR</a>
-                        </li>
-                    @endcan
-                    @can('dashboardSupervisor')
-                        <li class="{{ Request::is('dashboardSupervisor') ? 'active' : '' }}">
-                            <a class="nav-link" href="{{ url('dashboardSupervisor') }}">Dashboard</a>
-                        </li>
-                    @endcan
-                    @can('dashboardDirector')
-                        <li class="{{ Request::is('dashboardDirector') ? 'active' : '' }}">
-                            <a class="nav-link" href="{{ url('dashboardDirector') }}">Dashboard</a>
-                        </li>
-                    @endcan
-                    @can('dashboardAdmin')
-                        <li class="{{ Request::is('dashboardAdmin') ? 'active' : '' }}">
-                            <a class="nav-link" href="{{ url('dashboardAdmin') }}">Dashboard</a>
-                        </li>
-                    @endcan
-                </ul>
-            </li>
-
-            <li class="nav-item dropdown ">
-                <a href="#" class="nav-link has-dropdown" data-toggle="dropdown"><i class="fas fa-lock"></i>
-                    <span>Employee</span></a>
-                <ul class="dropdown-menu">
-                    @can('ManageTeam')
-                        <li class="{{ Request::is('Team') ? 'active' : '' }}">
-                            <a class="nav-link" href="{{ url('Team') }}">Team List</a>
-                        </li>
-                    @endcan
-                    @can('ManageOvertimeRate')
-                        <li class="{{ Request::is('overtime-rate') ? 'active' : '' }}">
-                            <a class="nav-link" href="{{ url('overtime-rate') }}">Overtime Rate</a>
-                        </li>
-                    @endcan
-                    @can('ManageEmployee')
-                        <li class="{{ Request::is('Employee') ? 'active' : '' }}">
-                            <a class="nav-link" href="{{ url('Employee') }}">Employee List</a>
-                        </li>
-                    @endcan
-                    @can('ManageEmployeeSPVManager')
-                        <li class="{{ Request::is('Employee') ? 'active' : '' }}">
-                            <a class="nav-link" href="{{ url('Employee') }}">Employee List</a>
-                        </li>
-                    @endcan
-                    @can('ViewEmployee')
-                        <li class="{{ Request::is('Employee') ? 'active' : '' }}">
-                            <a class="nav-link" href="{{ url('Employee') }}">Employee List</a>
-                        </li>
-                    @endcan
-                    @canany(['leave.list.view', 'leave.list.view.manager', 'leave.list.view.human'])
-                        <li class="{{ Request::is('leave-list') ? 'active' : '' }}">
-                            <a class="nav-link" href="{{ route('leave.list.index') }}">Leaves List</a>
-                        </li>
-                    @endcanany
-
-
-
-                </ul>
-            </li>
- @canany(['dashboardAdmin', 'activity.view'])
-            <li class="nav-item dropdown ">
-                <a href="#" class="nav-link has-dropdown" data-toggle="dropdown"><i class="fas fa-lock"></i>
-                    <span>Users</span></a>
-                <ul class="dropdown-menu">
-                    @can('dashboardAdmin')
-                    <li class="{{ Request::is('dashboardAdmin') ? 'active' : '' }}">
-                        <a class="nav-link" href="{{ url('dashboardAdmin') }}">List Users</a>
-                    </li>
-                    @endcan
-                    @can('activity.view')
-                    <li class="{{ Request::is('Activity*') ? 'active' : '' }}">
-                        <a class="nav-link" href="{{ url('Activity') }}">Activity Logs</a>
-                    </li>
-                    @endcan
-                    @can('dashboardAdmin')
-                    <li class="{{ Request::is('roles') ? 'active' : '' }}">
-                        <a class="nav-link" href="{{ url('roles') }}">Roles</a>
-                    </li>
-                    <li class="{{ Request::is('permission') ? 'active' : '' }}">
-                        <a class="nav-link" href="{{ url('permissions') }}">Permission</a>
-                    </li>
-                    @endcan
-                </ul>
-            </li>
-                    @endcanany
-
-            <li class="nav-item dropdown ">
-                <a href="#" class="nav-link has-dropdown" data-toggle="dropdown"><i class="fas fa-database"></i>
-                    <span>Master Data</span></a>
-                <ul class="dropdown-menu">
-                    @can('bank.view')
-                        <li class="{{ Request::is('Bank', 'Bank/*') ? 'active' : '' }}">
-                            <a class="nav-link" href="{{ route('pages.Bank') }}">Banks</a>
-                        </li>
-                    @endcan
-                    @can('ManageCompanies')
-                        <li class="{{ Request::is('{Company}') ? 'active' : '' }}">
-                            <a class="nav-link" href="{{ url('Company') }}">Companies</a>
-                        </li>
-                    @endcan
-                    @can('ManagePositions')
-                        <li class="{{ Request::is('{Position}') ? 'active' : '' }}">
-                            <a class="nav-link" href="{{ url('Position') }}">Positions</a>
-                        </li>
-                    @endcan
-                    @can('ManageDepartments')
-                        <li class="{{ Request::is('Department') ? 'active' : '' }}">
-                            <a class="nav-link" href="{{ url('Department') }}">Departments</a>
-                        </li>
-                    @endcan
-                    @can('ManageStores')
-                        <li class="{{ Request::is('Store') ? 'active' : '' }}">
-                            <a class="nav-link" href="{{ url('Store') }}">Locations</a>
-                        </li>
-                    @endcan
-                    @can('ManageGrading')
-                        <li class="{{ Request::is('Grading') ? 'active' : '' }}">
-                            <a class="nav-link" href="{{ url('Grading') }}">Gradings</a>
-                        </li>
-                    @endcan
-                    @can('ManagePH')
-                        <li class="{{ Request::is('Pubholi') ? 'active' : '' }}">
-                            <a class="nav-link" href="{{ url('Pubholi') }}">Public Holidays</a>
-                        </li>
-                    @endcan
-                    @can('ManageShifts')
-                        <li class="{{ Request::is('Shifts') ? 'active' : '' }}">
-                            <a class="nav-link" href="{{ url('Shifts') }}">Shifts</a>
-                        </li>
-                    @endcan
-                    @can('ManageLeavestype')
-                        <li class="{{ Request::is('Leavestype') ? 'active' : '' }}">
-                            <a class="nav-link" href="{{ url('Leavestype') }}">Leaves</a>
-                        </li>
-                    @endcan
-
-
-                    @canany(['ManageShiftSPVManager', 'ViewShifts', 'ManagePHSPVManager', 'ViewPH'])
-                        <li class="{{ Request::is('Pubholi') ? 'active' : '' }}">
-                            <a class="nav-link" href="{{ url('Pubholi') }}">Public Holidays</a>
-                        </li>
-                        <li class="{{ Request::is('Shifts') ? 'active' : '' }}">
-                            <a class="nav-link" href="{{ url('Shifts') }}">Shifts</a>
-                        </li>
-                    @endcanany
-
-
-
-
-                </ul>
-            </li>
-
-            @can('ManageEmployeeTraining')
-                <li class="nav-item dropdown ">
-                    <a href="#" class="nav-link has-dropdown" data-toggle="dropdown"><i
-                            class="fas fa-building"></i>
-                        <span>Training</span></a>
-                    <ul class="dropdown-menu">
-                        <li class="{{ Request::is('{employee-training}') ? 'active' : '' }}">
-                            <a class="nav-link" href="{{ url('employee-training') }}">Employee</a>
-                        </li>
-                    </ul>
-                </li>
-            @endcan
-            @can('ManageContracts')
-                <li class="nav-item dropdown ">
-                    <a href="#" class="nav-link has-dropdown" data-toggle="dropdown"><i
-                            class="fas fa-building"></i>
-                        <span>Contracts</span></a>
-                    <ul class="dropdown-menu">
-                        <li class="{{ Request::is('{contract}') ? 'active' : '' }}">
-                            <a class="nav-link" href="{{ url('contract') }}">Employees Contracts</a>
-                        </li>
-                    </ul>
-                </li>
-            @endcan
-            @can('ManageDocument')
-                <li class="nav-item dropdown ">
-                    <a href="#" class="nav-link has-dropdown" data-toggle="dropdown"><i
-                            class="fas fa-building"></i>
-                        <span>Documents</span></a>
-                    <ul class="dropdown-menu">
-                        <li class="{{ Request::is('{document}') ? 'active' : '' }}">
-                            <a class="nav-link" href="{{ url('document') }}">Documents</a>
-                        </li>
-                    </ul>
-                </li>
-            @endcan
-            @canany(['ManageSktypes', 'ManageSkLetters'])
-                <li class="nav-item dropdown ">
-                    <a href="#" class="nav-link has-dropdown" data-toggle="dropdown"><i
-                            class="fas fa-file-signature"></i>
-                        <span>SK</span></a>
-                    <ul class="dropdown-menu">
-                        <li class="{{ Request::is('{Sktype}') ? 'active' : '' }}">
-                            <a class="nav-link" href="{{ url('Sktype') }}">SK Type</a>
-                        </li>
-                        <li class="{{ Request::is('{SkLetters}') ? 'active' : '' }}">
-                            <a class="nav-link" href="{{ url('SkLetters') }}">SK Letters</a>
-                        </li>
-
-                    </ul>
-                </li>
-            @endcanany
-
-            @canany(['ManagePayrolls', 'payroll.component.view', 'employee.salary.view', 'payroll.period.view'])
-                <li class="nav-item dropdown">
-                    <a href="#" class="nav-link has-dropdown" data-toggle="dropdown">
-                        <i class="fas fa-wallet"></i>
-                        <span>Payrolls</span>
-                    </a>
-                    <ul class="dropdown-menu">
-                        @can('payroll.component.view')
-                            <li class="{{ Request::is('payrollcomponents') ? 'active' : '' }}">
-                                <a class="nav-link" href="{{ url('payrollcomponents') }}">Payroll Components</a>
-                            </li>
-                        @endcan
-                        @can('employee.salary.view')
-                            <li class="{{ Request::is('employee-salary') ? 'active' : '' }}">
-                                <a class="nav-link" href="{{ url('employee-salary') }}">Employee Salary</a>
-                            </li>
-                        @endcan
-                        @can('payroll.period.view')
-                            <li class="{{ Request::is('payroll-period') ? 'active' : '' }}">
-                                <a class="nav-link" href="{{ url('payroll-period') }}">Payroll Period</a>
-                            </li>
-                        @endcan
-                    </ul>
-                </li>
-            @endcanany
-
-
-            {{-- ════════════════════════════════════════════════════ --}}
-            {{-- TOIL System Menu (untuk SEMUA role yang login)        --}}
-            {{-- ════════════════════════════════════════════════════ --}}
-            <li class="nav-item dropdown {{ Request::is('toil*') ? 'active' : '' }}">
-                <a href="#" class="nav-link has-dropdown" data-toggle="dropdown">
-                    <i class="fas fa-business-time"></i>
-                    <span>TOIL</span>
-                </a>
-                <ul class="dropdown-menu">
-                    @can('toil')
-                        <li class="{{ Request::is('toil/balance') ? 'active' : '' }}">
-                            <a class="nav-link" href="{{ route('toil.balance') }}">Balance</a>
-                        </li>
-                        <li class="{{ Request::is('toil/history*') ? 'active' : '' }}">
-                            <a class="nav-link" href="{{ route('toil.history') }}">History</a>
-                        </li>
-                    @endcan
-
-                    {{-- HR Only: Monitoring Saldo Semua Karyawan --}}
-                    @can('allbalances')
-                        <li class="{{ Request::is('toil/all-balances*') ? 'active' : '' }}">
-                            <a class="nav-link" href="{{ route('toil.all-balances') }}">
-                                All Balances
-                            </a>
-                        </li>
-                    @endcan
-
-                    {{-- Manager Only: Assignment Lembur & Approval TOIL --}}
-                    @can('assignment')
-                        <li class="{{ Request::is('toil/assignment*') ? 'active' : '' }}">
-                            <a class="nav-link" href="{{ route('toil.assignment.index') }}">
-                                Overtime Assignment
-                            </a>
-                        </li>
-                        <li class="{{ Request::is('toil/approval*') ? 'active' : '' }}">
-                            <a class="nav-link" href="{{ route('toil.approval.index') }}">
-                                Approval
-                            </a>
-                        </li>
-                    @endcan
-                </ul>
-            </li>
-
-            <li class="nav-item dropdown ">
-                <a href="#" class="nav-link has-dropdown" data-toggle="dropdown"><i
-                        class="fas fa-calendar-check"></i>
-                    <span>Attendance</span></a>
-                <ul class="dropdown-menu">
-                    @canany(['ManageFingerspot', 'ManageFingerspotSPVManager', 'ViewFingerspot'])
-                        <li class="{{ Request::is('{Fingerprints}') ? 'active' : '' }}">
-                            <a class="nav-link" href="{{ url('Fingerprints') }}">Fingerprints Data</a>
-                        </li>
-                    @endcanany
-                    @can('ManageFingerspot')
-                        <li class="{{ Request::is('fingerprint-recap*') ? 'active' : '' }}">
-                            <a class="nav-link" href="{{ route('fingerprint-recap.index') }}">Fingerprint Recap</a>
-                        </li>
-                    @endcan
-                    @canany(['ManageRoster', 'ManageRosterSPVManager', 'ViewRoster'])
-                        <li class="{{ Request::is('roster*') ? 'active' : '' }}">
-                            <a class="nav-link" href="{{ route('roster.index') }}">Roster & Schedule</a>
-                        </li>
-                    @endcanany
-                    @can('ManageRosterSetting')
-                        <li class="{{ Request::is('roster-setting*') ? 'active' : '' }}">
-                            <a class="nav-link" href="{{ route('rostersetting.index') }}">Roster Setting</a>
-                        </li>
-                    @endcan
-                </ul>
-            </li>
-            <li class="nav-item dropdown ">
-                <a href="#" class="nav-link has-dropdown" data-toggle="dropdown"><i
-                        class="fas fa-calendar-check"></i>
-                    <span>Attendance Mobile</span></a>
-                <ul class="dropdown-menu">
-                    @canany(['ManageAttendanceMobile', 'ViewAttendanceMobile', 'ManageAttendanceMobileSPVManager'])
-                        <li class="{{ Request::is('{AttendanceMobile}') ? 'active' : '' }}">
-                            <a class="nav-link" href="{{ url('AttendanceMobile') }}">Attendance Data</a>
-                        </li>
-                    @endcanany
-                    @canany(['ManageOvertimeAttendanceMobile', 'ViewOvertimeAttendanceMobile', 'ManageOvertimeAttendanceMobileSPVManager'])
-                        <li class="{{ Request::is('OvertimeAttendanceMobile*') ? 'active' : '' }}">
-                            <a class="nav-link" href="{{ route('pages.OvertimeAttendanceMobile') }}">Overtime Attendance</a>
-                        </li>
-                    @endcanany
-                    @canany(['ManageRegisteredDevice', 'ViewRegisteredDevice', 'ManageRegisteredDeviceSPVManager'])
-                        <li class="{{ Request::is('RegisteredDevice*') ? 'active' : '' }}">
-                            <a class="nav-link" href="{{ route('pages.RegisteredDevice') }}">Registered Device</a>
-                        </li>
-                    @endcanany
-                </ul>
-            </li>
-
+                @endforeach
+            @endforeach
         </ul>
     </aside>
 </div>

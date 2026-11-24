@@ -17,10 +17,7 @@ use Illuminate\Http\Request;
  */
 class ToilBalanceController extends Controller
 {
-    private const HOURS_PER_DAY = 8;
-
-    /** Saldo TOIL aktif yang hangus dalam sekian hari ditandai "segera hangus". */
-    private const EXPIRING_SOON_DAYS = 14;
+    // Jam per hari dan batas "segera hangus" diatur di Pengaturan TOIL (App\Models\ToilSetting)
 
     public function index(Request $request)
     {
@@ -53,7 +50,7 @@ class ToilBalanceController extends Controller
                 'status'            => $status,
                 'expires_at'        => $b->expires_at?->toDateString(),
                 'days_left'         => $daysLeft,
-                'expiring_soon'     => $daysLeft !== null && $daysLeft <= self::EXPIRING_SOON_DAYS,
+                'expiring_soon'     => $daysLeft !== null && $daysLeft <= \App\Models\ToilSetting::current()->expiring_soon_days,
                 'paid_at'           => $b->paid_at?->toDateString(),
                 'paid_period'       => $b->paid_period,
                 'reason'            => $sub?->reason,
@@ -86,11 +83,11 @@ class ToilBalanceController extends Controller
         return response()->json([
             'success' => true,
             'data' => [
-                'hours_per_day' => self::HOURS_PER_DAY,
+                'hours_per_day' => \App\Models\ToilSetting::current()->hours_per_day,
                 'is_dw'         => strtoupper($employee->status_employee ?? '') === 'DW',
                 'summary'       => [
                     'toil_remaining_hours' => $toilLeft,
-                    'toil_remaining_days'  => round($toilLeft / self::HOURS_PER_DAY, 2),
+                    'toil_remaining_days'  => round($toilLeft / \App\Models\ToilSetting::current()->hours_per_day, 2),
                     'toil_used_hours'      => (float) $rows->where('compensation_type', 'Toil')->sum('used_hours'),
                     'toil_expired_hours'   => (float) $rows->where('compensation_type', 'Toil')->where('status', 'expired')->sum('remaining_hours'),
                     'cash_unpaid_hours'    => (float) $rows->where('compensation_type', 'Cash')->where('status', 'active')->sum('remaining_hours'),

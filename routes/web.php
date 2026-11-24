@@ -64,6 +64,7 @@ use App\Http\Controllers\AutoRosterController;
 use App\Http\Controllers\AutoRosterOtherStoreController;
 use App\Http\Controllers\ToilController;
 use App\Http\Controllers\ToilLeaveRequestsController;
+use App\Http\Controllers\ToilSettingController;
 use App\Http\Controllers\AssetCategoriesController;
 use App\Http\Controllers\OvertimesubmissionsController;
 use App\Http\Controllers\SkLetterController;
@@ -1033,6 +1034,12 @@ Route::get('manual-recap/signed-url', [ManualRecapController::class, 'signedUrl'
     // ════════════════════════════════════════════════════════════════
     //   ROSTER & RELATED (di luar grup auth+role utama)
     // ════════════════════════════════════════════════════════════════
+
+    // ── Pengaturan TOIL: masa berlaku saldo, jam per hari libur TOIL, batas jam lembur ──
+    Route::middleware(['auth', 'permission:ManageToilSetting'])->prefix('toil-setting')->name('toilsetting.')->group(function () {
+        Route::get('/', [ToilSettingController::class, 'index'])->name('index');
+        Route::put('/', [ToilSettingController::class, 'update'])->name('update');
+    });
 
     // ── Pengaturan roster: jendela tanggal SPV/manager boleh mengubah roster ──
     Route::middleware(['permission:ManageRosterSetting'])->prefix('roster-setting')->name('rostersetting.')->group(function () {

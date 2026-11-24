@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api\Concerns;
 
 use App\Models\Employee;
+use App\Services\ImageCompressor;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
@@ -79,22 +80,43 @@ trait VerifiesMobileAttendance
         ];
     }
 
+    /**
+     * Selfie yang dikirim ke DeepFace: diperkecil (sisi terpanjang ImageCompressor::MAX_SIDE), arah
+     * diperbaiki dari EXIF, metadata dibuang. Aplikasi versi baru sudah mengirim foto kecil; ini menjaga
+     * aplikasi versi lama / foto besar supaya upload ke DeepFace dan prosesnya tidak lambat.
+     * Kalau kompresi gagal, ImageCompressor mengembalikan file asli.
+     */
+    private function selfieForVerification($attendancePhoto): string
+    {
+        $started = microtime(true);
+        $packed  = app(ImageCompressor::class)->compress($attendancePhoto);
+        Log::info('Selfie untuk DeepFace', [
+            'from_kb' => round($packed['original_bytes'] / 1024),
+            'to_kb'   => round($packed['bytes'] / 1024),
+            'method'  => $packed['method'],
+            'seconds' => round(microtime(true) - $started, 2),
+        ]);
+        return $packed['contents'];
+    }
+
     private function verifyFace($attendancePhoto, $referencePhotoPath)
     {
         $startTotal = microtime(true);
 
         try {
             $startCache = microtime(true);
-            $cacheKey = 'reference_photo_' . md5($referencePhotoPath);
+            // Foto referensi lama bisa berukuran penuh (diunggah sebelum ada kompresi): dikecilkan sekali lalu di-cache
+            $cacheKey = 'reference_photo_v2_' . md5($referencePhotoPath);
             $referenceContent = Cache::remember($cacheKey, now()->addHours(6), function () use ($referencePhotoPath) {
-                return Storage::disk('s3')->get($referencePhotoPath);
+                $raw = Storage::disk('s3')->get($referencePhotoPath);
+                return $raw === null ? null : app(ImageCompressor::class)->compressBlob($raw)['contents'];
             });
             Log::info('Waktu ambil foto referensi: ' . round(microtime(true) - $startCache, 2) . 's');
 
             $startHttp = microtime(true);
             // Di bawah batas waktu request (120 detik) supaya error-nya tertangani, bukan fatal
             $response = Http::connectTimeout(10)->timeout(75)
-                ->attach('photo', file_get_contents($attendancePhoto->getRealPath()), 'attendance.jpg')
+                ->attach('photo', $this->selfieForVerification($attendancePhoto), 'attendance.jpg')
                 ->attach('reference_photo', $referenceContent, 'reference.jpg')
                 ->post(config('services.deepface.url') . '/verify');
             Log::info('Waktu request ke DeepFace: ' . round(microtime(true) - $startHttp, 2) . 's');

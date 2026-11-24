@@ -18,8 +18,7 @@ use Illuminate\Support\Str;
 
 class ToilLeaveRequestsController extends Controller
 {
-    private const HOURS_PER_DAY  = 8;
-    private const MAX_RANGE_DAYS = 31;
+    // Jam per hari libur TOIL dan rentang maksimal diatur di Pengaturan TOIL (App\Models\ToilSetting)
 
     // ════════════════════════════════════════════════════════════════
     //   APPROVAL PAGE (MANAGER ONLY)
@@ -213,10 +212,10 @@ class ToilLeaveRequestsController extends Controller
         $start = Carbon::parse($validated['start_date']);
         $end   = Carbon::parse($validated['end_date']);
 
-        if ($start->diffInDays($end) >= self::MAX_RANGE_DAYS) {
+        if ($start->diffInDays($end) >= \App\Models\ToilSetting::current()->max_leave_range_days) {
             return response()->json([
                 'success' => false,
-                'message' => 'Rentang TOIL Leave maksimal ' . self::MAX_RANGE_DAYS . ' hari.',
+                'message' => 'Rentang TOIL Leave maksimal ' . \App\Models\ToilSetting::current()->max_leave_range_days . ' hari.',
             ], 422);
         }
 
@@ -284,7 +283,7 @@ class ToilLeaveRequestsController extends Controller
         }
 
         $totalDays = count($dates);
-        $needed    = $totalDays * self::HOURS_PER_DAY;
+        $needed    = $totalDays * \App\Models\ToilSetting::current()->hours_per_day;
 
         // ── Cek BENTROK tiap tanggal. Tolak SELURUH rentang kalau ada satu pun yang bentrok. ──
         $approvedDates = ToilLeaveRequests::where('employee_id', $employeeId)
@@ -321,7 +320,7 @@ class ToilLeaveRequestsController extends Controller
         $allocation = [];
 
         foreach ($dates as $dateStr) {
-            $remaining = self::HOURS_PER_DAY;
+            $remaining = \App\Models\ToilSetting::current()->hours_per_day;
 
             foreach ($balances as $balance) {
                 if ($remaining <= 0) break;
@@ -355,7 +354,7 @@ class ToilLeaveRequestsController extends Controller
                 'employee_id'       => $employeeId,
                 'toil_balance_id'   => array_key_first($allocation[$dateStr]),
                 'approver_id'       => $manager->id,
-                'hours_used'        => self::HOURS_PER_DAY,
+                'hours_used'        => \App\Models\ToilSetting::current()->hours_per_day,
                 'leave_date'        => $dateStr,
                 'reason'            => $validated['reason'],
                 'original_shift_id' => $roster?->shift_id,

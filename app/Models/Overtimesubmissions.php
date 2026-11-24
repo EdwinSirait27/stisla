@@ -113,9 +113,8 @@ class Overtimesubmissions extends Model
 
     public function balanceExpiryDate(): Carbon
     {
-        return $this->compensation_type === 'Cash'
-            ? Carbon::parse($this->date)->addMonth()
-            : Carbon::parse($this->date)->addMonths(3);
+        // Bulan masa berlaku diatur di Pengaturan TOIL (default: Toil 3, Cash 1)
+        return ToilSetting::current()->expiryDate($this->date, (string) $this->compensation_type);
     }
 
     public function createOrUpdateBalance(): void

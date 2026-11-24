@@ -1,6 +1,6 @@
 /* Hallmark · shape: app screen (shell) · genre: modern-minimal · theme: brand · redesign: full
  * paper: oklch(98.4% 0.004 265) · accent: oklch(61% 0.17 276) · display: Nunito · body: Nunito
- * nav: kept (Stisla sidebar + top bar) · signature: the top bar tells you where and when you are working (date and WITA clock, your role and primary location), and warns before the idle sign-out instead of dropping you · states: no employee record, no photo, idle warning, reduced motion
+ * nav: kept (Stisla sidebar + top bar; sidebar regrouped into four sections, one icon per group, groups without access hidden) · signature: the top bar tells you where and when you are working (date and WITA clock, your role and primary location), and warns before the idle sign-out instead of dropping you · states: no employee record, no photo, idle warning, reduced motion
  * axes: light/rounded-sans/chromatic-indigo · posture: app · contrast: pass · v2.0.0 */
 /* Hallmark · pre-emit critique: P4 H4 E4 S4 R4 V4 · weakest: E, the bar said only "Hi, name" and the footer trailed off; answered by date, clock, role and location, and a footer that states the time zone and the idle rule */
 
@@ -29,6 +29,8 @@
     --shell-text-md: 0.9375rem;
     --shell-radius: 8px;
     --shell-dur: 120ms;
+    --shell-accent-hover: oklch(45% 0.17 276);
+    --shell-icon-font: "Font Awesome 6 Free";
 }
 
 html, body { overflow-x: clip; }
@@ -96,8 +98,46 @@ html, body { overflow-x: clip; }
 .shell-idle-actions button { min-height: 40px; padding: 0 16px; border: 1px solid var(--shell-rule); border-radius: 6px; background: var(--shell-panel); font-family: var(--shell-font); font-size: var(--shell-text-sm); font-weight: 600; color: var(--shell-ink); cursor: pointer; transition: background-color var(--shell-dur) ease; }
 .shell-idle-actions button:hover { background: var(--shell-paper-2); }
 .shell-idle-actions button.is-primary { border-color: var(--shell-accent); background: var(--shell-accent); color: var(--shell-panel); }
-.shell-idle-actions button.is-primary:hover { background: oklch(45% 0.17 276); }
+.shell-idle-actions button.is-primary:hover { background: var(--shell-accent-hover); }
 .shell-idle-actions button:focus-visible { outline: 2px solid var(--shell-focus); outline-offset: 2px; }
+
+/* ── Sidebar ── */
+.sb .sb-brand { display: flex; align-items: center; justify-content: center; height: 60px; line-height: 1; background: var(--shell-bar); }
+.sb .sidebar-brand.sidebar-brand-sm { display: none; }
+body.sidebar-mini .sb .sidebar-brand.sb-brand:not(.sidebar-brand-sm) { display: none; }
+body.sidebar-mini .sb .sidebar-brand-sm.sb-brand { display: flex; }
+.sb .sb-brand a { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; padding: 0 8px; border-radius: var(--shell-radius); font-family: var(--shell-font); font-size: var(--shell-text-md); font-weight: 800; letter-spacing: 0; text-transform: none; color: var(--shell-on-bar); }
+.sb .sb-brand a:hover { color: var(--shell-on-bar); opacity: .85; }
+.sb .sb-brand a:focus-visible { outline: 2px solid var(--shell-focus-on-bar); outline-offset: 2px; }
+.sb .sb-brand img { display: block; width: 70px; height: auto; }
+
+.sb .sidebar-menu { padding: 8px 0 24px; font-family: var(--shell-font); }
+.sb .sidebar-menu li.menu-header { padding: 16px 20px 8px; font-size: var(--shell-text-xs); font-weight: 700; letter-spacing: 0; text-transform: none; color: var(--shell-muted); }
+.sb .sidebar-menu li.menu-header:not(:first-child) { margin-top: 4px; border-top: 1px solid var(--shell-rule); }
+body.sidebar-mini .sb .sidebar-menu > li.menu-header { padding: 0; margin: 8px 16px; height: 1px; font-size: 0; background: var(--shell-rule); border: 0; }
+
+.sb .sidebar-menu > li > a { height: 44px; padding: 0 20px; font-size: var(--shell-text-md); font-weight: 600; letter-spacing: 0; }
+.sb .sidebar-menu > li > a i { width: 20px; margin-right: 12px; font-size: 0.9375rem; color: var(--shell-muted); }
+.sb .sidebar-menu li a:hover { background: var(--shell-paper-2); }
+.sb .sidebar-menu li a:hover i { color: var(--shell-accent); }
+.sb .sidebar-menu li a:active { background: var(--shell-rule); }
+.sb .sidebar-menu li a.has-dropdown::after { font-family: var(--shell-icon-font); font-size: 10px; color: var(--shell-muted); transition: transform var(--shell-dur) ease; }
+
+/* Grup terbuka: garis aksen di kiri, latar lembut */
+body:not(.sidebar-mini) .sb .sidebar-menu > li.active > a { padding-left: 20px; background: var(--shell-accent-soft); color: var(--shell-accent); }
+body:not(.sidebar-mini) .sb .sidebar-menu > li.active > a::before { left: 0; height: 24px; width: 3px; border-radius: 0 3px 3px 0; background: var(--shell-accent); }
+.sb .sidebar-menu > li.active > a i { color: var(--shell-accent); }
+.sb .sidebar-menu li.active ul.dropdown-menu { background: transparent; }
+
+/* Sub menu: garis panduan di bawah ikon grup */
+.sb .sidebar-menu li ul.dropdown-menu { position: relative; padding: 4px 0 8px; }
+body:not(.sidebar-mini) .sb .sidebar-menu li ul.dropdown-menu::before { content: ""; position: absolute; top: 4px; bottom: 8px; left: 29px; width: 1px; background: var(--shell-rule); }
+body:not(.sidebar-mini) .sb .sidebar-menu li ul.dropdown-menu li a,
+body:not(.sidebar-mini) .sb .sidebar-menu li.active ul.dropdown-menu li a { position: relative; height: 36px; padding-left: 52px; background: transparent; font-size: var(--shell-text-sm); font-weight: 500; color: var(--shell-ink-2); }
+.sb .sidebar-menu li ul.dropdown-menu li a:hover { color: var(--shell-accent); background: var(--shell-paper-2); }
+.sb .sidebar-menu li ul.dropdown-menu li.active > a,
+body:not(.sidebar-mini) .sb .sidebar-menu li.active ul.dropdown-menu li.active > a { color: var(--shell-accent); font-weight: 700; }
+body:not(.sidebar-mini) .sb .sidebar-menu li ul.dropdown-menu li.active > a::before { content: ""; position: absolute; left: 28px; top: 50%; width: 3px; height: 18px; transform: translateY(-50%); border-radius: 2px; background: var(--shell-accent); }
 
 @media (max-width: 1024px) {
     .shell-today, .shell-user-text { display: none; }
@@ -105,4 +145,5 @@ html, body { overflow-x: clip; }
 
 @media (prefers-reduced-motion: reduce) {
     .shell-idle-actions button { transition: none; }
+    .sb .sidebar-menu li a.has-dropdown::after { transition: none; }
 }

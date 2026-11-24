@@ -5,6 +5,38 @@
   "scope": "app",
   "shape": "app screen",
   "theme": "brand",
+  "signature": "each payroll component beside where its amount comes from and its latest-period total; live calculation and take-home effect preview on the form",
+  "sections": [
+   "summary stats",
+   "filtered component table",
+   "form with live preview, usage and existing list"
+  ],
+  "waived": [],
+  "prompt": "payroll components for HR: see how each component is calculated and used, add and edit components",
+  "date": "2026-11-24"
+ },
+ {
+  "mode": "redesign",
+  "depth": "full",
+  "scope": "app",
+  "shape": "app screen",
+  "theme": "brand",
+  "signature": "each department beside its active headcount, managers, positions and locations; look-alike names and taken codes flagged as you type",
+  "sections": [
+   "summary stats",
+   "filtered department table",
+   "form with department contents and existing list"
+  ],
+  "waived": [],
+  "prompt": "department master data for HR: see who is in each department, add and rename departments",
+  "date": "2026-11-23"
+ },
+ {
+  "mode": "redesign",
+  "depth": "full",
+  "scope": "app",
+  "shape": "app screen",
+  "theme": "brand",
   "signature": "period ledger: status flow bar beside money totals",
   "prompt": "payroll period screen for HR: review, approve, send slips",
   "waived": [],

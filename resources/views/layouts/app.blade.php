@@ -57,6 +57,8 @@
     <script src="{{ asset('library/jquery.nicescroll/dist/jquery.nicescroll.min.js') }}"></script>
     <script src="{{ asset('library/moment/min/moment.min.js') }}"></script>
     <script src="{{ asset('js/stisla.js') }}"></script>
+    {{-- Kompres & bersihkan foto di browser sebelum upload (semua input file gambar) --}}
+    <script src="{{ asset('js/image-upload.js') }}?v={{ filemtime(public_path('js/image-upload.js')) }}"></script>
 
     <!-- Template JS File -->
     <script src="{{ asset('js/scripts.js') }}"></script>

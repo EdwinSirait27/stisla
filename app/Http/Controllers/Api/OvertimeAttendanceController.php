@@ -34,9 +34,6 @@ class OvertimeAttendanceController extends Controller
     /** Lembur selalu bebas lokasi, tidak mengikuti attendance_type karyawan. */
     private const LOCATION_MODE = Employee::ATTENDANCE_LOCATION_FLEXIBLE;
 
-    /** Check-in lembur paling cepat sekian menit sebelum jam mulai lembur. */
-    private const CHECKIN_EARLY_MINUTES = OvertimeAttendanceLog::CHECKIN_EARLY_MINUTES;
-
     /**
      * Saldo lembur (Toilbalances) yang lemburnya disetujui dan bertanggal kemarin s/d besok,
      * lengkap dengan log absensi lemburnya.
@@ -75,7 +72,7 @@ class OvertimeAttendanceController extends Controller
             ];
         })
             ->reject(fn($c) => Carbon::parse($c->ot->date)->toDateString() > $today
-                && now()->lt($c->start->copy()->subMinutes(self::CHECKIN_EARLY_MINUTES)))
+                && now()->lt($c->start->copy()->subMinutes(OvertimeAttendanceLog::checkinEarlyMinutes())))
             ->sortBy(fn($c) => $c->start->timestamp)->values();
     }
 
@@ -85,7 +82,7 @@ class OvertimeAttendanceController extends Controller
         $now = now();
         if ($type === 'checkin') {
             return $candidates->first(fn($c) => !$c->checkin
-                && $now->gte($c->start->copy()->subMinutes(self::CHECKIN_EARLY_MINUTES))
+                && $now->gte($c->start->copy()->subMinutes(OvertimeAttendanceLog::checkinEarlyMinutes()))
                 && $now->lte($c->end));
         }
         // Check-out tidak dibatasi sekian jam setelah selesai; jam selesai dicek terpisah (OVERTIME_TOO_SHORT)
@@ -170,7 +167,7 @@ class OvertimeAttendanceController extends Controller
                 return response()->json([
                     'success' => false,
                     'message' => $next
-                        ? 'Check-in lembur baru bisa mulai jam ' . $next->start->copy()->subMinutes(self::CHECKIN_EARLY_MINUTES)->format('H:i') . ' (lembur mulai ' . $next->start->format('H:i') . ')'
+                        ? 'Check-in lembur baru bisa mulai jam ' . $next->start->copy()->subMinutes(OvertimeAttendanceLog::checkinEarlyMinutes())->format('H:i') . ' (lembur mulai ' . $next->start->format('H:i') . ')'
                         : 'Waktu lembur Anda sudah berakhir, check-in tidak bisa dilakukan',
                     'code' => 'OUTSIDE_OVERTIME_WINDOW',
                 ], 422);
@@ -205,7 +202,7 @@ class OvertimeAttendanceController extends Controller
                 return response()->json(['success' => false, 'message' => 'Wajah tidak cocok dengan data karyawan, absen ditolak', 'code' => 'FACE_MISMATCH'], 422);
             }
 
-            // Selfie dikecilkan sebelum disimpan (verifikasi wajah di atas tetap memakai file asli)
+            // Selfie dikompres & dibersihkan sebelum disimpan (yang dikirim ke DeepFace juga sudah dikompres, lihat selfieForVerification)
             $packed    = app(ImageCompressor::class)->compress($request->file('photo'));
             $photoPath = 'attendance-overtime/' . now()->format('Y/m') . '/' . \Ramsey\Uuid\Uuid::uuid7()->toString() . '.' . $packed['extension'];
             Storage::disk('s3')->put($photoPath, $packed['contents'], ['ContentType' => $packed['mime']]);
@@ -293,7 +290,7 @@ class OvertimeAttendanceController extends Controller
                 'overtimes'    => $candidates->map(fn($c) => $this->overtimePayload($c) + [
                     'checkin_time'  => $c->checkin?->logged_at?->timezone(config('app.timezone'))->format('H:i'),
                     'checkout_time' => $c->checkout?->logged_at?->timezone(config('app.timezone'))->format('H:i'),
-                    'can_checkin_from' => $c->start->copy()->subMinutes(self::CHECKIN_EARLY_MINUTES)->toIso8601String(),
+                    'can_checkin_from' => $c->start->copy()->subMinutes(OvertimeAttendanceLog::checkinEarlyMinutes())->toIso8601String(),
                     'can_checkout_from'  => $c->end->toIso8601String(),
                     'can_checkout_until' => $c->deadline->toIso8601String(),
                 ])->values(),
@@ -315,7 +312,7 @@ class OvertimeAttendanceController extends Controller
         $now = now();
         if ($checkout) return 'done';
         if ($checkin) return $now->lte($deadline) ? 'active' : 'no_checkout';
-        if ($now->lt($start->copy()->subMinutes(self::CHECKIN_EARLY_MINUTES))) return 'upcoming';
+        if ($now->lt($start->copy()->subMinutes(OvertimeAttendanceLog::checkinEarlyMinutes()))) return 'upcoming';
         return $now->lte($end) ? 'open' : 'missed';
     }
 
@@ -352,7 +349,7 @@ class OvertimeAttendanceController extends Controller
             'reason'                    => $ot->reason,
             'start_at'                  => $start->toIso8601String(),
             'end_at'                    => $end->toIso8601String(),
-            'can_checkin_from'          => $start->copy()->subMinutes(self::CHECKIN_EARLY_MINUTES)->toIso8601String(),
+            'can_checkin_from'          => $start->copy()->subMinutes(OvertimeAttendanceLog::checkinEarlyMinutes())->toIso8601String(),
             'can_checkout_from'         => $end->toIso8601String(),
             'can_checkout_until'        => $deadline->toIso8601String(),
             'state'                     => $this->overtimeState($start, $end, $deadline, $in, $out),

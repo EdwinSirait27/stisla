@@ -10,6 +10,7 @@ use App\Http\Controllers\Api\OvertimeAttendanceController;
 use App\Http\Controllers\Api\HolidayController;
 use App\Http\Controllers\Api\EmployeeDirectoryController;
 use App\Http\Controllers\Api\ToilBalanceController;
+use App\Http\Controllers\Api\AnnouncementController;
 
 /*
 |--------------------------------------------------------------------------
@@ -68,6 +69,9 @@ Route::middleware(['auth:sanctum', 'device.check', 'mobile.access'])->group(func
         Route::get('/mobile/overtime/history', [OvertimeAttendanceController::class, 'history']);
         Route::get('/mobile/holidays', [HolidayController::class, 'index']);
         Route::get('/mobile/toil/balance', [ToilBalanceController::class, 'index']);
+        // Pengumuman dari HR (hanya baca; isi dikirim sebagai blok teks, bukan HTML)
+        Route::get('/mobile/announcements', [AnnouncementController::class, 'index']);
+        Route::get('/mobile/announcements/{id}', [AnnouncementController::class, 'show'])->whereUuid('id');
         // Hanya baca; permission ManageEmployee | ManageEmployeeSPVManager | ViewEmployee dicek di controller
         Route::get('/mobile/employees', [EmployeeDirectoryController::class, 'index']);
         Route::get('/mobile/employees/{id}', [EmployeeDirectoryController::class, 'show'])->whereUuid('id');

@@ -19,8 +19,6 @@ use Illuminate\Support\Facades\Auth;
  */
 class ToilController extends Controller
 {
-    private const HOURS_PER_DAY = 8;
-
     // ── Karyawan: saldo saya ──────────────────────────────────────
 
     public function index()
@@ -33,7 +31,7 @@ class ToilController extends Controller
 
         return view('pages.Toil.balance', [
             'employee'      => $employee,
-            'hoursPerDay'   => self::HOURS_PER_DAY,
+            'hoursPerDay'   => \App\Models\ToilSetting::current()->hours_per_day,
             'isDw'          => strtoupper($employee->status_employee ?? '') === 'DW',
         ]);
     }

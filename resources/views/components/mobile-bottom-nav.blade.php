@@ -38,6 +38,7 @@
             ['Semua saldo TOIL', 'fa-scale-balanced', 'toil.all-balances', ['allbalances']],
             ['Penugasan lembur', 'fa-list-check', 'toil.assignment.index', ['assignment']],
             ['Persetujuan TOIL', 'fa-circle-check', 'toil.approval.index', ['assignment']],
+            ['Pengaturan TOIL', 'fa-sliders', 'toilsetting.index', ['ManageToilSetting']],
         ],
         'Dokumen' => [
             ['Kontrak', 'fa-file-contract', 'contract', ['ManageContracts']],

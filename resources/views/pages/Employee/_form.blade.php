@@ -403,7 +403,7 @@
                                         <img id="prev-{{ $f }}" src="{{ $cur ? route($route, basename($cur)) : '' }}" alt="" @if (!$cur) hidden @endif>
                                         <span id="none-{{ $f }}" @if ($cur) hidden @endif>Belum ada</span>
                                     </div>
-                                    <input type="file" id="{{ $f }}" name="{{ $f }}" accept=".jpg,.jpeg,.png,.webp" class="emp-file js-file @error($f) is-invalid @enderror" data-prev="prev-{{ $f }}" data-none="none-{{ $f }}">
+                                    <input type="file" id="{{ $f }}" name="{{ $f }}" accept=".jpg,.jpeg,.png,.webp" class="emp-file js-file @error($f) is-invalid @enderror" data-max-kb="512" @if ($f === 'signature_file') data-keep-alpha @endif data-prev="prev-{{ $f }}" data-none="none-{{ $f }}">
                                     @error($f)<span class="emp-error">{{ $message }}</span>@enderror
                                 </div>
                             @endforeach

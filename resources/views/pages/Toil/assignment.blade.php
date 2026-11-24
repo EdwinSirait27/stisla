@@ -1616,7 +1616,7 @@
                     </div>
                     <div class="emp-field">
                         <label for="total_hours">Total jam per hari</label>
-                        <input type="number" class="emp-input" name="total_hours" id="total_hours" step="0.5" min="0.5" max="24" readonly>
+                        <input type="number" class="emp-input" name="total_hours" id="total_hours" step="0.5" min="{{ \App\Models\ToilSetting::current()->min_overtime_hours }}" max="{{ \App\Models\ToilSetting::current()->max_overtime_hours }}" readonly>
                         <span class="emp-help" id="hours-hint">Dihitung otomatis dari jam mulai dan selesai, dibulatkan per 30 menit.</span>
                     </div>
                     <div class="emp-field">
@@ -1711,7 +1711,7 @@
                         </div>
                         <div class="emp-field is-wide">
                             <label for="edit_total_hours">Total jam</label>
-                            <input type="number" class="emp-input" id="edit_total_hours" name="total_hours" step="0.5" min="0.5" max="24">
+                            <input type="number" class="emp-input" id="edit_total_hours" name="total_hours" step="0.5" min="{{ \App\Models\ToilSetting::current()->min_overtime_hours }}" max="{{ \App\Models\ToilSetting::current()->max_overtime_hours }}">
                             <span class="emp-help" id="edit-hours-hint">Tidak boleh kurang dari jam TOIL yang sudah dipakai.</span>
                         </div>
                         <div class="emp-field is-wide">
@@ -1753,6 +1753,7 @@
             }
             $('#employee_ids, #compensation_type').on('change', checkDw);
 
+            const OT_MIN = @json(\App\Models\ToilSetting::current()->min_overtime_hours), OT_MAX = @json(\App\Models\ToilSetting::current()->max_overtime_hours);
             function autoCalcHours(startId, endId, totalId, hintId) {
                 const s = $(startId).val(), e = $(endId).val();
                 if (!s || !e) return;
@@ -1760,6 +1761,7 @@
                 const overnight = b <= a; if (overnight) b += 1440;
                 const r = Math.round((b - a) / 60 * 2) / 2;
                 if (r < 0.5) { $(hintId).removeClass('is-ok').addClass('is-bad').text('Jam selesai harus setelah jam mulai.'); return; }
+                if (r < OT_MIN || r > OT_MAX) { $(totalId).val(r); $(hintId).removeClass('is-ok').addClass('is-bad').text(`${r} jam. Lembur harus ${OT_MIN} sampai ${OT_MAX} jam per hari.`); return; }
                 $(totalId).val(r);
                 $(hintId).removeClass('is-bad').addClass('is-ok').text(`${s} sampai ${e}${overnight ? ' (lewat tengah malam)' : ''} = ${r} jam.`);
             }

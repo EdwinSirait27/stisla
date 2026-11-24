@@ -1834,7 +1834,7 @@
 
                     <div class="emp-field is-wide">
                         <label for="attachments">Foto bukti {{ $isEdited && $data->attachments->count() ? 'baru' : '' }}</label>
-                        <input type="file" name="attachments[]" id="attachments" class="emp-input @error('attachments.*') is-invalid @enderror" accept="image/jpeg,image/png,image/webp" multiple>
+                        <input type="file" name="attachments[]" id="attachments" data-max-kb="512" class="emp-input @error('attachments.*') is-invalid @enderror" accept="image/jpeg,image/png,image/webp" multiple>
                         <span class="emp-help" id="att-help">Foto form klarifikasi yang sudah ditandatangani atasan. jpg, png, atau webp, maksimal 512 KB per foto, sampai 5 foto.</span>
                     </div>
                 </div>

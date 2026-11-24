@@ -382,7 +382,7 @@ class OvertimeAttendanceMobileController extends Controller
         $ot = $balance->overtimeSubmission;
         [$start, $end] = OvertimeAttendanceLog::overtimeWindow($ot);
         [$from, $until] = $validated['type'] === 'checkin'
-            ? [$start->copy()->subMinutes(OvertimeAttendanceLog::CHECKIN_EARLY_MINUTES), $end]
+            ? [$start->copy()->subMinutes(OvertimeAttendanceLog::checkinEarlyMinutes()), $end]
             : [$end, OvertimeAttendanceLog::checkoutDeadline($ot)];
         if ($loggedAt->isFuture() || $loggedAt->lt($from) || $loggedAt->gt($until)) {
             return response()->json([

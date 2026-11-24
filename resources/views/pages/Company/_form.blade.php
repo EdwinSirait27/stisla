@@ -75,7 +75,7 @@
                                 <div class="co-upload">
                                     <div class="co-upload-prev"><img id="logo-prev" src="{{ $logoUrl ?? '' }}" alt="Logo saat ini" @if (!$logoUrl) hidden @endif><span id="logo-none" @if ($logoUrl) hidden @endif>Belum ada logo</span></div>
                                     <div>
-                                        <input type="file" id="foto" name="foto" accept=".jpg,.jpeg,.png,.webp" class="emp-file @error('foto') is-invalid @enderror">
+                                        <input type="file" id="foto" name="foto" data-max-kb="1024" data-keep-alpha accept=".jpg,.jpeg,.png,.webp" class="emp-file @error('foto') is-invalid @enderror">
                                         <span class="emp-help">PNG dengan latar transparan paling rapi. JPG, PNG, atau WEBP, maksimal 1 MB, minimal 64 x 64 piksel.{{ $isEdit ? ' Kosongkan kalau tidak diganti.' : '' }}</span>
                                     </div>
                                 </div>
