@@ -225,24 +225,7 @@ class ContractController extends Controller
             ]]);
 
         // Prefill dari SK (tombol "Buat kontrak" di SK yang sudah disetujui)
-        $prefill = null;
-        if ($fromSk && $fromEmployeeId) {
-            $row = $fromSk->employees()->where('employees_tables.id', $fromEmployeeId)->first()?->pivot;
-            if ($row) {
-                $prefill = [
-                    'employee_id' => $fromEmployeeId, 'sk_letter_id' => $fromSk->id, 'issuer_company_id' => $fromSk->company_id,
-                    'start_date' => $fromSk->effective_date?->format('Y-m-d'), 'end_date' => $fromSk->inactive_date?->format('Y-m-d'),
-                    'position_id' => $row->new_position_id ?? $row->position_id, 'department_id' => $row->new_department_id ?? $row->department_id,
-                    'store_id' => $row->new_store_id ?? $row->previous_store_id, 'grading_id' => $row->new_grading_id ?? $row->grading_id,
-                    'group_id' => $row->new_group_id ?? $row->group_id, 'contract_type' => $row->new_status_employee,
-                    'basic_salary' => $row->basic_salary !== null ? (int) $row->basic_salary : null,
-                    'positional_allowance' => $row->positional_allowance !== null ? (int) $row->positional_allowance : null,
-                    'daily_rate' => $row->daily_rate !== null ? (int) $row->daily_rate : null,
-                    // Approver ikut SK (bisa diganti)
-                    'approver_2' => $fromSk->approver_2, 'approver_3' => $fromSk->approver_3,
-                ];
-            }
-        }
+        $prefill = ($fromSk && $fromEmployeeId) ? $this->fromSk($fromSk, $fromEmployeeId) : null;
 
         return [
             'contract'    => $contract,
@@ -260,6 +243,52 @@ class ContractController extends Controller
                 ->where('e.status', 'Active')->whereNull('e.deleted_at')->orderBy('e.employee_name')
                 ->get(['e.id', 'e.employee_name', 'p.name as position']),
         ];
+    }
+
+    /**
+     * Isi kontrak menurut SK untuk satu karyawan (null kalau karyawan tidak ada di SK).
+     * Dipakai untuk isian awal form dan untuk memeriksa apakah kontrak sama persis dengan SK.
+     */
+    private function fromSk(SkLetter $sk, string $employeeId): ?array
+    {
+        $row = $sk->employees()->where('employees_tables.id', $employeeId)->first()?->pivot;
+        if (!$row) return null;
+
+        return [
+            'employee_id' => $employeeId, 'sk_letter_id' => $sk->id, 'issuer_company_id' => $sk->company_id,
+            'start_date' => $sk->effective_date?->format('Y-m-d'), 'end_date' => $sk->inactive_date?->format('Y-m-d'),
+            'position_id' => $row->new_position_id ?? $row->position_id, 'department_id' => $row->new_department_id ?? $row->department_id,
+            'store_id' => $row->new_store_id ?? $row->previous_store_id, 'grading_id' => $row->new_grading_id ?? $row->grading_id,
+            'group_id' => $row->new_group_id ?? $row->group_id, 'contract_type' => $row->new_status_employee,
+            'basic_salary' => $row->basic_salary !== null ? (int) $row->basic_salary : null,
+            'positional_allowance' => $row->positional_allowance !== null ? (int) $row->positional_allowance : null,
+            'daily_rate' => $row->daily_rate !== null ? (int) $row->daily_rate : null,
+            // Approver ikut SK (bisa diganti; hanya dipakai kalau kontrak perlu approval)
+            'approver_2' => $sk->approver_2, 'approver_3' => $sk->approver_3,
+        ];
+    }
+
+    /**
+     * Daftar isian yang berbeda dari SK (kosong = sama persis). Jenis kontrak hanya dibandingkan
+     * kalau SK menetapkan jenis karyawan baru; approver, dokumen, dan catatan tidak dibandingkan.
+     */
+    private function differencesFromSk(array $data, array $sk): array
+    {
+        $labels = [
+            'issuer_company_id' => 'perusahaan penerbit', 'start_date' => 'tanggal mulai', 'end_date' => 'tanggal berakhir',
+            'position_id' => 'jabatan', 'department_id' => 'departemen', 'store_id' => 'lokasi', 'grading_id' => 'grading',
+            'group_id' => 'group', 'basic_salary' => 'gaji pokok', 'positional_allowance' => 'tunjangan jabatan', 'daily_rate' => 'daily rate',
+        ];
+        if ($sk['contract_type']) $labels['contract_type'] = 'jenis kontrak';
+
+        $norm = function ($field, $v) {
+            if ($v === null || $v === '') return null;
+            if (in_array($field, Contract::SALARY_FIELDS, true)) return (int) round((float) $v);
+            if (in_array($field, ['start_date', 'end_date'], true)) return Carbon::parse($v)->format('Y-m-d');
+            return (string) $v;
+        };
+
+        return collect($labels)->filter(fn($label, $field) => $norm($field, $data[$field] ?? null) !== $norm($field, $sk[$field] ?? null))->values()->all();
     }
 
     public function create(Request $request)
@@ -355,6 +384,7 @@ class ContractController extends Controller
 
         $this->normalizeMoney($request);
         $data = $request->validate($this->rules(true), self::MESSAGES);
+        $data = array_map(fn($v) => $v === '' ? null : $v, $data); // pilihan kosong = null (FK)
         $employee = Employee::findOrFail($data['employee_id']);
 
         try {
@@ -368,12 +398,28 @@ class ContractController extends Controller
                 if ($open) {
                     throw ValidationException::withMessages(['employee_id' => "{$employee->employee_name} sudah punya kontrak yang belum selesai diproses ({$open->status_label}). Lanjutkan atau batalkan kontrak itu."]);
                 }
-                return Contract::create(collect($data)->except('file_path')->all() + [
+                $values = collect($data)->except('file_path')->all() + [
                     'company_id'      => $employee->company_id,
                     'file_path'       => $path,
                     'contract_status' => 'Draft',
                     'created_by'      => auth()->user()?->employee_id,
-                ]);
+                ];
+
+                // Dari SK yang sudah disetujui penuh dan isinya sama persis: tidak perlu approval ulang.
+                // Persetujuannya ikut SK (penanda tangan & waktu disalin dari SK).
+                $sk = !empty($data['sk_letter_id']) ? SkLetter::find($data['sk_letter_id']) : null;
+                $expected = $sk && $sk->isFinal() ? $this->fromSk($sk, $employee->id) : null;
+                if ($expected && !$this->differencesFromSk($data, $expected)) {
+                    $values = array_merge($values, [
+                        'contract_status'      => !empty($data['end_date']) && Carbon::parse($data['end_date'])->lt(today()) ? 'Expired' : 'Active',
+                        'approver_1'           => $sk->approver_1, 'approver_1_at' => $sk->approver_1_at, 'approver_1_signature' => $sk->approver_1_signature,
+                        'approver_2'           => $sk->approver_2, 'approver_2_at' => $sk->approver_2_at, 'approver_2_signature' => $sk->approver_2_signature,
+                        'approver_3'           => $sk->approver_3, 'approver_3_at' => $sk->approver_3_at, 'approver_3_signature' => $sk->approver_3_signature,
+                        'approved_at'          => now(),
+                    ]);
+                }
+
+                return Contract::create($values);
             });
         } catch (ValidationException $e) {
             throw $e;
@@ -382,7 +428,17 @@ class ContractController extends Controller
             return back()->withInput()->with('error', 'Kontrak gagal disimpan. Silakan coba lagi.');
         }
 
-        return redirect()->route('showcontract', $contract->id)->with('success', "Kontrak {$employee->employee_name} disimpan sebagai Draft. Periksa lalu ajukan untuk persetujuan.");
+        if ($contract->contract_status !== 'Draft') {
+            return redirect()->route('showcontract', $contract->id)
+                ->with('success', "Kontrak {$employee->employee_name} langsung berlaku: isinya sama dengan SK yang sudah disetujui, jadi tidak perlu approval ulang.");
+        }
+
+        $diff = !empty($data['sk_letter_id']) && ($sk = SkLetter::find($data['sk_letter_id'])) && $sk->isFinal() && ($exp = $this->fromSk($sk, $employee->id))
+            ? $this->differencesFromSk($data, $exp) : [];
+
+        return redirect()->route('showcontract', $contract->id)->with('success', $diff
+            ? "Kontrak disimpan sebagai Draft karena berbeda dari SK (" . implode(', ', $diff) . "). Ajukan untuk persetujuan."
+            : "Kontrak {$employee->employee_name} disimpan sebagai Draft. Periksa lalu ajukan untuk persetujuan.");
     }
 
     public function show(string $id)
@@ -441,6 +497,7 @@ class ContractController extends Controller
             $this->normalizeMoney($request);
             $data = $request->validate($this->rules(false), self::MESSAGES);
         }
+        $data = array_map(fn($v) => $v === '' ? null : $v, $data);
 
         $path = $this->storeFile($request, $contract->employee);
         $old = $contract->file_path;

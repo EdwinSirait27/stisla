@@ -47,7 +47,7 @@
                 ['Document Settings', ['route', 'documentconfig.index'], ['ManageDocumentType']],
             ]],
             ['SK', 'fa-file-signature', [
-                ['SK Type', 'Sktype', ['ManageSktypes', 'ManageSkLetters']],
+                ['SK Type', 'Sktype', ['ManageSktypes']],
                 ['SK Letters', 'SkLetters', ['ManageSktypes', 'ManageSkLetters']],
             ]],
         ],

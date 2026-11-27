@@ -40,7 +40,11 @@
     <p class="sk-notice is-warn"><strong>Dikembalikan untuk diperbaiki:</strong> {{ $contract->returned_note }}</p>
 @endif
 @if ($fromSk)
-    <p class="sk-notice is-info">Diisi dari SK <a href="{{ route('SkLetters.show', $fromSk->id) }}">{{ $fromSk->sk_number }}</a>. Periksa lalu simpan.</p>
+    <p class="sk-notice is-info">
+        Diisi dari SK <a href="{{ route('SkLetters.show', $fromSk->id) }}">{{ $fromSk->sk_number }}</a> yang sudah disetujui.
+        <strong>Kalau isinya tidak diubah, kontrak langsung berlaku</strong> tanpa approval ulang.
+        Kalau ada yang diubah (tanggal, penempatan, gaji, perusahaan, atau jenis), kontrak disimpan sebagai Draft dan perlu disetujui approver di bawah.
+    </p>
 @endif
 
 @if ($needPassword)

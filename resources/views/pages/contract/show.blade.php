@@ -73,6 +73,8 @@
                 <p class="sk-notice is-info">Kontrak ini masih Draft dan belum berlaku. Periksa isinya, lalu tekan <strong>Ajukan untuk persetujuan</strong>.</p>
             @elseif ($c->contract_status === 'Pending')
                 <p class="sk-notice is-info">Menunggu persetujuan. Kontrak berlaku setelah semua approver menyetujui.</p>
+            @elseif (in_array($c->contract_status, ['Active', 'Expired'], true) && $c->approved_at && $c->skLetter && $c->approver_1_at && $c->skLetter->approver_1_at && $c->approver_1_at->equalTo($c->skLetter->approver_1_at))
+                <p class="sk-notice is-ok">Berlaku berdasarkan SK <a href="{{ route('SkLetters.show', $c->sk_letter_id) }}">{{ $c->skLetter->sk_number }}</a> tanpa approval ulang, karena isinya sama dengan SK yang sudah disetujui. Persetujuan di samping adalah persetujuan SK.</p>
             @elseif (in_array($c->contract_status, ['Active', 'Expired'], true) && $c->approved_at)
                 <p class="sk-notice is-ok">Disetujui penuh {{ $jam($c->approved_at) }}.</p>
             @endif

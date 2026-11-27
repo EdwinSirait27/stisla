@@ -172,7 +172,7 @@
         <div class="pr-panel-head">
             <div>
                 <h2 class="pr-panel-title" id="h-approval">Persetujuan</h2>
-                <span class="pr-panel-sub">HeadHR yang mengajukan tercatat sebagai penanda tangan pertama. Approver di bawah menyetujui berurutan setelahnya.</span>
+                <span class="pr-panel-sub">Yang mengajukan tercatat sebagai penanda tangan pertama. Approver di bawah menyetujui berurutan setelahnya.</span>
             </div>
         </div>
         <div class="emp-fields sk-fields-3">

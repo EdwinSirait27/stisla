@@ -22,12 +22,12 @@ use Illuminate\Validation\ValidationException;
  * Surat Keputusan (SK).
  *
  * Alur (approver dipilih per SK):
- *   Draft (HeadHR menyusun & bisa mengubah)
- *     → HeadHR mengajukan: approver_1 = HeadHR, status "Approved HR", menunggu approver_2
+ *   Draft (HR menyusun; yang punya SubmitSkLetters bisa mengubah)
+ *     → diajukan (permission SubmitSkLetters): approver_1 = pengaju, status "Approved HR", menunggu approver_2
  *     → approver_2 menyetujui: kalau ada approver_3 status "Approved Director", kalau tidak langsung final
  *     → approver_3 menyetujui: final ("Approved Managing Director" = disetujui penuh)
  *   Approver yang sedang mendapat giliran bisa mengembalikan ke Draft (alasan wajib); persetujuan
- *   dimulai lagi dari awal. HeadHR bisa membatalkan selama belum final.
+ *   dimulai lagi dari awal. Pemegang SubmitSkLetters bisa membatalkan selama belum final.
  *
  * Setelah final, perubahan per karyawan diterapkan sesuai flag jenis SK:
  * - affects_salary   : baris Employee Salary baru berlaku mulai tanggal efektif SK
@@ -157,7 +157,7 @@ class SkLetterService
     // Approval
     // ─────────────────────────────────────────
 
-    /** HeadHR mengajukan Draft: tercatat sebagai approver 1, lalu menunggu approver 2. */
+    /** Draft diajukan: pengaju tercatat sebagai approver 1, lalu menunggu approver 2. */
     public function submit(SkLetter $skLetter, Employee $hr): SkLetter
     {
         DB::transaction(function () use ($skLetter, $hr) {

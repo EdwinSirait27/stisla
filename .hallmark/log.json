@@ -5,6 +5,22 @@
   "scope": "app",
   "shape": "app screen",
   "theme": "brand",
+  "signature": "each SK type shown as what it does to an employee once its SK is approved, beside its usage; the form previews the SK number and explains each switch",
+  "sections": [
+   "summary stats",
+   "SK type table with effects and usage",
+   "form with explained switches, number preview, usage and existing list"
+  ],
+  "waived": [],
+  "prompt": "SK type master data for HR: define what each SK type changes on approval",
+  "date": "2026-11-27"
+ },
+ {
+  "mode": "redesign",
+  "depth": "full",
+  "scope": "app",
+  "shape": "app screen",
+  "theme": "brand",
   "signature": "employee directory for the training team: each person beside a tap-to-call number and their placement (position over department and location), employment type as one-tap chips, Active by default",
   "sections": [
    "summary stats",

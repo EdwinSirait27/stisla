@@ -26,7 +26,8 @@ use Yajra\DataTables\DataTables;
  * Surat Keputusan (SK). Alur & penerapan ada di SkLetterService.
  *
  * Akses:
- * - ManageSkLetters : daftar semua SK, buat, ubah Draft (HeadHR), ajukan (HeadHR), batalkan (HeadHR).
+ * - ManageSkLetters : daftar semua SK, buat Draft.
+ * - ManageSkLetters + SubmitSkLetters : ubah Draft, ajukan untuk persetujuan, batalkan.
  * - Approver 2 / 3 yang dipilih di SK : membuka SK itu, menyetujui atau mengembalikan saat gilirannya,
  *   walau tanpa ManageSkLetters (SK memuat gaji, jadi selain itu tertutup).
  */
@@ -47,11 +48,10 @@ class SkLetterController extends Controller
         return (bool) auth()->user()?->can('ManageSkLetters');
     }
 
-    private function isHeadHr(): bool
+    /** Mengubah Draft, mengajukan, membatalkan: permission SubmitSkLetters (bukan role). */
+    private function canSubmitSk(): bool
     {
-        /** @var \App\Models\User|null $user */
-        $user = auth()->user();
-        return (bool) $user?->hasRole('HeadHR');
+        return (bool) auth()->user()?->can('SubmitSkLetters');
     }
 
     /** Approver 2 / 3 dari SK ini (bukan HR pengaju). */
@@ -285,9 +285,9 @@ class SkLetterController extends Controller
         return view('pages.SkLetters.show', [
             'skletter'    => $skletter,
             'canManage'   => $this->canManage(),
-            'canEdit'     => $this->canManage() && $this->isHeadHr() && $skletter->status === 'Draft',
-            'canSubmit'   => $this->canManage() && $this->isHeadHr() && $skletter->status === 'Draft',
-            'canCancel'   => $this->canManage() && $this->isHeadHr() && !in_array($skletter->status, [SkLetter::FINAL_STATUS, 'Cancelled'], true),
+            'canEdit'     => $this->canManage() && $this->canSubmitSk() && $skletter->status === 'Draft',
+            'canSubmit'   => $this->canManage() && $this->canSubmitSk() && $skletter->status === 'Draft',
+            'canCancel'   => $this->canManage() && $this->canSubmitSk() && !in_array($skletter->status, [SkLetter::FINAL_STATUS, 'Cancelled'], true),
             'myTurn'      => $me && $step && $skletter->{$step[0]} === $me->id,
             'returnedBy'  => $skletter->returned_by ? Employee::find($skletter->returned_by)?->employee_name : null,
             'positions'   => $names('position_tables', 'id', 'name'),
@@ -300,10 +300,10 @@ class SkLetterController extends Controller
         ]);
     }
 
-    /** Hanya HeadHR, dan hanya selama SK masih Draft. */
+    /** Permission SubmitSkLetters, dan hanya selama SK masih Draft. */
     private function canEdit(SkLetter $skletter): bool
     {
-        return $skletter->status === 'Draft' && $this->canManage() && $this->isHeadHr();
+        return $skletter->status === 'Draft' && $this->canManage() && $this->canSubmitSk();
     }
 
     // Nama parameter harus sama dengan route ({skletter}) supaya route model binding jalan
@@ -311,7 +311,7 @@ class SkLetterController extends Controller
     {
         if (!$this->canEdit($skletter)) {
             return redirect()->route('SkLetters.show', $skletter)
-                ->with('error', 'Hanya HeadHR yang bisa mengubah SK, dan hanya selama masih Draft.');
+                ->with('error', 'Mengubah SK butuh permission SubmitSkLetters, dan hanya selama SK masih Draft.');
         }
 
         $skletter->load(['employees', 'menimbang', 'mengingat', 'keputusan']);
@@ -323,7 +323,7 @@ class SkLetterController extends Controller
     {
         if (!$this->canEdit($skletter)) {
             return redirect()->route('SkLetters.show', $skletter)
-                ->with('error', 'Hanya HeadHR yang bisa mengubah SK, dan hanya selama masih Draft.');
+                ->with('error', 'Mengubah SK butuh permission SubmitSkLetters, dan hanya selama SK masih Draft.');
         }
 
         $validated = $this->validated($request);
@@ -342,7 +342,7 @@ class SkLetterController extends Controller
 
     public function submit(SkLetter $skletter): RedirectResponse
     {
-        abort_unless($this->canManage() && $this->isHeadHr() && $this->me(), 403, 'Hanya HeadHR yang bisa mengajukan SK.');
+        abort_unless($this->canManage() && $this->canSubmitSk() && $this->me(), 403, 'Mengajukan SK butuh permission SubmitSkLetters.');
         $this->service->submit($skletter, $this->me());
 
         return redirect()->route('SkLetters.show', $skletter)
@@ -377,7 +377,7 @@ class SkLetterController extends Controller
 
     public function cancel(SkLetter $skletter): RedirectResponse
     {
-        abort_unless($this->canManage() && $this->isHeadHr(), 403, 'Hanya HeadHR yang bisa membatalkan SK.');
+        abort_unless($this->canManage() && $this->canSubmitSk(), 403, 'Membatalkan SK butuh permission SubmitSkLetters.');
         $this->service->cancel($skletter);
 
         return redirect()->route('SkLetters.show', $skletter)->with('success', 'SK dibatalkan.');

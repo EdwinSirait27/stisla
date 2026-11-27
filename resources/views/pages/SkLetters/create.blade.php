@@ -13,7 +13,7 @@
                 <div>
                     <ol class="pr-crumbs"><li><a href="{{ route('SkLetters') }}">SK</a></li><li aria-current="page">Buat</li></ol>
                     <h1 class="pr-title">Buat surat keputusan</h1>
-                    <p class="pr-lede">Disimpan sebagai Draft. Setelah diperiksa, HeadHR mengajukannya ke approver yang dipilih di bawah.</p>
+                    <p class="pr-lede">Disimpan sebagai Draft. Setelah diperiksa, ajukan ke approver yang dipilih di bawah.</p>
                 </div>
             </header>
             @include('pages.SkLetters._form')
