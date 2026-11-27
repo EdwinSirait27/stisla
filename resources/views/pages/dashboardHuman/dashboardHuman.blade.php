@@ -1365,6 +1365,10 @@
                 </div>
             </header>
 
+            @include('pages.BeritaAcara._dashboard')
+            @include('pages.SkLetters._dashboard')
+            @include('pages.contract._dashboard')
+
             @include('pages.dashboardHuman._personal')
         </section>
     </div>

@@ -45,12 +45,16 @@ class EmployeeTrainingController extends Controller
     $stores         = Stores::get();
     $departments    = Departments::get();
     $statuses       = Employee::getStatusOptions();
+    // Jenis karyawan yang benar-benar dipakai (PKWT, On Job Training, DW, ...)
+    $empTypes       = Employee::whereNotNull('status_employee')->where('status_employee', '!=', 'Resign')
+        ->distinct()->orderBy('status_employee')->pluck('status_employee');
 
     return view('pages.employee-training.index', compact(
         'companies',
         'stores',
         'departments',
-        'statuses'
+        'statuses',
+        'empTypes'
     ));
 }
    public function getEmployeeTrainings(Request $request)
@@ -80,17 +84,20 @@ class EmployeeTrainingController extends Controller
             $join->on('employee_stores.employee_id', '=', 'employees_tables.id')
                 ->where('employee_stores.is_primary', true);
         })
-        ->leftJoin('stores_tables', 'stores_tables.id', '=', 'employee_stores.store_id')
+        // Penempatan: pivot utama, kalau kosong kolom di employees_tables (pivot belum lengkap untuk semua karyawan)
+        ->leftJoin('stores_tables', 'stores_tables.id', '=', DB::raw('COALESCE(employee_stores.store_id, employees_tables.store_id)'))
         ->leftJoin('employee_positions', function ($join) {
             $join->on('employee_positions.employee_id', '=', 'employees_tables.id')
                 ->where('employee_positions.is_primary', true);
         })
-        ->leftJoin('position_tables', 'position_tables.id', '=', 'employee_positions.position_id')
+        ->leftJoin('position_tables', 'position_tables.id', '=', DB::raw('COALESCE(employee_positions.position_id, employees_tables.position_id)'))
         ->leftJoin('employee_departments', function ($join) {
             $join->on('employee_departments.employee_id', '=', 'employees_tables.id')
                 ->where('employee_departments.is_primary', true);
         })
-        ->leftJoin('departments_tables', 'departments_tables.id', '=', 'employee_departments.department_id');
+        ->leftJoin('departments_tables', 'departments_tables.id', '=', DB::raw('COALESCE(employee_departments.department_id, employees_tables.department_id)'))
+        // Akun tanpa data karyawan tidak ditampilkan (baris kosong)
+        ->whereNotNull('employees_tables.id');
 
     $query->select([
         'users.id',
@@ -98,6 +105,7 @@ class EmployeeTrainingController extends Controller
         'employees_tables.employee_name',
         'employees_tables.employee_pengenal',
         'employees_tables.status',
+        'employees_tables.status_employee',
         'employees_tables.telp_number',
         'position_tables.name as position_name',
         'stores_tables.name as store_name',
@@ -110,6 +118,7 @@ class EmployeeTrainingController extends Controller
     $query->when($request->filled('filter_department'), fn($q) => $q->where('departments_tables.department_name', $request->filter_department));
     $query->when($request->filled('filter_store'), fn($q) => $q->where('stores_tables.name', $request->filter_store));
     $query->when($request->filled('filter_status'), fn($q) => $q->where('employees_tables.status', $request->filter_status));
+    $query->when($request->filled('filter_emp_status'), fn($q) => $q->where('employees_tables.status_employee', $request->filter_emp_status));
 
     $sensitiveFields = [
         'nik', 'email', 'bank_account_number', 'bpjs_kes', 'bpjs_ket',
@@ -144,7 +153,22 @@ class EmployeeTrainingController extends Controller
         ->filterColumn('store_name', fn($q, $k) => $q->where('stores_tables.name', 'like', "%$k%"))
         ->filterColumn('name_company', fn($q, $k) => $q->where('company_tables.name', 'like', "%$k%"))
         ->filterColumn('status', fn($q, $k) => $q->where('employees_tables.status', 'like', "%$k%"))
-        ->filterColumn('telp_number', fn($q, $k) => $q->where('employees_tables.telp_number', 'like', "%$k%"));
+        ->filterColumn('telp_number', fn($q, $k) => $q->where('employees_tables.telp_number', 'like', "%$k%"))
+        ->filterColumn('status_employee', fn($q, $k) => $q->where('employees_tables.status_employee', 'like', "%$k%"));
+
+    // Ringkasan seluruh karyawan (tidak terpengaruh filter), untuk panel di atas tabel
+    $counts = DB::table('employees_tables')->whereNull('deleted_at')
+        ->selectRaw("SUM(status = 'Active') AS active")
+        ->selectRaw("SUM(status = 'Active' AND status_employee = 'On Job Training') AS ojt")
+        ->selectRaw("SUM(status = 'Pending') AS pending")
+        ->selectRaw("SUM(status = 'Resign') AS resign")
+        ->first();
+    $dt->with('stats', [
+        'active'  => (int) $counts->active,
+        'ojt'     => (int) $counts->ojt,
+        'pending' => (int) $counts->pending,
+        'resign'  => (int) $counts->resign,
+    ]);
 
     return $dt->make(true);
 }
@@ -161,6 +185,7 @@ class EmployeeTrainingController extends Controller
             'filter_department' => $request->query('filter_department'),
             'filter_store'      => $request->query('filter_store'),
             'filter_status'     => $request->query('filter_status'),
+            'filter_emp_status' => $request->query('filter_emp_status'),
              ];
 
         // dd($filters); // cek dulu, hapus setelah confirmed

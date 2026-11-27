@@ -452,8 +452,8 @@
                         /* Hitung baris dinamis dari pivot yang ada */
                         $pvt = $block['pivot'];
                         $rows = 4; // nama, NIK, tanggal efektif — selalu ada
-                       
-                       
+                        // Penempatan & status baru dari SK
+                        $rows += collect([$pvt->new_position_id, $pvt->new_department_id, $pvt->new_store_id, $pvt->new_status_employee])->filter()->count();
                         if ($pvt->basic_salary) {
                             $rows++;
                         }
@@ -608,7 +608,14 @@
                             </tr>
                         </table>
                     @elseif ($block['type'] === 'menetapkan')
-                        <div class="sk-menetapkan">{!! $block['text'] !!}</div>
+                        @php
+                            // Data lama berisi HTML dari editor: hanya tag format dasar yang diizinkan; teks baru biasa
+                            $mt = (string) $block['text'];
+                            $mtHtml = $mt !== strip_tags($mt)
+                                ? preg_replace('/\s(on\w+|style|href|src)\s*=\s*("[^"]*"|'."'".'[^'."'".']*'."'".'|[^\s>]+)/i', '', strip_tags($mt, '<p><br><b><strong><i><em><u><ol><ul><li>'))
+                                : nl2br(e($mt));
+                        @endphp
+                        <div class="sk-menetapkan">{!! $mtHtml !!}</div>
                     @elseif ($block['type'] === 'emp_table')
                         @php
                             $emp = $block['employee'];
@@ -627,6 +634,22 @@
                                 </td>
                             </tr>
                            
+                            @foreach ([['Jabatan', 'new_position_id', 'positions'], ['Departemen', 'new_department_id', 'departments'], ['Lokasi', 'new_store_id', 'stores']] as [$lbl, $col, $map])
+                                @if ($pvt->{$col} && ($names[$map][$pvt->{$col}] ?? null))
+                                    <tr>
+                                        <td class="col-label">{{ $lbl }}</td>
+                                        <td class="col-sep">:</td>
+                                        <td class="col-value">{{ $names[$map][$pvt->{$col}] }}</td>
+                                    </tr>
+                                @endif
+                            @endforeach
+                            @if ($pvt->new_status_employee)
+                                <tr>
+                                    <td class="col-label">Status Karyawan</td>
+                                    <td class="col-sep">:</td>
+                                    <td class="col-value">{{ $pvt->new_status_employee }}</td>
+                                </tr>
+                            @endif
                             @if ($pvt->basic_salary)
                                 <tr>
                                     <td class="col-label">Gaji Pokok</td>
@@ -678,62 +701,34 @@
                         <div class="ttd-wrap">
                             <table class="ttd-table">
                                 <tr>
-                                 
-              
-<td>
-    <div class="ttd-role" style="margin-bottom: 0;">
-        {{ $skLetter->approver1?->position->name }}
-    </div>
-
-    @if ($skLetter->approver_1_at && $skLetter->approver1?->signature)
-        <div style="display:flex; justify-content:center; align-items:center; height:55px;">
-            <img src="{{ public_path('storage/' . $skLetter->approver1->signature) }}"
-                alt="Signature" style="max-height:55px; object-fit:contain;">
-        </div>
-    @else
-        <div style="height:55px;"></div>
-    @endif
-
-    <div class="ttd-line">
-        <div class="ttd-name">
-            {{ $skLetter->approver1?->employee_name ?? '( _________________ )' }}
-        </div>
-        @if ($skLetter->approver_1_at)
-            <div class="ttd-date">{{ $formatTglStr($skLetter->approver_1_at) }}</div>
-        @else
-            <div class="ttd-pending">Belum disetujui</div>
-        @endif
-    </div>
-</td>
-                               
-                                    <td>
-                                        <div class="ttd-role">Director</div>
-                                        <div class="ttd-line">
-                                            <div class="ttd-name">
-                                                {{ $skLetter->approver2?->employee_name ?? '( _________________ )' }}
-                                            </div>
-                                            @if ($skLetter->approver_2_at)
-                                                <div class="ttd-date">{{ $formatTglStr($skLetter->approver_2_at) }}
+                                    {{-- 1 = HR pengaju, 2 & 3 = approver yang dipilih di SK. Tanda tangan: salinan saat menyetujui (S3) --}}
+                                    @foreach ([1, 2, 3] as $n)
+                                        @php
+                                            $who = $skLetter->{'approver' . $n};
+                                            $at = $skLetter->{'approver_' . $n . '_at'};
+                                        @endphp
+                                        @if ($n === 3 && !$who)
+                                            @continue
+                                        @endif
+                                        <td>
+                                            <div class="ttd-role" style="margin-bottom: 0;">{{ $titles[$n] ?? ($n === 1 ? 'HR' : 'Approver') }}</div>
+                                            @if ($at && ($signatures[$n] ?? null))
+                                                <div style="display:flex; justify-content:center; align-items:center; height:55px;">
+                                                    <img src="{{ $signatures[$n] }}" alt="Tanda tangan" style="max-height:55px; object-fit:contain;">
                                                 </div>
                                             @else
-                                                <div class="ttd-pending">Belum disetujui</div>
+                                                <div style="height:55px;"></div>
                                             @endif
-                                        </div>
-                                    </td>
-                                    <td>
-                                        <div class="ttd-role">Managing Director</div>
-                                        <div class="ttd-line">
-                                            <div class="ttd-name">
-                                                {{ $skLetter->approver3?->employee_name ?? '( _________________ )' }}
+                                            <div class="ttd-line">
+                                                <div class="ttd-name">{{ $who?->employee_name ?? '( _________________ )' }}</div>
+                                                @if ($at)
+                                                    <div class="ttd-date">{{ $formatTglStr($at) }}</div>
+                                                @else
+                                                    <div class="ttd-pending">Belum disetujui</div>
+                                                @endif
                                             </div>
-                                            @if ($skLetter->approver_3_at)
-                                                <div class="ttd-date">{{ $formatTglStr($skLetter->approver_3_at) }}
-                                                </div>
-                                            @else
-                                                <div class="ttd-pending">Belum disetujui</div>
-                                            @endif
-                                        </div>
-                                    </td>
+                                        </td>
+                                    @endforeach
                                 </tr>
                             </table>
                         </div>

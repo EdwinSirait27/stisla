@@ -2,532 +2,419 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\SkLetter;
-use App\Models\SkLetterEmployee;
-use App\Models\Sktype;
 use App\Models\Company;
+use App\Models\Departments;
+use App\Models\Employee;
 use App\Models\Grading;
 use App\Models\Groups;
-use Yajra\DataTables\DataTables;
-use App\Models\Departments;
-use App\Models\Stores;
-use App\Models\Employee;
-use Barryvdh\DomPDF\Facade\Pdf;
 use App\Models\Position;
-use App\Models\Structuresnew;
-use Carbon\Carbon;
+use App\Models\SkLetter;
+use App\Models\Sktype;
+use App\Models\Stores;
 use App\Services\SkLetterService;
-use Illuminate\Http\Request;
-use Illuminate\Validation\ValidationException;
-use Illuminate\Support\Facades\Log;
+use Barryvdh\DomPDF\Facade\Pdf;
+use Carbon\Carbon;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\View\View;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\ValidationException;
+use Yajra\DataTables\DataTables;
+
+/**
+ * Surat Keputusan (SK). Alur & penerapan ada di SkLetterService.
+ *
+ * Akses:
+ * - ManageSkLetters : daftar semua SK, buat, ubah Draft (HeadHR), ajukan (HeadHR), batalkan (HeadHR).
+ * - Approver 2 / 3 yang dipilih di SK : membuka SK itu, menyetujui atau mengembalikan saat gilirannya,
+ *   walau tanpa ManageSkLetters (SK memuat gaji, jadi selain itu tertutup).
+ */
 class SkLetterController extends Controller
 {
     public function __construct(protected SkLetterService $service)
     {
         $this->middleware('auth');
     }
+
+    private function me(): ?Employee
+    {
+        return auth()->user()?->employee;
+    }
+
+    private function canManage(): bool
+    {
+        return (bool) auth()->user()?->can('ManageSkLetters');
+    }
+
+    private function isHeadHr(): bool
+    {
+        /** @var \App\Models\User|null $user */
+        $user = auth()->user();
+        return (bool) $user?->hasRole('HeadHR');
+    }
+
+    /** Approver 2 / 3 dari SK ini (bukan HR pengaju). */
+    private function isApproverOf(SkLetter $sk): bool
+    {
+        $me = $this->me();
+        return $me && in_array($me->id, array_filter([$sk->approver_2, $sk->approver_3]), true);
+    }
+
+    private function authorizeView(SkLetter $sk): void
+    {
+        abort_unless($this->canManage() || $this->isApproverOf($sk), 403, 'Anda tidak terlibat dalam SK ini.');
+    }
+
     public function index()
     {
-        $countexpiredcontracts = SkLetter::where('status', 'Expired')->count();
-        $companies = Company::pluck('name', 'id');
-        $countdraftcontracts = SkLetter::where('status', 'Draft')->count();
-        $countactivecontracts = SkLetter::where('status', 'Active')->count();
-        $countapprovedhrcontracts = SkLetter::where('status', 'Approved HR')->count();
-        $countapproveddircontracts = SkLetter::where('status', 'Approved Director')->count();
-        $countapprovedmanagingcontracts = SkLetter::where('status', 'Approved Managing Director')->count();
-        $sktypes = Sktype::pluck('sk_name', 'id');
-        $skstatuses = SkLetter::getStatusOptions();
-        return view('pages.SkLetters.index', compact('sktypes','skstatuses','companies','countexpiredcontracts', 'countdraftcontracts', 'countactivecontracts', 'countapprovedhrcontracts', 'countapproveddircontracts', 'countapprovedmanagingcontracts'));
+        $canManage = $this->canManage();
+        $me = $this->me();
+        // Tanpa ManageSkLetters hanya approver yang bisa membuka daftar (SK yang menyangkut dirinya)
+        abort_unless($canManage || ($me && SkLetter::where('approver_2', $me->id)->orWhere('approver_3', $me->id)->exists()), 403);
+
+        $counts = SkLetter::select('status', DB::raw('COUNT(*) AS c'))->groupBy('status')->pluck('c', 'status');
+        $myTurn = $me ? SkLetter::where(fn($q) => $q->where('status', 'Approved HR')->where('approver_2', $me->id))
+            ->orWhere(fn($q) => $q->where('status', 'Approved Director')->where('approver_3', $me->id))->count() : 0;
+
+        return view('pages.SkLetters.index', [
+            'canManage' => $canManage,
+            'canCreate' => $canManage,
+            'sktypes'   => Sktype::orderBy('sk_name')->pluck('sk_name', 'id'),
+            'companies' => Company::orderBy('name')->pluck('name', 'id'),
+            'stats'     => [
+                'draft'    => (int) ($counts['Draft'] ?? 0),
+                'waiting'  => (int) (($counts['Approved HR'] ?? 0) + ($counts['Approved Director'] ?? 0)),
+                'approved' => (int) ($counts[SkLetter::FINAL_STATUS] ?? 0),
+                'my_turn'  => $myTurn,
+            ],
+        ]);
     }
+
     public function getSkLetters(Request $request)
     {
+        $canManage = $this->canManage();
+        $me = $this->me();
+
         $query = SkLetter::query()
             ->leftJoin('sk_type as st', 'st.id', '=', 'sk_letters.sk_type_id')
             ->leftJoin('company_tables as c', 'c.id', '=', 'sk_letters.company_id')
-            ->leftJoin('employees_tables as a1', 'a1.id', '=', 'sk_letters.approver_1')
             ->leftJoin('employees_tables as a2', 'a2.id', '=', 'sk_letters.approver_2')
             ->leftJoin('employees_tables as a3', 'a3.id', '=', 'sk_letters.approver_3')
             ->select([
-                'sk_letters.*',
-                'st.sk_name',
-                'st.nickname as sk_nickname',
-                'c.name as company_name',
-                'a1.employee_name as approver_1_name',
-                'a2.employee_name as approver_2_name',
-                'a3.employee_name as approver_3_name',
-            ]);
-        $query->when(
-            $request->filled('filter_company'),
-            fn($q) => $q->where('c.name', $request->filter_company)
-        );
-        $query->when(
-            $request->filled('filter_sk_type'),
-            fn($q) => $q->where('st.sk_name', $request->filter_sk_type)
-        );
-        $query->when(
-            $request->filled('filter_status'),
-            fn($q) => $q->where('sk_letters.status', $request->filter_status)
-        );
-        $query->when(
-            $request->filled('filter_effective_date_start'),
-            fn($q) => $q->whereDate('sk_letters.effective_date', '>=', $request->filter_effective_date_start)
-        );
-        $query->when(
-            $request->filled('filter_effective_date_end'),
-            fn($q) => $q->whereDate('sk_letters.effective_date', '<=', $request->filter_effective_date_end)
-        );
-return DataTables::of($query)
-    ->addColumn('action', function ($row) {
-        $id = $row->id;
-        $actions = '
-        <a href="' . route('SkLetters.show', $id) . '" class="mx-2" title="Detail">
-            <i class="fas fa-eye text-secondary"></i>
-        </a>';
+                'sk_letters.id', 'sk_letters.sk_number', 'sk_letters.title', 'sk_letters.status', 'sk_letters.effective_date',
+                'sk_letters.inactive_date', 'sk_letters.approver_2', 'sk_letters.approver_3', 'sk_letters.returned_at',
+                'sk_letters.created_at', 'st.sk_name', 'st.nickname as sk_nickname', 'c.name as company_name',
+                'a2.employee_name as approver_2_name', 'a3.employee_name as approver_3_name',
+            ])
+            ->selectSub(fn($q) => $q->from('sk_letter_employees')->whereColumn('sk_letter_id', 'sk_letters.id')->selectRaw('COUNT(*)'), 'employee_count')
+            ->selectSub(fn($q) => $q->from('sk_letter_employees as se')->join('employees_tables as e', 'e.id', '=', 'se.employee_id')
+                ->whereColumn('se.sk_letter_id', 'sk_letters.id')->selectRaw("GROUP_CONCAT(e.employee_name ORDER BY e.employee_name SEPARATOR ', ')"), 'employee_names');
 
-        $lockedStatuses = ['Approved HR', 'Approved Director', 'Approved Managing Director'];
-        if ($row->status === 'Draft' && auth()->user()->hasRole('HeadHR')) {
-            $actions .= '
-        <a href="' . route('SkLetters.edit', $id) . '" class="mx-2" title="Edit">
-            <i class="fas fa-user-edit text-secondary"></i>
-        </a>';
-
-        } elseif (in_array($row->status, $lockedStatuses)) {
-            $actions .= '
-        <span class="mx-2 text-secondary" 
-              title="Status terkunci" 
-              data-bs-toggle="tooltip" 
-              data-bs-placement="top"
-              style="cursor: not-allowed;">
-            <i class="fas fa-lock"></i>
-        </span>';
-
-       
+        if (!$canManage) {
+            abort_unless($me, 403);
+            $query->where(fn($q) => $q->where('sk_letters.approver_2', $me->id)->orWhere('sk_letters.approver_3', $me->id));
         }
-         // PDF (pisahkan dari logic lain)
-    if (in_array($row->status, $lockedStatuses) || $row->status === 'Draft') {
-        $actions .= '
-            <a href="' . route('SkLetters.pdf', $id) . '" class="mx-2" title="Export PDF" target="_blank">
-                <i class="fas fa-file-pdf text-danger"></i>
-            </a>
-        ';
-    }
 
-        return $actions;
-    })
-            // Filter columns untuk DataTables server-side
-            ->filterColumn('sk_name', fn($q, $k) =>
-            $q->where('st.sk_name', 'like', "%$k%"))
-            ->filterColumn('company_name', fn($q, $k) =>
-            $q->where('c.name', 'like', "%$k%"))
-            ->filterColumn('approver_1_name', fn($q, $k) =>
-            $q->where('a1.employee_name', 'like', "%$k%"))
-            ->filterColumn('approver_2_name', fn($q, $k) =>
-            $q->where('a2.employee_name', 'like', "%$k%"))
-            ->filterColumn('approver_3_name', fn($q, $k) =>
-            $q->where('a3.employee_name', 'like', "%$k%"))
-            ->filterColumn('status', fn($q, $k) =>
-            $q->where('sk_letters.status', 'like', "%$k%"))
+        $query->when($request->filled('filter_company'), fn($q) => $q->where('sk_letters.company_id', $request->filter_company))
+            ->when($request->filled('filter_sk_type'), fn($q) => $q->where('sk_letters.sk_type_id', $request->filter_sk_type))
+            ->when($request->filled('filter_status'), function ($q) use ($request) {
+                $request->filter_status === 'waiting'
+                    ? $q->whereIn('sk_letters.status', ['Approved HR', 'Approved Director'])
+                    : $q->where('sk_letters.status', $request->filter_status);
+            })
+            ->when($request->filter_status !== 'Cancelled' && !$request->boolean('with_cancelled'), fn($q) => $q->where('sk_letters.status', '!=', 'Cancelled'))
+            ->when($request->filled('filter_effective_date_start'), fn($q) => $q->whereDate('sk_letters.effective_date', '>=', $request->filter_effective_date_start))
+            ->when($request->filled('filter_effective_date_end'), fn($q) => $q->whereDate('sk_letters.effective_date', '<=', $request->filter_effective_date_end))
+            ->when($request->boolean('my_turn') && $me, fn($q) => $q->where(fn($w) => $w
+                ->where(fn($x) => $x->where('sk_letters.status', 'Approved HR')->where('sk_letters.approver_2', $me->id))
+                ->orWhere(fn($x) => $x->where('sk_letters.status', 'Approved Director')->where('sk_letters.approver_3', $me->id))));
 
-          
-            ->editColumn('effective_date', function ($row) {
-                return $row->effective_date
-                    ? Carbon::parse($row->effective_date)
-                    ->timezone('Asia/Makassar')
-                    ->translatedFormat('d F Y')
-                    : '-';
-            })
-            ->editColumn('inactive_date', function ($row) {
-                return $row->inactive_date
-                    ? Carbon::parse($row->inactive_date)
-                    ->timezone('Asia/Makassar')
-                    ->translatedFormat('d F Y')
-                    : 'Continuesly';
-            })
-            ->editColumn('approver_1_at', function ($row) {
-                return $row->approver_1_at
-                    ? Carbon::parse($row->approver_1_at)
-                    ->timezone('Asia/Makassar')
-                    ->translatedFormat('d F Y HH:mm')
-                    : '-';
-            })
+        $fmt = fn($d) => $d ? Carbon::parse($d)->locale('id')->translatedFormat('d M Y') : null;
 
-            ->editColumn('approver_2_at', function ($row) {
-                return $row->approver_2_at
-                    ? Carbon::parse($row->approver_2_at)
-                    ->timezone('Asia/Makassar')
-                    ->translatedFormat('d F Y HH:mm')
-                    : '-';
+        return DataTables::of($query)
+            ->filterColumn('sk_number', fn($q, $k) => $q->where(fn($w) => $w->where('sk_letters.sk_number', 'like', "%$k%")
+                ->orWhere('sk_letters.title', 'like', "%$k%")
+                ->orWhereExists(fn($e) => $e->from('sk_letter_employees as se2')->join('employees_tables as e2', 'e2.id', '=', 'se2.employee_id')
+                    ->whereColumn('se2.sk_letter_id', 'sk_letters.id')->where('e2.employee_name', 'like', "%$k%"))))
+            ->orderColumn('effective_date', 'sk_letters.effective_date $1')
+            ->addColumn('status_label', function ($row) {
+                return match ($row->status) {
+                    'Draft'             => $row->returned_at ? 'Dikembalikan' : 'Draft',
+                    'Approved HR'       => 'Menunggu ' . ($row->approver_2_name ?? 'approver 2'),
+                    'Approved Director' => 'Menunggu ' . ($row->approver_3_name ?? 'approver 3'),
+                    SkLetter::FINAL_STATUS => 'Disetujui',
+                    'Cancelled'         => 'Dibatalkan',
+                    default             => $row->status,
+                };
             })
-            ->editColumn('approver_3_at', function ($row) {
-                return $row->approver_3_at
-                    ? Carbon::parse($row->approver_3_at)
-                    ->timezone('Asia/Makassar')
-                    ->translatedFormat('d F Y HH:mm')
-                    : '-';
-            })
-            ->editColumn(
-                'created_at',
-                fn($row) =>
-                optional($row->created_at)
-                    ?->timezone('Asia/Makassar')
-                    ->translatedFormat('d F Y')
-            )
-            ->editColumn('status', function ($row) {
-                $colors = [
-                    'Draft'                      => 'secondary',
-                    'Cancelled'                  => 'danger',
-                    'Approved HR'                => 'info',
-                    'Approved Director'          => 'primary',
-                    'Approved Managing Director' => 'success',
-                ];
-                $color = $colors[$row->status] ?? 'secondary';
-                return '<span class="badge badge-' . $color . '">' . $row->status . '</span>';
-            })
-            ->rawColumns(['action', 'status'])
+            ->addColumn('my_turn', fn($row) => $me && (
+                ($row->status === 'Approved HR' && $row->approver_2 === $me->id)
+                || ($row->status === 'Approved Director' && $row->approver_3 === $me->id)))
+            ->addColumn('effective_label', fn($row) => $fmt($row->effective_date))
+            ->addColumn('inactive_label', fn($row) => $fmt($row->inactive_date))
+            ->addColumn('show_url', fn($row) => route('SkLetters.show', $row->id))
+            ->addColumn('pdf_url', fn($row) => route('SkLetters.pdf', $row->id))
             ->make(true);
     }
+
+    /** Data pilihan untuk form buat & edit SK. */
+    private function formData(): array
+    {
+        $people = DB::table('employees_tables as e')
+            ->leftJoin('position_tables as p', 'p.id', '=', 'e.position_id')
+            ->where('e.status', 'Active')->whereNull('e.deleted_at')
+            ->orderBy('e.employee_name')
+            ->get(['e.id', 'e.employee_name', 'e.employee_pengenal', 'p.name as position']);
+
+        return [
+            'sktypes'     => Sktype::orderBy('sk_name')->get(['id', 'sk_name', 'nickname', 'categories', 'affects_salary', 'affects_position', 'affects_status', 'generates_contract']),
+            'companies'   => Company::orderBy('name')->pluck('name', 'id'),
+            'employees'   => Employee::query()
+                ->whereIn('status', ['Active', 'Pending', 'Mutation', 'On Leave'])
+                ->with(['grading:id,grading_name', 'group:id,group_name'])
+                ->orderBy('employee_name')
+                ->get(['id', 'employee_name', 'employee_pengenal', 'status_employee', 'position_id', 'department_id', 'store_id', 'grading_id', 'group_id']),
+            'approvers'   => $people,
+            'positions'   => Position::orderBy('name')->get(['id', 'name']),
+            'departments' => Departments::orderBy('department_name')->get(['id', 'department_name']),
+            'stores'      => Stores::orderBy('name')->get(['id', 'name']),
+            'gradings'    => Grading::orderBy('level')->get(['id', 'grading_name']),
+            'groups'      => Groups::orderBy('group_name')->get(['id', 'group_name']),
+            'empTypes'    => ['PKWT', 'PKWTT', 'On Job Training', 'DW'],
+        ];
+    }
+
     public function create()
-{
-    $skTypeFlags = Sktype::all()->keyBy('id')->map(fn($t) => [
-        'affects_salary'    => $t->affects_salary,
-        'affects_position'  => $t->affects_position,
-        'affects_status'    => $t->affects_status,
-        'generates_contract'=> $t->generates_contract,
-    ]);
+    {
+        abort_unless($this->canManage(), 403);
+        return view('pages.SkLetters.create', $this->formData() + ['skLetter' => null]);
+    }
 
-    $usedStructureIds = Employee::whereNotNull('structure_id')
-        ->pluck('structure_id')
-        ->toArray();
-    $sktypes = Sktype::pluck('sk_name', 'id');
-    $companies = Company::pluck('name', 'id');
-$employees = Employee::select('id', 'employee_name', 'employee_pengenal')
-    ->whereIn('status', ['Active', 'Pending', 'Mutation', 'On Leave'])
-    ->get();
-    $employees_approver_2 = Employee::select('id', 'employee_name', 'employee_pengenal', 'grading_id')
-        ->with(['grading:id,grading_name'])
-        ->whereHas('grading', function ($q) {
-            $q->where('grading_name', 'Director');
-        })
-        ->get();
-    $employees_approver_3 = Employee::select('id', 'employee_name', 'employee_pengenal', 'grading_id')
-        ->with(['grading:id,grading_name'])
-        ->whereHas('grading', function ($q) {
-            $q->where('grading_name', 'Director');
-        })
-        ->get();
-    $structures = Structuresnew::with('submissionposition')
-        ->whereNotIn('id', $usedStructureIds)
-        ->get();
-    return view('pages.SkLetters.create', compact(
-        'sktypes',
-        'companies',
-        'employees',
-        'employees_approver_2',
-        'employees_approver_3',
-        'structures',
-        'skTypeFlags'
-    ));
-}
-public function store(Request $request): RedirectResponse
-{
-    Log::info('SK Letter store request started', [
-        'user_id' => auth()->id(),
-        'ip'      => $request->ip(),
-    ]);
-
-    try {
+    /** Nominal diketik dengan titik ribuan (5.000.000) → angka. */
+    private function normalizeMoney(Request $request): void
+    {
         $request->merge([
-    'employees' => collect($request->employees)->map(function ($employee) {
+            'employees' => collect($request->employees)->map(function ($employee) {
+                foreach (['basic_salary', 'positional_allowance', 'daily_rate'] as $field) {
+                    $employee[$field] = isset($employee[$field]) && $employee[$field] !== ''
+                        ? str_replace(['.', ' '], '', $employee[$field])
+                        : null;
+                }
+                return $employee;
+            })->values()->toArray(),
+        ]);
+    }
 
-        $employee['basic_salary'] = isset($employee['basic_salary'])
-            ? str_replace('.', '', $employee['basic_salary'])
-            : null;
+    private function validated(Request $request): array
+    {
+        $this->normalizeMoney($request);
 
-        $employee['positional_allowance'] = isset($employee['positional_allowance'])
-            ? str_replace('.', '', $employee['positional_allowance'])
-            : null;
-
-        $employee['daily_rate'] = isset($employee['daily_rate'])
-            ? str_replace('.', '', $employee['daily_rate'])
-            : null;
-
-        return $employee;
-    })->toArray()
-]);
-
-        $validated = $request->validate([
-
-            // SK Header
+        return $request->validate([
             'sk_type_id'      => 'required|exists:sk_type,id',
             'title'           => 'required|string|max:255',
             'company_id'      => 'required|exists:company_tables,id',
-
-            'approver_1'      => 'nullable|exists:employees_tables,id',
-            'approver_2'      => 'nullable|exists:employees_tables,id',
+            'approver_2'      => 'required|different:approver_3|exists:employees_tables,id',
             'approver_3'      => 'nullable|exists:employees_tables,id',
-
             'effective_date'  => 'required|date',
             'inactive_date'   => 'nullable|date|after:effective_date',
-
             'location'        => 'nullable|string|max:255',
-            'menetapkan_text' => 'nullable|string',
-            'notes'           => 'nullable|string',
+            'menetapkan_text' => 'nullable|string|max:5000',
+            'notes'           => 'nullable|string|max:2000',
 
-            // Employees
-            'employees'                        => 'required|array|min:1',
-            'employees.*.employee_id'          => 'required|exists:employees_tables,id',
-            'employees.*.new_structure_id'     => 'nullable|exists:structures_tables,id',
-            'employees.*.position_id'          => 'nullable|exists:position_tables,id',
-            'employees.*.group_id'             => 'nullable|exists:groups_tables,id',
-            'employees.*.grading_id'           => 'nullable|exists:grading,id',
-            'employees.*.department_id'        => 'nullable|exists:departments_tables,id',
-            'employees.*.basic_salary'         => 'nullable|numeric|min:0',
-            'employees.*.positional_allowance' => 'nullable|numeric|min:0',
-            'employees.*.daily_rate'           => 'nullable|numeric|min:0',
-            'employees.*.notes'                => 'nullable|string',
+            'employees'                        => 'required|array|min:1|max:100',
+            'employees.*.employee_id'          => 'required|distinct|exists:employees_tables,id',
+            'employees.*.new_position_id'      => 'nullable|exists:position_tables,id',
+            'employees.*.new_department_id'    => 'nullable|exists:departments_tables,id',
+            'employees.*.new_store_id'         => 'nullable|exists:stores_tables,id',
+            'employees.*.new_grading_id'       => 'nullable|exists:grading,id',
+            'employees.*.new_group_id'         => 'nullable|exists:groups_tables,id',
+            'employees.*.new_status_employee'  => 'nullable|in:PKWT,PKWTT,On Job Training,DW',
+            'employees.*.basic_salary'         => 'nullable|numeric|min:0|max:9999999999',
+            'employees.*.positional_allowance' => 'nullable|numeric|min:0|max:9999999999',
+            'employees.*.daily_rate'           => 'nullable|numeric|min:0|max:9999999999',
+            'employees.*.notes'                => 'nullable|string|max:1000',
 
-            // Menimbang
-            'menimbang'   => 'nullable|array',
-            'menimbang.*' => 'nullable|string|max:500',
-
-            // Mengingat
-            'mengingat'   => 'nullable|array',
-            'mengingat.*' => 'nullable|string|max:500',
-
-            // Keputusan
-            'keputusan'   => 'nullable|array',
-            'keputusan.*' => 'nullable|string',
+            'menimbang'   => 'nullable|array|max:30',
+            'menimbang.*' => 'nullable|string|max:1000',
+            'mengingat'   => 'nullable|array|max:30',
+            'mengingat.*' => 'nullable|string|max:1000',
+            'keputusan'   => 'nullable|array|max:30',
+            'keputusan.*' => 'nullable|string|max:2000',
+        ], [
+            'employees.required'               => 'Tambahkan minimal satu karyawan.',
+            'employees.*.employee_id.distinct' => 'Karyawan yang sama dipilih lebih dari sekali.',
+            'approver_2.required'              => 'Pilih approver 2 (yang menyetujui setelah HR).',
+            'approver_2.different'             => 'Approver 2 dan approver 3 harus orang yang berbeda.',
+            'inactive_date.after'              => 'Tanggal berakhir harus setelah tanggal berlaku.',
+            'title.required'                   => 'Judul SK wajib diisi.',
+            'effective_date.required'          => 'Tanggal berlaku wajib diisi.',
         ]);
-
-        Log::info('SK Letter validation passed', [
-            'validated_data' => $validated,
-        ]);
-
-        Log::info('Calling SK service store');
-
-        $skLetter = $this->service->store($validated);
-
-        Log::info('SK Letter created successfully', [
-            'sk_letter_id' => $skLetter->id,
-        ]);
-
-        return redirect()
-            ->route('SkLetters.show', $skLetter)
-            ->with('success', 'SK created successfully.');
-
-    } catch (\Illuminate\Validation\ValidationException $e) {
-
-        Log::error('Validation failed', [
-            'errors' => $e->errors(),
-            'request' => $request->all(),
-        ]);
-
-        return back()
-            ->withErrors($e->validator)
-            ->withInput();
-
-    } catch (\Exception $e) {
-
-        Log::error('Failed to create SK Letter', [
-            'message' => $e->getMessage(),
-            'file'    => $e->getFile(),
-            'line'    => $e->getLine(),
-            'trace'   => $e->getTraceAsString(),
-        ]);
-
-        return back()
-            ->with('error', $e->getMessage())
-            ->withInput();
     }
-}
-public function show(SkLetter $skletter)
+
+    public function store(Request $request): RedirectResponse
     {
+        abort_unless($this->canManage(), 403);
+        // Isi request (termasuk gaji) sengaja tidak ditulis ke log: datanya sensitif
+        $validated = $this->validated($request);
+
+        try {
+            $skLetter = $this->service->store($validated);
+        } catch (\Throwable $e) {
+            Log::error('SK Letter store gagal', ['user_id' => auth()->id(), 'message' => $e->getMessage(), 'file' => $e->getFile(), 'line' => $e->getLine()]);
+            return back()->with('error', 'SK gagal dibuat. Silakan coba lagi.')->withInput();
+        }
+
+        return redirect()->route('SkLetters.show', $skLetter)
+            ->with('success', "SK {$skLetter->sk_number} dibuat sebagai Draft. Periksa lalu ajukan untuk persetujuan.");
+    }
+
+    public function show(SkLetter $skletter)
+    {
+        $this->authorizeView($skletter);
+
         $skletter->load([
-            'sktype',
-            'company',
-            'approver1',
-            'approver2',
-            'approver3',
-            'employees',
-            'contracts',
+            'sktype', 'company', 'approver1', 'approver2', 'approver3', 'menimbang', 'mengingat', 'keputusan', 'contracts',
+            'employees' => fn($q) => $q->orderBy('employee_name'),
         ]);
+        $names = fn(string $table, string $col, string $label) => DB::table($table)->pluck($label, $col);
+
+        $me = $this->me();
+        $step = $skletter->currentStep();
+
         return view('pages.SkLetters.show', [
-            'skletter'  => $skletter,
-            'employees' => Employee::select('id', 'employee_name', 'employee_pengenal')->get(),
-            'structures' => Structuresnew::with('submissionposition.positionRelation')->get(),
+            'skletter'    => $skletter,
+            'canManage'   => $this->canManage(),
+            'canEdit'     => $this->canManage() && $this->isHeadHr() && $skletter->status === 'Draft',
+            'canSubmit'   => $this->canManage() && $this->isHeadHr() && $skletter->status === 'Draft',
+            'canCancel'   => $this->canManage() && $this->isHeadHr() && !in_array($skletter->status, [SkLetter::FINAL_STATUS, 'Cancelled'], true),
+            'myTurn'      => $me && $step && $skletter->{$step[0]} === $me->id,
+            'returnedBy'  => $skletter->returned_by ? Employee::find($skletter->returned_by)?->employee_name : null,
+            'positions'   => $names('position_tables', 'id', 'name'),
+            'departments' => $names('departments_tables', 'id', 'department_name'),
+            'stores'      => $names('stores_tables', 'id', 'name'),
+            'gradings'    => $names('grading', 'id', 'grading_name'),
+            'groups'      => $names('groups_tables', 'id', 'group_name'),
+            'activities'  => \Spatie\Activitylog\Models\Activity::where('subject_type', SkLetter::class)->where('subject_id', $skletter->id)
+                ->latest()->limit(30)->get(['description', 'created_at']),
         ]);
     }
-  public function edit(SkLetter $skLetter)
-{
-    $lockedStatuses = ['Approved HR', 'Approved Director', 'Approved Managing Director'];
 
-    if ($skLetter->status !== 'Draft' || !auth()->user()->hasRole('HeadHR')) {
-        return redirect()
-            ->route('SkLetters.show', $skLetter)
-            ->with('error', 'SK yang sudah diproses tidak dapat diedit.');
-    }
-
-    if (in_array($skLetter->status, $lockedStatuses)) {
-        return redirect()
-            ->route('SkLetters.show', $skLetter)
-            ->with('error', 'SK yang sudah diapprove tidak dapat diedit.');
-    }
-
-    return view('sk-letters.edit', [
-        'skLetter'   => $skLetter,
-        'skTypes'    => Sktype::all(),
-        'companies'  => Company::all(),
-        'structures' => Structuresnew::with('submissionposition.positionRelation')->get(),
-        'employees'  => Employee::select('id', 'employee_name', 'employee_pengenal')->get(),
-    ]);
-}
-    public function update(Request $request, SkLetter $skLetter): RedirectResponse
+    /** Hanya HeadHR, dan hanya selama SK masih Draft. */
+    private function canEdit(SkLetter $skletter): bool
     {
-        $validated = $request->validate([
-            'sk_type_id'     => 'required|exists:sk_type,id',
-            'company_id'     => 'required|exists:company_tables,id',
-            'approver_1'     => 'nullable|exists:employees_tables,id',
-            'approver_2'     => 'nullable|exists:employees_tables,id',
-            'approver_3'     => 'nullable|exists:employees_tables,id',
-            'effective_date' => 'required|date',
-            'inactive_date'  => 'nullable|date|after:effective_date',
-            'notes'          => 'nullable|string',
+        return $skletter->status === 'Draft' && $this->canManage() && $this->isHeadHr();
+    }
+
+    // Nama parameter harus sama dengan route ({skletter}) supaya route model binding jalan
+    public function edit(SkLetter $skletter)
+    {
+        if (!$this->canEdit($skletter)) {
+            return redirect()->route('SkLetters.show', $skletter)
+                ->with('error', 'Hanya HeadHR yang bisa mengubah SK, dan hanya selama masih Draft.');
+        }
+
+        $skletter->load(['employees', 'menimbang', 'mengingat', 'keputusan']);
+
+        return view('pages.SkLetters.edit', ['skLetter' => $skletter] + $this->formData());
+    }
+
+    public function update(Request $request, SkLetter $skletter): RedirectResponse
+    {
+        if (!$this->canEdit($skletter)) {
+            return redirect()->route('SkLetters.show', $skletter)
+                ->with('error', 'Hanya HeadHR yang bisa mengubah SK, dan hanya selama masih Draft.');
+        }
+
+        $validated = $this->validated($request);
+
+        try {
+            $this->service->update($skletter, $validated);
+        } catch (ValidationException $e) {
+            throw $e;
+        } catch (\Throwable $e) {
+            Log::error('SK Letter update gagal', ['sk_letter_id' => $skletter->id, 'message' => $e->getMessage(), 'line' => $e->getLine()]);
+            return back()->with('error', 'SK gagal disimpan. Silakan coba lagi.')->withInput();
+        }
+
+        return redirect()->route('SkLetters.show', $skletter)->with('success', 'Perubahan SK disimpan.');
+    }
+
+    public function submit(SkLetter $skletter): RedirectResponse
+    {
+        abort_unless($this->canManage() && $this->isHeadHr() && $this->me(), 403, 'Hanya HeadHR yang bisa mengajukan SK.');
+        $this->service->submit($skletter, $this->me());
+
+        return redirect()->route('SkLetters.show', $skletter)
+            ->with('success', 'SK diajukan. Menunggu persetujuan ' . ($skletter->fresh()->approver2?->employee_name ?? 'approver 2') . '.');
+    }
+
+    public function approve(SkLetter $skletter): RedirectResponse
+    {
+        abort_unless($this->me(), 403);
+        $sk = $this->service->approve($skletter, $this->me());
+
+        $message = $sk->isFinal()
+            ? 'SK disetujui penuh. ' . ($sk->effective_date->isFuture()
+                ? 'Perubahan jabatan dan penempatan diterapkan otomatis pada ' . $sk->effective_date->locale('id')->translatedFormat('d F Y') . '.'
+                : 'Perubahan sudah diterapkan ke data karyawan.')
+            : 'Disetujui. Diteruskan ke ' . ($sk->approver3?->employee_name ?? 'approver 3') . '.';
+
+        return redirect()->route('SkLetters.show', $skletter)->with('success', $message);
+    }
+
+    public function returnDraft(Request $request, SkLetter $skletter): RedirectResponse
+    {
+        abort_unless($this->me(), 403);
+        $data = $request->validate(['note' => 'required|string|min:5|max:1000'], [
+            'note.required' => 'Tulis alasan pengembalian.',
+            'note.min'      => 'Alasan terlalu singkat.',
         ]);
-        try {
-            $this->service->update($skLetter, $validated);
-            return redirect()
-                ->route('SkLetters.show', $skLetter)
-                ->with('success', 'SK berhasil diperbarui.');
-        } catch (\Exception $e) {
-            return back()->with('error', $e->getMessage())->withInput();
-        }
+        $this->service->returnToDraft($skletter, $this->me(), $data['note']);
+
+        return redirect()->route('SkLetters.show', $skletter)->with('success', 'SK dikembalikan ke HR untuk diperbaiki.');
     }
-    public function approve(SkLetter $skLetter): RedirectResponse
+
+    public function cancel(SkLetter $skletter): RedirectResponse
     {
-        $this->authorize('approve', $skLetter);
+        abort_unless($this->canManage() && $this->isHeadHr(), 403, 'Hanya HeadHR yang bisa membatalkan SK.');
+        $this->service->cancel($skletter);
 
-        try {
-            $this->service->approve($skLetter);
-            return back()->with('success', 'SK berhasil diapprove.');
-        } catch (\Exception $e) {
-            return back()->with('error', $e->getMessage());
-        }
+        return redirect()->route('SkLetters.show', $skletter)->with('success', 'SK dibatalkan.');
     }
 
-    public function cancel(SkLetter $skLetter): RedirectResponse
-    {
-        $this->authorize('cancel', $skLetter);
-
-        try {
-            $this->service->cancel($skLetter);
-            return back()->with('success', 'SK berhasil dibatalkan.');
-        } catch (\Exception $e) {
-            return back()->with('error', $e->getMessage());
-        }
-    }
-
-    // ─────────────────────────────────────────
-    // SK Letter Employee
-    // ─────────────────────────────────────────
-
-    public function addEmployee(Request $request, SkLetter $skLetter): RedirectResponse
-    {
-        $this->authorize('update', $skLetter);
-
-        $validated = $request->validate([
-            'employee_id'          => 'required|exists:employees_tables,id',
-            'new_structure_id'     => 'nullable|exists:structures_tables,id',
-            'basic_salary'         => 'nullable|numeric|min:0',
-            'positional_allowance' => 'nullable|numeric|min:0',
-            'daily_rate'           => 'nullable|numeric|min:0',
-            'notes'                => 'nullable|string',
-        ]);
-
-        try {
-            $this->service->addEmployee($skLetter, $validated);
-            return back()->with('success', 'Karyawan berhasil ditambahkan ke SK.');
-        } catch (\Exception $e) {
-            return back()->with('error', $e->getMessage());
-        }
-    }
-
-    public function updateEmployee(Request $request, SkLetter $skLetter, SkLetterEmployee $skLetterEmployee): RedirectResponse
-    {
-        $this->authorize('update', $skLetter);
-
-        $validated = $request->validate([
-            'new_structure_id'     => 'nullable|exists:structures_tables,id',
-            'basic_salary'         => 'nullable|numeric|min:0',
-            'positional_allowance' => 'nullable|numeric|min:0',
-            'daily_rate'           => 'nullable|numeric|min:0',
-            'notes'                => 'nullable|string',
-        ]);
-
-        try {
-            $this->service->updateEmployee($skLetterEmployee, $validated);
-            return back()->with('success', 'Data karyawan berhasil diperbarui.');
-        } catch (\Exception $e) {
-            return back()->with('error', $e->getMessage());
-        }
-    }
-
-    public function removeEmployee(SkLetter $skLetter, SkLetterEmployee $skLetterEmployee): RedirectResponse
-    {
-        $this->authorize('update', $skLetter);
-
-        try {
-            $this->service->removeEmployee($skLetterEmployee);
-            return back()->with('success', 'Karyawan berhasil dihapus dari SK.');
-        } catch (\Exception $e) {
-            return back()->with('error', $e->getMessage());
-        }
-    }
-    // ─────────────────────────────────────────
-    // Generate Contract dari SK
-    // ─────────────────────────────────────────
-    public function generateContract(Request $request, SkLetter $skLetter): RedirectResponse
-    {
-        $this->authorize('generateContract', $skLetter);
-
-        $validated = $request->validate([
-            'employee_id'   => 'required|exists:employees_tables,id',
-            'contract_type' => 'required|in:PKWT,On Job Training,DW',
-            'start_date'    => 'nullable|date',
-            'end_date'      => 'nullable|date|after:start_date',
-            'notes'         => 'nullable|string',
-        ]);
-        try {
-            $contract = $this->service->generateContract($skLetter, $validated);
-            return redirect()
-                ->route('contracts.show', $contract)
-                ->with('success', 'Contract berhasil dibuat dari SK.');
-        } catch (\Exception $e) {
-            return back()->with('error', $e->getMessage());
-        }
-    }
     public function viewPdf(SkLetter $skLetter)
-{
-    $skLetter->load([
-        'sktype',
-        'company',
-        'approver1',
-        'approver1',
-        'approver2',
-        'approver3',
-        'menimbang',
-        'mengingat',
-        'keputusan',
-        'employees',
-    ]);
+    {
+        $this->authorizeView($skLetter);
 
-    $pdf = Pdf::loadView('pages.SkLetters.pdf', compact('skLetter'))
-        ->setPaper('a4', 'portrait');
+        $skLetter->load(['sktype', 'company', 'approver1', 'approver2', 'approver3', 'menimbang', 'mengingat', 'keputusan', 'employees']);
 
-    $filename = 'SK-' . str_replace('/', '-', $skLetter->sk_number) . '.pdf';
+        // Tanda tangan dari S3 disisipkan sebagai data URI (dompdf tidak membaca S3 / URL berlogin)
+        $image = function (?string $path): ?string {
+            if (!$path) return null;
+            try {
+                if (!Storage::disk('s3')->exists($path)) return null;
+                return 'data:image/png;base64,' . base64_encode(Storage::disk('s3')->get($path));
+            } catch (\Throwable $e) {
+                return null;
+            }
+        };
+        $signatures = [
+            1 => $skLetter->approver_1_at ? $image($skLetter->approver_1_signature) : null,
+            2 => $skLetter->approver_2_at ? $image($skLetter->approver_2_signature) : null,
+            3 => $skLetter->approver_3_at ? $image($skLetter->approver_3_signature) : null,
+        ];
+        $titleOf = fn(?Employee $e) => $e ? ($e->primaryPosition()->value('position_tables.name') ?? Position::find($e->position_id)?->name) : null;
+        $titles = [1 => $titleOf($skLetter->approver1), 2 => $titleOf($skLetter->approver2), 3 => $titleOf($skLetter->approver3)];
+        $names = [
+            'positions'   => DB::table('position_tables')->pluck('name', 'id'),
+            'departments' => DB::table('departments_tables')->pluck('department_name', 'id'),
+            'stores'      => DB::table('stores_tables')->pluck('name', 'id'),
+        ];
 
-    return $pdf->download($filename);
-    // Ganti stream() ke download() jika ingin langsung download
-}
+        $pdf = Pdf::loadView('pages.SkLetters.pdf', compact('skLetter', 'signatures', 'titles', 'names'))
+            ->setPaper('a4', 'portrait');
+
+        return $pdf->stream('SK-' . str_replace('/', '-', $skLetter->sk_number) . '.pdf');
+    }
 }

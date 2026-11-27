@@ -30,7 +30,7 @@ class DocumentController extends Controller
             abort(403, 'Unauthorized');
         }
         $gradings      = Grading::pluck('grading_name')->unique()->sort()->values();
-        $documentNames = Documenttypes::where('is_active', true)
+        $documentNames = Documenttypes::where('is_active', true)->where('requires_approval', false)
             ->pluck('document_name')
             ->unique()
             ->sort()
@@ -38,6 +38,7 @@ class DocumentController extends Controller
 
         // Ringkasan untuk kartu di atas tabel (satu query agregat + satu query log kirim)
         $base = Documents::query()
+            ->whereDoesntHave('companydocumentconfigs.documenttypes', fn($q) => $q->where('requires_approval', true))
             ->leftJoin('employees_tables as e', 'e.id', '=', 'documents.employee_id');
         $totals = (clone $base)->selectRaw("
                 COUNT(*) AS total,
@@ -67,7 +68,13 @@ class DocumentController extends Controller
         return view('pages.document.index', compact('gradings', 'documentNames', 'stats'));
     }
 
-    public function create()
+    /**
+     * Buat dokumen terbitan HR (saat ini surat tugas). Berita acara dibuat di menu Berita acara.
+     * - ST: terbit langsung (SuratTugasService).
+     * - Jenis beralur approval (requires_approval): tidak tampil di sini, lihat BeritaAcaraController.
+     * - Jenis lain: diterbitkan otomatis oleh sistem, tidak bisa dibuat manual.
+     */
+    public function create(Request $request)
     {
         /** @var \App\Models\User|null $user */
         $user = auth()->user();
@@ -76,8 +83,18 @@ class DocumentController extends Controller
             abort(403, 'Unauthorized');
         }
 
+        // Hanya dokumen terbitan HR. Jenis beralur approval (berita acara) tidak tampil di sini sama sekali:
+        // dibuat & dipantau di menu Berita acara.
+        $autoTypes = Documenttypes::where('is_active', true)
+            ->where('nickname', '!=', 'ST')
+            ->where(fn($q) => $q->where('requires_approval', false)->orWhereNull('requires_approval'))
+            ->orderBy('document_name')->get(['id', 'document_name', 'nickname']);
+
         return view('pages.document.create', [
-            'employees'   => Employee::where('status', 'Active')->orderBy('employee_name')->get(),
+            'autoTypes'   => $autoTypes,
+            'canCreateBa' => $user->can('CreateBeritaAcara'),
+            'preselectEmployee' => $request->query('employee_id'),
+            'employees'   => Employee::where('status', 'Active')->orderBy('employee_name')->get(['id', 'employee_name', 'employee_pengenal']),
             'departments' => Departments::orderBy('department_name')->get(),
             'stores'      => Stores::orderBy('name')->get(),
             'positions'   => Position::orderBy('name')->get(),
@@ -95,16 +112,18 @@ class DocumentController extends Controller
 
         $validated = $request->validate([
             'document_type'    => 'required|in:ST',
-            'employee_id'      => 'required|uuid|exists:employees_tables,id',
+            'employee_id'      => ['required', 'uuid', \Illuminate\Validation\Rule::exists('employees_tables', 'id')->where('status', 'Active')],
             'department_id'    => 'nullable|uuid|exists:departments_tables,id',
             'store_id'         => 'nullable|array',
             'store_id.*'       => 'uuid|exists:stores_tables,id',
             'position_id'      => 'nullable|uuid|exists:position_tables,id',
             'issued_date'      => 'required|date',
-            'expired_date'     => 'required|date|after:issued_date',
+            'expired_date'     => 'required|date|after_or_equal:issued_date|after_or_equal:today',
         ], [
             'document_type.in'     => 'Tipe dokumen ini belum bisa dibuat manual dari halaman ini.',
             'employee_id.required' => 'Pilih karyawan.',
+            'employee_id.exists'   => 'Karyawan tidak ditemukan atau tidak berstatus Active.',
+            'expired_date.after_or_equal' => 'Tanggal selesai tidak boleh sebelum tanggal mulai atau sebelum hari ini.',
         ]);
 
         $targets = array_filter([
@@ -120,7 +139,7 @@ class DocumentController extends Controller
         }
 
         try {
-            $suratTugasService->createSuratTugas($validated['employee_id'], [
+            $document = $suratTugasService->createSuratTugas($validated['employee_id'], [
                 'issued_date'  => $validated['issued_date'],
                 'expired_date' => $validated['expired_date'],
                 'targets'      => $targets,
@@ -129,11 +148,21 @@ class DocumentController extends Controller
             return back()
                 ->withErrors($e->errors())
                 ->withInput();
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::error('DocumentController@store (ST) gagal', ['employee_id' => $validated['employee_id'], 'error' => $e->getMessage()]);
+
+            return back()
+                ->withErrors(['assignment' => 'Gagal membuat Surat Tugas. Silakan coba lagi.'])
+                ->withInput();
         }
+
+        $start = Carbon::parse($document->issued_date);
 
         return redirect()
             ->route('document.index')
-            ->with('success', 'Dokumen berhasil dibuat.');
+            ->with('success', $suratTugasService->hasStarted($document)
+                ? "Surat Tugas {$document->document_number} terbit, karyawan sudah dipindah."
+                : "Surat Tugas {$document->document_number} terbit. Karyawan dipindah otomatis pada {$start->locale('id')->translatedFormat('d F Y')}.");
     }
 
     public function getDocuments()
@@ -174,7 +203,9 @@ class DocumentController extends Controller
                 'document_number',
                 'status',
             ])
-            ->addSelect(['last_sent_at' => $lastSent, 'last_failed_at' => $lastFailed]);
+            ->addSelect(['last_sent_at' => $lastSent, 'last_failed_at' => $lastFailed])
+            // Berita acara punya menu sendiri (BeritaAcaraController), tidak dikirim lewat daftar ini
+            ->whereDoesntHave('companydocumentconfigs.documenttypes', fn($q) => $q->where('requires_approval', true));
 
         $query->when(request()->filled('filter_grading'), function ($q) {
             $q->whereHas('employee.grading', function ($gq) {
@@ -270,6 +301,13 @@ class DocumentController extends Controller
                     'expired' => ['is-pending', 'Kedaluwarsa'],
                 ];
                 [$cls, $label] = $badges[$document->status] ?? ['is-draft', ucfirst((string) $document->status)];
+
+                // Surat tugas yang tanggal mulainya belum tiba: karyawan belum dipindah
+                if ($document->status === 'issued' && $document->issued_date && Carbon::parse($document->issued_date)->startOfDay()->gt(today())
+                    && ($document->companydocumentconfigs->documenttypes->nickname ?? null) === 'ST') {
+                    return '<span class="status-badge is-pending">Terjadwal</span>'
+                        . '<span class="pr-cell-sub">pindah ' . e(Carbon::parse($document->issued_date)->locale('id')->translatedFormat('d M Y')) . '</span>';
+                }
 
                 return '<span class="status-badge ' . $cls . '">' . e($label) . '</span>';
             })
@@ -473,6 +511,11 @@ class DocumentController extends Controller
             'companydocumentconfigs.documenttypes',
             'assignments',
         ])->findOrFail($documentId);
+
+        // Berita acara (jenis beralur approval) punya halaman & PDF sendiri
+        if ($document->companydocumentconfigs?->documenttypes?->requires_approval) {
+            return redirect()->route('beritaacara.pdf', $document->id);
+        }
 
         if (
             !$document->companydocumentconfigs ||

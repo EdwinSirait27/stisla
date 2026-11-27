@@ -72,8 +72,13 @@ use App\Http\Controllers\UserrnrController;
 use App\Http\Controllers\EmployeeSalaryController;
 use App\Http\Controllers\PayrollPeriodController;
 use App\Http\Controllers\PayrollController;
+use App\Http\Controllers\PayrollMobileController;
+use App\Http\Controllers\PayrollMobilePeriodController;
 use App\Http\Controllers\EmployeePositionandAtasanController;
 use App\Http\Controllers\DocumentController;
+use App\Http\Controllers\DocumenttypeController;
+use App\Http\Controllers\CompanyDocumentConfigController;
+use App\Http\Controllers\BeritaAcaraController;
 use App\Http\Controllers\SuratTugasController;
 use App\Http\Controllers\EmployeeTrainingController;
 use App\Http\Controllers\OvertimeRateController;
@@ -328,19 +333,27 @@ Route::middleware(['auth', 'force.password.change'])->group(function () {
 
 
 
+    // ── Kontrak kerja ── kelola: ManageContracts | VEUSomeContracts (buat/ubah/ajukan/akhiri: ManageContracts, dicek di controller)
     Route::group(['middleware' => ['permission:ManageContracts|VEUSomeContracts']], function () {
         Route::get('/datacontracts/datacontracts', [ContractController::class, 'getActivities'])->name('datacontracts.datacontracts');
-
-        Route::get('/contract', [ContractController::class, 'index'])
-            ->name('contract');
         Route::get('contract/create', [ContractController::class, 'create'])->name('createcontract');
         Route::post('/contract', [ContractController::class, 'store'])->name('storecontract');
         Route::get('/contract/edit/{id}', [ContractController::class, 'edit'])->name('editcontract');
-        Route::get('/contract/show/{id}', [ContractController::class, 'show'])->name('showcontract');
         Route::put('/contract/{id}', [ContractController::class, 'update'])->name('updatecontract');
-        Route::get('/contracts/contracts', [ContractController::class, 'getContracts'])->name('contracts.contracts');
+        Route::post('/contract/{id}/submit', [ContractController::class, 'submit'])->name('submitcontract');
+        Route::post('/contract/{id}/cancel', [ContractController::class, 'cancel'])->name('cancelcontract');
+        Route::post('/contract/{id}/terminate', [ContractController::class, 'terminate'])->name('terminatecontract');
         Route::post('/contract/check-password', [ContractController::class, 'checkPassword'])
-            ->name('contract.password.ajax');
+            ->middleware('throttle:10,1')->name('contract.password.ajax');
+    });
+    // Juga untuk approver 2/3 yang dipilih di kontrak (tanpa permission modul): akses dicek di controller
+    Route::group(['middleware' => ['auth']], function () {
+        Route::get('/contract', [ContractController::class, 'index'])->name('contract');
+        Route::get('/contracts/contracts', [ContractController::class, 'getContracts'])->name('contracts.contracts');
+        Route::get('/contract/show/{id}', [ContractController::class, 'show'])->name('showcontract');
+        Route::get('/contract/{id}/file', [ContractController::class, 'file'])->name('contractfile');
+        Route::post('/contract/{id}/approve', [ContractController::class, 'approve'])->middleware('throttle:30,1')->name('approvecontract');
+        Route::post('/contract/{id}/return', [ContractController::class, 'returnDraft'])->middleware('throttle:30,1')->name('returncontract');
     });
     Route::group(['middleware' => ['permission:ManageFingerspotSPVManager|ManageFingerspot']], function () {
         Route::get('/fingerprints/export', [FingerprintsController::class, 'exportfingerprints'])
@@ -615,6 +628,41 @@ Route::get('manual-recap/signed-url', [ManualRecapController::class, 'signedUrl'
         Route::put('/Department/{hashedId}', [DepartmentController::class, 'update'])->name('Department.update');
         Route::match(['GET', 'POST'], '/departments/departments', [DepartmentController::class, 'getDepartments'])->name('departments.departments');
     });
+    // ── Jenis dokumen (master document_types) ──
+    Route::middleware(['auth', 'permission:ManageDocumentType'])->prefix('document-types')->name('documenttype.')->group(function () {
+        Route::get('/', [DocumenttypeController::class, 'index'])->name('index');
+        Route::get('/data', [DocumenttypeController::class, 'getData'])->name('data');
+        Route::get('/create', [DocumenttypeController::class, 'create'])->name('create');
+        Route::post('/', [DocumenttypeController::class, 'store'])->name('store');
+        Route::get('/{hashedId}/edit', [DocumenttypeController::class, 'edit'])->name('edit');
+        Route::put('/{hashedId}', [DocumenttypeController::class, 'update'])->name('update');
+    });
+
+    // ── Berita acara (approval bertingkat). Akses per dokumen dicek di controller (pengaju/approver/tembusan) ──
+    Route::middleware('auth')->prefix('berita-acara')->name('beritaacara.')->group(function () {
+        Route::get('/', [BeritaAcaraController::class, 'index'])->name('index');
+        Route::get('/create', [BeritaAcaraController::class, 'create'])->name('create');
+        Route::post('/', [BeritaAcaraController::class, 'store'])->middleware('throttle:20,1')->name('store');
+        Route::get('/{id}', [BeritaAcaraController::class, 'show'])->name('show');
+        Route::get('/{id}/revisi', [BeritaAcaraController::class, 'edit'])->name('edit');
+        Route::put('/{id}', [BeritaAcaraController::class, 'update'])->middleware('throttle:20,1')->name('update');
+        Route::post('/{id}/approve', [BeritaAcaraController::class, 'approve'])->middleware('throttle:30,1')->name('approve');
+        Route::post('/{id}/return', [BeritaAcaraController::class, 'returnRevision'])->middleware('throttle:30,1')->name('return');
+        Route::post('/{id}/cancel', [BeritaAcaraController::class, 'cancel'])->name('cancel');
+        Route::get('/{id}/lampiran/{attachmentId}', [BeritaAcaraController::class, 'attachment'])->name('attachment');
+        Route::get('/{id}/ttd/{approvalId}', [BeritaAcaraController::class, 'signature'])->name('signature');
+        Route::get('/{id}/pdf', [BeritaAcaraController::class, 'pdf'])->name('pdf');
+    });
+
+    // ── Pengaturan dokumen per perusahaan (company_document_configs) ──
+    Route::middleware(['auth', 'permission:ManageDocumentType'])->prefix('document-settings')->name('documentconfig.')->group(function () {
+        Route::get('/', [CompanyDocumentConfigController::class, 'index'])->name('index');
+        Route::get('/create', [CompanyDocumentConfigController::class, 'create'])->name('create');
+        Route::post('/', [CompanyDocumentConfigController::class, 'store'])->name('store');
+        Route::get('/{hashedId}/edit', [CompanyDocumentConfigController::class, 'edit'])->name('edit');
+        Route::put('/{hashedId}', [CompanyDocumentConfigController::class, 'update'])->name('update');
+    });
+
     Route::group(['middleware' => ['permission:ManageDocument']], function () {
         Route::get('/document', [DocumentController::class, 'index'])
             ->name('document.index');
@@ -636,8 +684,6 @@ Route::get('manual-recap/signed-url', [ManualRecapController::class, 'signedUrl'
         // ── Surat Tugas (ST) ──
         Route::get('/documents/surat-tugas/create/{employee}', [SuratTugasController::class, 'create'])
             ->name('documents.st.create');
-        Route::post('/documents/surat-tugas/{employee}', [SuratTugasController::class, 'store'])
-            ->name('documents.st.store');
         Route::get('/documents/surat-tugas/{document}/edit', [SuratTugasController::class, 'edit'])
             ->name('documents.st.edit');
         Route::put('/documents/surat-tugas/{document}', [SuratTugasController::class, 'update'])
@@ -922,6 +968,47 @@ Route::get('manual-recap/signed-url', [ManualRecapController::class, 'signedUrl'
         });
     });
 
+    // ── Payroll Absensi Mobile (terpisah dari payroll fingerprint di atas) ──
+    // Hari hadir dari attendance_logs (absen aplikasi). Tabel, controller, service, dan permission sendiri: payroll.mobile.*
+    Route::prefix('payroll-mobile-period')->name('payrollmobileperiod.')->middleware('auth')->group(function () {
+        Route::middleware('permission:payroll.mobile.period.view')->group(function () {
+            Route::get('/',     [PayrollMobilePeriodController::class, 'index'])->name('index');
+            Route::get('/data', [PayrollMobilePeriodController::class, 'getPayrollPeriod'])->name('data');
+        });
+        Route::post('/', [PayrollMobilePeriodController::class, 'store'])->middleware('permission:payroll.mobile.period.create')->name('store');
+        Route::get('/{id}/close', [PayrollMobilePeriodController::class, 'close'])->middleware('permission:payroll.mobile.period.close')->name('close');
+        Route::get('/{id}/lock', [PayrollMobilePeriodController::class, 'lock'])->middleware('permission:payroll.mobile.period.lock')->name('lock');
+    });
+
+    Route::prefix('payroll-mobile')->name('payroll.mobile.')->middleware('auth')->group(function () {
+        $p = fn(string $permission) => 'permission:payroll.mobile.' . $permission;
+
+        Route::get('/{periodId}',      [PayrollMobileController::class, 'index'])->middleware($p('view'))->name('index');
+        Route::get('/{periodId}/data', [PayrollMobileController::class, 'getPayroll'])->middleware($p('view'))->name('data');
+        Route::get('/{id}/show',       [PayrollMobileController::class, 'show'])->middleware($p('show'))->name('show');
+
+        Route::get('/{periodId}/generate',      [PayrollMobileController::class, 'generate'])->middleware($p('generate'))->name('generate');
+        Route::post('/{periodId}/generate-one', [PayrollMobileController::class, 'generateOne'])->middleware($p('generate.one'))->name('generateOne');
+
+        Route::get('/{id}/edit',     [PayrollMobileController::class, 'edit'])->middleware($p('update'))->name('edit');
+        Route::put('/{id}',          [PayrollMobileController::class, 'update'])->middleware($p('update'))->name('update');
+        Route::delete('/{id}',       [PayrollMobileController::class, 'destroy'])->middleware($p('destroy'))->name('destroy');
+        Route::post('/bulk-destroy', [PayrollMobileController::class, 'destroyBulk'])->middleware($p('destroy.bulk'))->name('destroyBulk');
+
+        Route::post('/{id}/approve', [PayrollMobileController::class, 'approve'])->middleware($p('approve'))->name('approve');
+        Route::post('/approve-bulk', [PayrollMobileController::class, 'approveBulk'])->middleware($p('approve.bulk'))->name('approveBulk');
+        Route::post('/{id}/paid',    [PayrollMobileController::class, 'paid'])->middleware($p('paid'))->name('paid');
+
+        Route::get('/{periodId}/export',              [PayrollMobileController::class, 'export'])->middleware($p('export'))->name('export');
+        Route::post('/{periodId}/import-attendance',  [PayrollMobileController::class, 'importAttendance'])->middleware($p('import'))->name('importAttendance');
+        Route::get('/{periodId}/attendance-template', [PayrollMobileController::class, 'downloadAttendanceTemplate'])->middleware($p('download.template'))->name('attendanceTemplate');
+
+        Route::get('/{id}/slip',                  [PayrollMobileController::class, 'downloadSlip'])->middleware($p('download.slip'))->name('slip');
+        Route::get('/{periodId}/slip-bulk',       [PayrollMobileController::class, 'downloadSlipBulk'])->middleware($p('slip.bulk'))->name('slipBulk');
+        Route::post('/{id}/slip/send',            [PayrollMobileController::class, 'sendSlipEmail'])->middleware($p('send.slip'))->name('slipSend');
+        Route::post('/{periodId}/slip/send-bulk', [PayrollMobileController::class, 'sendSlipEmailBulk'])->middleware($p('send.slip.bulk'))->name('slipSendBulk');
+    });
+
     // ── Position Request List ──
     Route::group(['middleware' => ['auth', 'permission:RequestPositionList']], function () {
         Route::get('/Positionreqlist', [PositionreqController::class, 'index'])
@@ -1093,33 +1180,24 @@ Route::get('manual-recap/signed-url', [ManualRecapController::class, 'signedUrl'
             Route::post('/',      [AutoRosterOtherStoreController::class, 'generate'])->name('generate');
         });
 
+    // ── SK (Surat Keputusan) ──
+    // Kelola (HR): permission ManageSkLetters. Ubah, ajukan, batalkan: dicek lagi di controller (HeadHR).
     Route::group(['middleware' => ['permission:ManageSkLetters']], function () {
-        Route::get('/SkLetters', [SkLetterController::class, 'index'])
-            ->name('SkLetters');
         Route::get('SkLetters/create', [SkLetterController::class, 'create'])->name('SkLetters.create');
         Route::post('/SkLetters', [SkLetterController::class, 'store'])->name('SkLetters.store');
         Route::get('/SkLetters/edit/{skletter}', [SkLetterController::class, 'edit'])->name('SkLetters.edit');
-        Route::get('SkLetters/show/{skletter}', [SkLetterController::class, 'show'])
-            ->name('SkLetters.show');
         Route::put('/SkLetters/{skletter}', [SkLetterController::class, 'update'])->name('SkLetters.update');
-        Route::get('/skletters/skletters', [SkLetterController::class, 'getSkLetters'])->name('skletters.skletters');
-        Route::get('SkLetters/{skLetter}/pdf', [SkLetterController::class, 'viewPdf'])
-            ->name('SkLetters.pdf');
-        // gabung dengan sktype jadi 1 permission
+        Route::post('/SkLetters/{skletter}/submit', [SkLetterController::class, 'submit'])->name('SkLetters.submit');
+        Route::post('/SkLetters/{skletter}/cancel', [SkLetterController::class, 'cancel'])->name('SkLetters.cancel');
     });
-    Route::group(['middleware' => ['permission:ManageStLetters']], function () {
-        Route::get('/SkLetters', [SkLetterController::class, 'index'])
-            ->name('SkLetters');
-        Route::get('SkLetters/create', [SkLetterController::class, 'create'])->name('SkLetters.create');
-        Route::post('/SkLetters', [SkLetterController::class, 'store'])->name('SkLetters.store');
-        Route::get('/SkLetters/edit/{skletter}', [SkLetterController::class, 'edit'])->name('SkLetters.edit');
-        Route::get('SkLetters/show/{skletter}', [SkLetterController::class, 'show'])
-            ->name('SkLetters.show');
-        Route::put('/SkLetters/{skletter}', [SkLetterController::class, 'update'])->name('SkLetters.update');
+    // Juga untuk approver 2/3 yang dipilih di SK (tanpa ManageSkLetters): akses dicek di controller
+    Route::group(['middleware' => ['auth']], function () {
+        Route::get('/SkLetters', [SkLetterController::class, 'index'])->name('SkLetters');
         Route::get('/skletters/skletters', [SkLetterController::class, 'getSkLetters'])->name('skletters.skletters');
-        Route::get('SkLetters/{skLetter}/pdf', [SkLetterController::class, 'viewPdf'])
-            ->name('SkLetters.pdf');
-        // gabung dengan sktype jadi 1 permission
+        Route::get('SkLetters/show/{skletter}', [SkLetterController::class, 'show'])->name('SkLetters.show');
+        Route::get('SkLetters/{skLetter}/pdf', [SkLetterController::class, 'viewPdf'])->name('SkLetters.pdf');
+        Route::post('/SkLetters/{skletter}/approve', [SkLetterController::class, 'approve'])->middleware('throttle:30,1')->name('SkLetters.approve');
+        Route::post('/SkLetters/{skletter}/return', [SkLetterController::class, 'returnDraft'])->middleware('throttle:30,1')->name('SkLetters.return');
     });
 });
 

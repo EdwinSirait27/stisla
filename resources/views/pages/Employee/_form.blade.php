@@ -345,6 +345,31 @@
                                 <span class="pr-panel-sub">{{ $isEdit ? 'Boleh lebih dari satu. Yang utama dipakai roster, dashboard, payroll, dan approval.' : 'Tambahan lokasi, jabatan, atau atasan bisa diatur lewat edit setelah disimpan.' }}</span>
                             </div>
                         </div>
+                        @if ($isEdit)
+                            @php
+                                $activeSt = \App\Models\Documents::where('employee_id', $e->id)->where('status', 'issued')
+                                    ->whereHas('companydocumentconfigs.documenttypes', fn($q) => $q->where('nickname', 'ST'))
+                                    ->orderBy('issued_date')->get(['id', 'document_number', 'issued_date', 'expired_date']);
+                            @endphp
+                            @foreach ($activeSt as $st)
+                                @php
+                                    $stStarted = \Carbon\Carbon::parse($st->issued_date)->startOfDay()->lte(today());
+                                @endphp
+                                <div class="emp-errors" role="note" style="margin: 0 0 var(--pr-space-sm, 12px)">
+                                    <strong>{{ $stStarted ? 'Sedang menjalani' : 'Punya' }} Surat Tugas {{ $st->document_number }}
+                                        ({{ \Carbon\Carbon::parse($st->issued_date)->format('d/m/Y') }} s/d {{ \Carbon\Carbon::parse($st->expired_date)->format('d/m/Y') }}).</strong>
+                                    @if ($stStarted)
+                                        Penempatan di bawah sudah berisi pemindahan surat tugas. Kalau Anda mengubah lokasi, jabatan, atau departemen utama di sini,
+                                        bagian itu tidak dikembalikan otomatis saat surat tugas selesai. Untuk mengubah tujuan sementara, edit surat tugasnya.
+                                    @else
+                                        Karyawan akan dipindah otomatis pada tanggal mulai. Perubahan penempatan di sini akan jadi penempatan "semula" yang dikembalikan setelah surat tugas selesai.
+                                    @endif
+                                    @can('ManageDocument')
+                                        <a href="{{ route('documents.st.edit', $st->id) }}">Buka surat tugas</a>
+                                    @endcan
+                                </div>
+                            @endforeach
+                        @endif
                         <div class="emp-fields">
                             @if ($isEdit)
                                 @foreach ([

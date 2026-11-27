@@ -79,6 +79,7 @@ class DashboardHRController extends Controller
 
         // ── Perlu tindakan ──
         $contractsQuery = Contract::with('employee:id,employee_name,employee_pengenal')
+            ->where('contract_status', 'Active')
             ->whereDate('end_date', '>=', $today)
             ->whereDate('end_date', '<=', $today->copy()->addDays(30));
         $contractsExpiringCount = (clone $contractsQuery)->count();

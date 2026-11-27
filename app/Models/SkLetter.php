@@ -68,6 +68,8 @@ class SkLetter extends Model
         'approver_1_at'    => 'datetime',
         'approver_2_at'    => 'datetime',
         'approver_3_at'    => 'datetime',
+        'returned_at'      => 'datetime',
+        'completed_at'     => 'datetime',
         ];
     protected $fillable = [
         'sk_type_id',
@@ -86,7 +88,55 @@ class SkLetter extends Model
         'status',
         'menetapkan_text',
         'notes',
+        'approver_1_signature',
+        'approver_2_signature',
+        'approver_3_signature',
+        'returned_note',
+        'returned_by',
+        'returned_at',
+        'completed_at',
     ];
+
+    /** Status "sudah disetujui penuh" (nama lama dipertahankan supaya data lama tetap terbaca). */
+    public const FINAL_STATUS = 'Approved Managing Director';
+
+    /**
+     * Alur approval per SK: Draft → HR mengajukan (approver_1, status Approved HR) → approver_2
+     * (status Approved Director, kalau ada approver_3) → approver_3 → disetujui penuh.
+     * Langkah aktif: [kolom approver, kolom waktu] atau null kalau tidak sedang menunggu.
+     */
+    public function currentStep(): ?array
+    {
+        return match ($this->status) {
+            'Approved HR'       => ['approver_2', 'approver_2_at'],
+            'Approved Director' => ['approver_3', 'approver_3_at'],
+            default             => null,
+        };
+    }
+
+    public function currentApproverId(): ?string
+    {
+        $step = $this->currentStep();
+        return $step ? $this->{$step[0]} : null;
+    }
+
+    public function isFinal(): bool
+    {
+        return $this->status === self::FINAL_STATUS;
+    }
+
+    /** Label untuk tampilan (nilai status di database tetap). */
+    public function getStatusLabelAttribute(): string
+    {
+        return match ($this->status) {
+            'Draft'             => $this->returned_at ? 'Dikembalikan' : 'Draft',
+            'Approved HR'       => 'Menunggu ' . ($this->approver2?->employee_name ?? 'approver 2'),
+            'Approved Director' => 'Menunggu ' . ($this->approver3?->employee_name ?? 'approver 3'),
+            self::FINAL_STATUS  => 'Disetujui',
+            'Cancelled'         => 'Dibatalkan',
+            default             => (string) $this->status,
+        };
+    }
      public function setTitleAttribute($value)
     {
         $this->attributes['title'] = strtoupper($value);
@@ -95,10 +145,10 @@ class SkLetter extends Model
     {
         return [
             'Draft'                      => 'Draft',
-            'Cancelled'                  => 'Cancelled',
-            'Approved HR'                => 'Approved HR',
-            'Approved Director'          => 'Approved Director',
-            'Approved Managing Director' => 'Approved Managing Director',
+            'Approved HR'                => 'Menunggu approver 2',
+            'Approved Director'          => 'Menunggu approver 3',
+            'Approved Managing Director' => 'Disetujui',
+            'Cancelled'                  => 'Dibatalkan',
         ];
     }
     public function skType()
@@ -142,6 +192,16 @@ class SkLetter extends Model
                 'positional_allowance',
                 'daily_rate',
                 'notes',
+                'previous_store_id',
+                'previous_status_employee',
+                'new_position_id',
+                'new_department_id',
+                'new_store_id',
+                'new_grading_id',
+                'new_group_id',
+                'new_status_employee',
+                'applied_at',
+                'salary_id',
             ])
             ->withTimestamps();
     }

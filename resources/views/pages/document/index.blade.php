@@ -90,6 +90,12 @@
             z-index: 2;
         }
 
+        .pr-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: var(--pr-space-sm);
+        }
+
         .pr-crumbs {
             display: flex;
             flex-wrap: wrap;
@@ -850,6 +856,12 @@
                 <div>
                     <h1 class="pr-title">Dokumen karyawan</h1>
                     <p class="pr-lede">Surat yang diterbitkan untuk karyawan. Unduh PDF-nya atau kirim ke email karyawan.</p>
+                </div>
+                <div class="pr-actions">
+                    @canany(['CreateBeritaAcara', 'ManageBeritaAcara'])
+                        <a href="{{ route('beritaacara.index') }}" class="pr-btn">Berita acara</a>
+                    @endcanany
+                    <a href="{{ route('documents.create') }}" class="pr-btn pr-btn-primary"><i class="fas fa-plus" aria-hidden="true"></i> Buat dokumen</a>
                 </div>
             </header>
 

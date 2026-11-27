@@ -41,7 +41,10 @@
                 ['Employees Contracts', 'contract', ['ManageContracts']],
             ]],
             ['Documents', 'fa-folder-open', [
+                ['Berita Acara', ['route', 'beritaacara.index'], []],
                 ['Documents', 'document', ['ManageDocument']],
+                ['Document Types', ['route', 'documenttype.index'], ['ManageDocumentType']],
+                ['Document Settings', ['route', 'documentconfig.index'], ['ManageDocumentType']],
             ]],
             ['SK', 'fa-file-signature', [
                 ['SK Type', 'Sktype', ['ManageSktypes', 'ManageSkLetters']],
@@ -75,10 +78,13 @@
             
         ],
         'Payroll' => [
-            ['Payrolls', 'fa-wallet', [
+            ['Payroll Fingerprint', 'fa-wallet', [
                 ['Payroll Components', 'payrollcomponents', ['payroll.component.view']],
                 ['Employee Salary', 'employee-salary', ['employee.salary.view']],
                 ['Payroll Period', 'payroll-period', ['payroll.period.view']],
+            ]],
+            ['Payroll Absensi Mobile', 'fa-mobile-screen', [
+                ['Payroll Period', ['route', 'payrollmobileperiod.index'], ['payroll.mobile.period.view']],
             ]],
         ],
         'Administration' => [
@@ -112,6 +118,17 @@
         return false;
     };
 
+    // Angka penanda menu Berita Acara: menunggu persetujuan saya + ajuan saya yang perlu revisi
+    $sbBadges = [];
+    if ($sbUser?->employee_id) {
+        try {
+            $sbBadges['Berita Acara'] = \App\Models\DocumentApproval::where('employee_id', $sbUser->employee_id)->where('status', 'pending')->count()
+                + \App\Models\Documents::where('employee_id', $sbUser->employee_id)->where('status', 'revision')->count();
+        } catch (\Throwable $e) {
+            // tabel belum dimigrasi
+        }
+    }
+
     $sbPath = '/' . ltrim(request()->path(), '/');
     $sbMenu = [];
     $sbOpened = false; // hanya satu grup yang terbuka, walau satu URL ada di dua grup
@@ -133,7 +150,8 @@
                 $path = '/' . ltrim((string) parse_url($url, PHP_URL_PATH), '/');
                 $active = $path !== '/' && ($sbPath === $path || str_starts_with($sbPath, rtrim($path, '/') . '/'));
                 $groupActive = $groupActive || $active;
-                $links[] = compact('label', 'url', 'active');
+                $badge = $sbBadges[$label] ?? 0;
+                $links[] = compact('label', 'url', 'active', 'badge');
             }
             if (!$links) continue;
             $open = $groupActive && !$sbOpened;
@@ -171,7 +189,7 @@
                         <ul class="dropdown-menu">
                             @foreach ($group['links'] as $link)
                                 <li class="{{ $link['active'] ? 'active' : '' }}">
-                                    <a class="nav-link" href="{{ $link['url'] }}" @if ($link['active']) aria-current="page" @endif>{{ $link['label'] }}</a>
+                                    <a class="nav-link" href="{{ $link['url'] }}" @if ($link['active']) aria-current="page" @endif>{{ $link['label'] }}@if ($link['badge'])<span class="sb-badge" aria-label="{{ $link['badge'] }} perlu tindakan">{{ $link['badge'] }}</span>@endif</a>
                                 </li>
                             @endforeach
                         </ul>

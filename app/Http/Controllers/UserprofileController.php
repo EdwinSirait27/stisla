@@ -560,6 +560,11 @@ public function servePhotokk($filename)
             ->where('employee_id', $user->employee_id)
             ->findOrFail($id);
 
+        // Berita acara (jenis beralur approval) punya halaman & PDF sendiri
+        if ($document->companydocumentconfigs?->documenttypes?->requires_approval) {
+            return redirect()->route('beritaacara.pdf', $document->id);
+        }
+
         if (!$document->companydocumentconfigs || !$document->companydocumentconfigs->documenttypes) {
             abort(404, 'Document configuration not found');
         }

@@ -1,538 +1,256 @@
 @extends('layouts.app')
-@section('title', 'Detail SK Letter')
-
+@section('title', 'SK ' . $skletter->sk_number)
 @push('styles')
-    <style>
-        .info-label {
-            font-size: 12px;
-            font-weight: 600;
-            color: #8898aa;
-            /* text-transform: uppercase; */
-            letter-spacing: 0.5px;
-            margin-bottom: 3px;
-        }
-        .info-value {
-            font-size: 14px;
-            color: #34395e;
-            font-weight: 500;
-        }
-        .info-group { margin-bottom: 18px; }
-        .divider { border-top: 1px solid #f1f1f1; margin: 20px 0; }
-        .employee-item {
-            background: #f8f9ff;
-            border: 1px solid #e8ecff;
-            border-radius: 8px;
-            padding: 15px;
-            margin-bottom: 10px;
-        }
-        .menimbang-item, .mengingat-item, .keputusan-item {
-            background: #f8f9ff;
-            border-left: 3px solid #6777ef;
-            border-radius: 6px;
-            padding: 10px 15px;
-            margin-bottom: 8px;
-            font-size: 14px;
-        }
-        .status-badge {
-            font-size: 12px;
-            padding: 5px 14px;
-            border-radius: 20px;
-            font-weight: 600;
-        }
-        .approval-step {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            padding: 10px 0;
-            border-bottom: 1px solid #f1f1f1;
-        }
-        .approval-step:last-child { border-bottom: none; }
-        .approval-icon {
-            width: 36px;
-            height: 36px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 14px;
-            flex-shrink: 0;
-        }
-        .approval-icon.approved { background: #d4edda; color: #28a745; }
-        .approval-icon.pending  { background: #fff3cd; color: #856404; }
-        .salary-info {
-            background: #f0f4ff;
-            border-radius: 8px;
-            padding: 10px 15px;
-            margin-top: 8px;
-        }
-    </style>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+    @include('pages.SkLetters._styles')
 @endpush
 
+@php
+    $sk = $skletter;
+    $type = $sk->sktype;
+    $tgl = fn($d) => $d ? \Carbon\Carbon::parse($d)->locale('id')->translatedFormat('d F Y') : '-';
+    $jam = fn($d) => $d ? \Carbon\Carbon::parse($d)->timezone(config('app.timezone'))->locale('id')->translatedFormat('d M Y, H:i') : '';
+    $rp = fn($v) => $v !== null ? 'Rp ' . number_format((float) $v, 0, ',', '.') : null;
+    $badge = match ($sk->status) {
+        'Draft' => $sk->returned_at ? 'is-returned' : 'is-draft',
+        'Approved HR', 'Approved Director' => 'is-waiting',
+        \App\Models\SkLetter::FINAL_STATUS => 'is-approved',
+        'Cancelled' => 'is-cancelled',
+        default => '',
+    };
+    $applyLater = $sk->isFinal() && $sk->effective_date && $sk->effective_date->isFuture();
+    $menetapkan = trim(html_entity_decode(strip_tags(preg_replace('#<(br|/p|/li)\s*/?>#i', "\n", (string) $sk->menetapkan_text)), ENT_QUOTES));
+    $steps = [
+        1 => ['who' => $sk->approver1, 'at' => $sk->approver_1_at, 'role' => 'HR, mengajukan'],
+        2 => ['who' => $sk->approver2, 'at' => $sk->approver_2_at, 'role' => 'Approver 2'],
+    ];
+    if ($sk->approver_3) $steps[3] = ['who' => $sk->approver3, 'at' => $sk->approver_3_at, 'role' => 'Approver 3'];
+    $nowStep = match ($sk->status) { 'Draft' => 1, 'Approved HR' => 2, 'Approved Director' => 3, default => null };
+@endphp
+
 @section('main')
-<div class="main-content">
-<section class="section">
-
-    <div class="section-header">
-        <h1>SK Letter Detail</h1>
-        <div class="section-header-breadcrumb">
-            <div class="breadcrumb-item"><a href="{{ route('SkLetters') }}">SK Letters</a></div>
-            <div class="breadcrumb-item">Detail</div>
-        </div>
-    </div>
-
-    <div class="section-body">
-    <div class="row">
-
-        {{-- ══════════════════════════════ --}}
-        {{-- KOLOM KIRI --}}
-        {{-- ══════════════════════════════ --}}
-        <div class="col-lg-8">
-
-            {{-- Card: Informasi SK --}}
-            <div class="card">
-                <div class="card-header d-flex justify-content-between align-items-center">
-                    <h4><i class="fas fa-file-alt mr-2 text-primary"></i>SK Information</h4>
-                    <div class="d-flex gap-2 align-items-center">
-                        @php
-                            $statusColors = [
-                                'Draft'                      => 'secondary',
-                                'Cancelled'                  => 'danger',
-                                'Approved HR'                => 'info',
-                                'Approved Director'          => 'primary',
-                                'Approved Managing Director' => 'success',
-                            ];
-                            $color = $statusColors[$skletter->status] ?? 'secondary';
-                        @endphp
-                        <span class="badge badge-{{ $color }} status-badge">
-                            {{ $skletter->status }}
-                        </span>
-
-                        {{-- Action Buttons --}}
-                        @if($skletter->status === 'Draft')
-                            @can('update', $skletter)
-                                <a href="{{ route('SkLetters.edit', $skletter->id) }}"
-                                   class="btn btn-warning btn-sm">
-                                    <i class="fas fa-edit mr-1"></i> Edit
-                                </a>
-                            @endcan
-                        @endif
-
-                        @if($skletter->status === 'Approved Managing Director')
-                            <a href="{{ route('SkLetters.pdf', $skletter->id) }}"
-                               class="btn btn-danger btn-sm" target="_blank">
-                                <i class="fas fa-file-pdf mr-1"></i> PDF
-                            </a>
-                        @endif
-
-                        @can('approve', $skletter)
-                            @if(!in_array($skletter->status, ['Approved Managing Director', 'Cancelled']))
-                                <button type="button" class="btn btn-success btn-sm" id="btn-approve">
-                                    <i class="fas fa-check mr-1"></i> Approve
-                                </button>
-                            @endif
-                        @endcan
-
-                        @if(in_array($skletter->status, ['Draft', 'Approved HR']))
-                            @can('cancel', $skletter)
-                                <button type="button" class="btn btn-danger btn-sm" id="btn-cancel">
-                                    <i class="fas fa-ban mr-1"></i> Cancel
-                                </button>
-                            @endcan
-                        @endif
-                    </div>
+    <div class="main-content pr">
+        <section class="section">
+            <header class="pr-head">
+                <div>
+                    <ol class="pr-crumbs"><li><a href="{{ route('SkLetters') }}">SK</a></li><li aria-current="page">{{ $sk->sk_number }}</li></ol>
+                    <h1 class="pr-title">{{ $sk->title ?: ($type?->sk_name ?? 'Surat keputusan') }}</h1>
+                    <p class="pr-lede">
+                        <span class="sk-badge {{ $badge }}">{{ $sk->status_label }}</span>
+                        {{ $type?->sk_name }}, nomor {{ $sk->sk_number }}, {{ $sk->company?->name }}. Berlaku {{ $tgl($sk->effective_date) }}{{ $sk->inactive_date ? ' sampai ' . $tgl($sk->inactive_date) : '' }}.
+                    </p>
                 </div>
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-6 info-group">
-                            <div class="info-label"><i class="fas fa-hashtag mr-1"></i> SK Number</div>
-                            <div class="info-value">
-                                <strong>{{ $skletter->sk_number  }}</strong>
-                            </div>
-                        </div>
-                        <div class="col-md-6 info-group">
-                            <div class="info-label"><i class="fas fa-tag mr-1"></i> SK Type</div>
-                            <div class="info-value">{{ $skletter->sktype->sk_name ?? '-' }}</div>
-                        </div>
-                        <div class="col-md-12 info-group">
-                            <div class="info-label"><i class="fas fa-heading mr-1"></i> Title</div>
-                            <div class="info-value">{{ $skletter->title ?? '-' }}</div>
-                        </div>
-                        <div class="col-md-6 info-group">
-                            <div class="info-label"><i class="fas fa-building mr-1"></i> Publishing Company</div>
-                            <div class="info-value">{{ $skletter->company->name ?? '-' }}</div>
-                        </div>
-                        <div class="col-md-6 info-group">
-                            <div class="info-label"><i class="fas fa-map-marker-alt mr-1"></i> Published At</div>
-                            <div class="info-value">{{ $skletter->location ?? '-' }}</div>
-                        </div>
-                        <div class="col-md-4 info-group">
-                            <div class="info-label"><i class="fas fa-calendar mr-1"></i> Effective Date</div>
-                            <div class="info-value">
-                                {{ optional($skletter->effective_date)->translatedFormat('d F Y') ?? '-' }}
-                            </div>
-                        </div>
-                        <div class="col-md-4 info-group">
-                            <div class="info-label"><i class="fas fa-calendar-times mr-1"></i> Inactive Date</div>
-                            <div class="info-value">
-                                {{ optional($skletter->inactive_date)->translatedFormat('d F Y') ?? 'Continuesly' }}
-                            </div>
-                        </div>
-                        <div class="col-md-4 info-group">
-                            <div class="info-label"><i class="fas fa-clock mr-1"></i> Created At</div>
-                            <div class="info-value">
-                                                               {{ optional($skletter->created_at)->translatedFormat('d F Y') ?? '-' }}
-
-                            </div>
-                        </div>
-                        @if($skletter->notes)
-                            <div class="col-md-12 info-group mb-0">
-                                <div class="info-label"><i class="fas fa-sticky-note mr-1"></i> Notes</div>
-                                <div class="info-value">{{ $skletter->notes }}</div>
-                            </div>
-                        @endif
-                    </div>
-                </div>
-            </div>
-
-            {{-- Card: Employees --}}
-            <div class="card">
-                <div class="card-header d-flex justify-content-between align-items-center">
-                    <h4><i class="fas fa-users mr-2 text-primary"></i>
-                        Employee Data
-                        <span class="badge badge-primary ml-1">{{ $skletter->employees->count() }}</span>
-                    </h4>
-                </div>
-                <div class="card-body">
-                    @forelse($skletter->employees as $i => $employee)
-                    @php $pivot = $employee->pivot; @endphp
-                    <div class="employee-item">
-                        <div class="d-flex justify-content-between align-items-start mb-2">
-                            <div>
-                                <strong style="font-size:15px">{{ $employee->employee_name }}</strong>
-                                <span class="text-muted ml-2" style="font-size:12px">
-                                    {{ $employee->employee_pengenal ?? $employee->employee_code ?? '-' }}
-                                </span>
-                            </div>
-                            <span class="badge badge-light" style="font-size:11px">#{{ $i + 1 }}</span>
-                        </div>
-                        <div class="row">
-                            @if($pivot->previous_structure_id)
-                            <div class="col-md-6 info-group mb-2">
-                                <div class="info-label">Previous Position</div>
-                                <div class="info-value">
-                                    {{ optional(
-                                        \App\Models\Structuresnew::with('submissionposition.positionRelation')
-                                            ->find($pivot->previous_structure_id)
-                                    )->submissionposition?->positionRelation?->name ?? '-' }} - {{ optional(
-                                        \App\Models\Structuresnew::with('submissionposition.company')
-                                            ->find($pivot->previous_structure_id)
-                                    )->submissionposition?->company?->name ?? '-' }}
-                                </div>
-                            </div>
-                            @endif
-                            @if($pivot->new_structure_id)
-                            <div class="col-md-6 info-group mb-2">
-                                <div class="info-label">New Position</div>
-                                <div class="info-value">
-                                    <strong>
-                                    {{ optional(
-                                        \App\Models\Structuresnew::with('submissionposition.positionRelation')
-                                            ->find($pivot->new_structure_id)
-                                    )->submissionposition?->positionRelation?->name ?? '-' }} -  {{ optional(
-                                        \App\Models\Structuresnew::with('submissionposition.company')
-                                            ->find($pivot->new_structure_id)
-                                    )->submissionposition?->company?->name ?? '-' }}
-                                    </strong>
-                                </div>
-                            </div>
-                            @endif
-                        </div>
-                        @if($pivot->basic_salary || $pivot->positional_allowance || $pivot->daily_rate)
-                        <div class="salary-info">
-                            <div class="row">
-                                @if($pivot->basic_salary)
-                                <div class="col-md-4">
-                                    <div class="info-label">Basic Salary</div>
-                                    <div class="info-value">
-                                        Rp {{ number_format($pivot->basic_salary, 0, ',', '.') }}
-                                    </div>
-                                </div>
-                                @endif
-                                @if($pivot->positional_allowance)
-                                <div class="col-md-4">
-                                    <div class="info-label">Positional Allowance</div>
-                                    <div class="info-value">
-                                        Rp {{ number_format($pivot->positional_allowance, 0, ',', '.') }}
-                                    </div>
-                                </div>
-                                @endif
-                                @if($pivot->daily_rate)
-                                <div class="col-md-4">
-                                    <div class="info-label">Daily Rate</div>
-                                    <div class="info-value">
-                                        Rp {{ number_format($pivot->daily_rate, 0, ',', '.') }}
-                                    </div>
-                                </div>
-                                @endif
-                            </div>
-                        </div>
-                        @endif
-                        @if($pivot->notes)
-                            <div class="mt-2 text-muted" style="font-size:13px">
-                                <i class="fas fa-sticky-note mr-1"></i> {{ $pivot->notes }}
-                            </div>
-                        @endif
-                    </div>
-                    @empty
-                        <div class="text-center text-muted py-3">
-                            <i class="fas fa-users fa-2x mb-2 d-block"></i>
-                            No employees in this SK.
-                        </div>
-                    @endforelse
-                </div>
-            </div>
-
-            {{-- Card: Menetapkan --}}
-            {{-- @if($skletter->menetapkan_text)
-            <div class="card">
-                <div class="card-header">
-                    <h4><i class="fas fa-stamp mr-2 text-primary"></i>Establish</h4>
-                </div>
-                <div class="card-body">
-                    <div style="font-size:14px; line-height:1.7;">
-                        {!! $skletter->menetapkan_text !!}
-                    </div>
-                </div>
-            </div>
-            @endif --}}
-
-            {{-- Card: Keputusan --}}
-            @if($skletter->keputusan->count() > 0)
-            <div class="card">
-                <div class="card-header">
-                    <h4><i class="fas fa-list-ol mr-2 text-primary"></i>Memutuskan</h4>
-                </div>
-                <div class="card-body">
-                    @foreach($skletter->keputusan as $i => $item)
-                        <div class="keputusan-item">
-                            <strong>{{ $i + 1 }}.</strong> {{ $item->content_keputusan }}
-                        </div>
-                    @endforeach
-                </div>
-            </div>
-            @endif
-
-        </div>
-
-        {{-- ══════════════════════════════ --}}
-        {{-- KOLOM KANAN --}}
-        {{-- ══════════════════════════════ --}}
-        <div class="col-lg-4">
-
-            {{-- Card: Approval Progress --}}
-            <div class="card">
-                <div class="card-header">
-                    <h4><i class="fas fa-tasks mr-2 text-primary"></i>Approval Progress</h4>
-                </div>
-                <div class="card-body">
-
-                    {{-- Step 1: HR --}}
-                    <div class="approval-step">
-                        <div class="approval-icon {{ $skletter->approver_1_at ? 'approved' : 'pending' }}">
-                            <i class="fas fa-{{ $skletter->approver_1_at ? 'check' : 'clock' }}"></i>
-                        </div>
-                        <div class="flex-grow-1">
-                            <div style="font-weight:600; font-size:13px;">HR Manager</div>
-                            @if($skletter->approver1)
-                                <div style="font-size:12px; color:#555;">
-                                    {{ $skletter->approver1->employee_name }}
-                                </div>
-                            @endif
-                            @if($skletter->approver_1_at)
-                                <div style="font-size:11px; color:#28a745;">
-                                    <i class="fas fa-check-circle mr-1"></i>
-                                    {{ $skletter->approver_1_at->timezone('Asia/Makassar')
-                                        ->translatedFormat('d F Y, H:i') }} WITA
-                                </div>
-                            @else
-                                <div style="font-size:11px; color:#856404;">
-                                    <i class="fas fa-clock mr-1"></i> Pending
-                                </div>
-                            @endif
-                        </div>
-                    </div>
-
-                    {{-- Step 2: Director --}}
-                    <div class="approval-step">
-                        <div class="approval-icon {{ $skletter->approver_2_at ? 'approved' : 'pending' }}">
-                            <i class="fas fa-{{ $skletter->approver_2_at ? 'check' : 'clock' }}"></i>
-                        </div>
-                        <div class="flex-grow-1">
-                            <div style="font-weight:600; font-size:13px;">Director</div>
-                            @if($skletter->approver2)
-                                <div style="font-size:12px; color:#555;">
-                                    {{ $skletter->approver2->employee_name }}
-                                </div>
-                            @endif
-                            @if($skletter->approver_2_at)
-                                <div style="font-size:11px; color:#28a745;">
-                                    <i class="fas fa-check-circle mr-1"></i>
-                                    {{ $skletter->approver_2_at->timezone('Asia/Makassar')
-                                        ->translatedFormat('d F Y, H:i') }} WITA
-                                </div>
-                            @else
-                                <div style="font-size:11px; color:#856404;">
-                                    <i class="fas fa-clock mr-1"></i> Pending
-                                </div>
-                            @endif
-                        </div>
-                    </div>
-
-                    {{-- Step 3: Managing Director --}}
-                    <div class="approval-step">
-                        <div class="approval-icon {{ $skletter->approver_3_at ? 'approved' : 'pending' }}">
-                            <i class="fas fa-{{ $skletter->approver_3_at ? 'check' : 'clock' }}"></i>
-                        </div>
-                        <div class="flex-grow-1">
-                            <div style="font-weight:600; font-size:13px;">Managing Director</div>
-                            @if($skletter->approver3)
-                                <div style="font-size:12px; color:#555;">
-                                    {{ $skletter->approver3->employee_name }}
-                                </div>
-                            @endif
-                            @if($skletter->approver_3_at)
-                                <div style="font-size:11px; color:#28a745;">
-                                    <i class="fas fa-check-circle mr-1"></i>
-                                    {{ $skletter->approver_3_at->timezone('Asia/Makassar')
-                                        ->translatedFormat('d F Y, H:i') }} WITA
-                                </div>
-                            @else
-                                <div style="font-size:11px; color:#856404;">
-                                    <i class="fas fa-clock mr-1"></i> Pending
-                                </div>
-                            @endif
-                        </div>
-                    </div>
-
-                </div>
-            </div>
-
-            {{-- Card: Menimbang --}}
-            @if($skletter->menimbang->count() > 0)
-            <div class="card">
-                <div class="card-header">
-                    <h4><i class="fas fa-balance-scale mr-2 text-primary"></i>Menimbang</h4>
-                </div>
-                <div class="card-body">
-                    @foreach($skletter->menimbang as $i => $item)
-                        <div class="menimbang-item">
-                            <strong>{{ $i + 1 }}.</strong> {{ $item->content_menimbang }}
-                        </div>
-                    @endforeach
-                </div>
-            </div>
-            @endif
-
-            {{-- Card: Mengingat --}}
-            @if($skletter->mengingat->count() > 0)
-            <div class="card">
-                <div class="card-header">
-                    <h4><i class="fas fa-book mr-2 text-primary"></i>Mengingat</h4>
-                </div>
-                <div class="card-body">
-                    @foreach($skletter->mengingat as $i => $item)
-                        <div class="mengingat-item">
-                            <strong>{{ $i + 1 }}.</strong> {{ $item->content_mengingat }}
-                        </div>
-                    @endforeach
-                </div>
-            </div>
-            @endif
-
-            {{-- Card: Quick Actions --}}
-            <div class="card">
-                <div class="card-body">
-                    <a href="{{ route('SkLetters') }}" class="btn btn-secondary btn-block mb-2">
-                        <i class="fas fa-arrow-left mr-1"></i> Back to List
-                    </a>
-                    @if($skletter->status === 'Approved Managing Director')
-                        <a href="{{ route('SkLetters.pdf', $skletter->id) }}"
-                           class="btn btn-danger btn-block mb-2" target="_blank">
-                            <i class="fas fa-file-pdf mr-1"></i> Export PDF
-                        </a>
+                <div class="pr-actions">
+                    <a href="{{ route('SkLetters.pdf', $sk->id) }}" class="pr-btn" target="_blank" rel="noopener"><i class="fas fa-file-pdf" aria-hidden="true"></i> PDF</a>
+                    @if ($canEdit)
+                        <a href="{{ route('SkLetters.edit', $sk->id) }}" class="pr-btn"><i class="fas fa-pen" aria-hidden="true"></i> Ubah</a>
+                    @endif
+                    @if ($canSubmit)
+                        <form method="POST" action="{{ route('SkLetters.submit', $sk->id) }}" class="sk-confirm" data-confirm="Ajukan SK ini ke {{ $sk->approver2?->employee_name ?? 'approver 2' }}? Setelah diajukan, SK tidak bisa diubah kecuali dikembalikan.">
+                            @csrf
+                            <button type="submit" class="pr-btn pr-btn-primary"><i class="fas fa-paper-plane" aria-hidden="true"></i> Ajukan untuk persetujuan</button>
+                        </form>
+                    @endif
+                    @if ($canCancel)
+                        <form method="POST" action="{{ route('SkLetters.cancel', $sk->id) }}" class="sk-confirm" data-confirm="Batalkan SK {{ $sk->sk_number }}? SK yang dibatalkan tidak bisa diajukan lagi.">
+                            @csrf
+                            <button type="submit" class="pr-btn pr-btn-danger">Batalkan</button>
+                        </form>
                     @endif
                 </div>
+            </header>
+
+            @if (session('success'))<p class="sk-notice is-ok" role="status">{{ session('success') }}</p>@endif
+            @if (session('error'))<p class="sk-notice is-warn" role="alert">{{ session('error') }}</p>@endif
+            @if ($errors->any())
+                <div class="emp-errors" role="alert"><strong>Belum bisa diproses.</strong><ul>@foreach ($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul></div>
+            @endif
+            @if ($sk->status === 'Draft' && $sk->returned_at)
+                <p class="sk-notice is-warn"><strong>Dikembalikan oleh {{ $returnedBy ?? 'approver' }} ({{ $jam($sk->returned_at) }}):</strong> {{ $sk->returned_note }}</p>
+            @elseif ($sk->status === 'Draft' && $canSubmit)
+                <p class="sk-notice is-info">SK ini masih Draft. Periksa isinya, lalu tekan <strong>Ajukan untuk persetujuan</strong>.</p>
+            @elseif ($sk->isFinal())
+                <p class="sk-notice is-ok">
+                    Disetujui penuh {{ $jam($sk->completed_at) }}.
+                    {{ $applyLater ? 'Jabatan dan penempatan berubah otomatis pada ' . $tgl($sk->effective_date) . '; gaji baru sudah dicatat dan berlaku mulai tanggal itu.' : 'Perubahan sudah diterapkan ke data karyawan.' }}
+                </p>
+            @endif
+
+            @if ($myTurn)
+                <section class="pr-panel" aria-labelledby="h-decide">
+                    <div class="pr-panel-head">
+                        <div>
+                            <h2 class="pr-panel-title" id="h-decide">Giliran Anda menyetujui</h2>
+                            <span class="pr-panel-sub">Periksa daftar karyawan, perubahan, dan gaji di bawah. Tanda tangan dari profil Anda ikut tercetak di PDF.</span>
+                        </div>
+                    </div>
+                    <div class="sk-decide">
+                        <form method="POST" action="{{ route('SkLetters.approve', $sk->id) }}" class="sk-confirm" data-confirm="Setujui SK {{ $sk->sk_number }}?">
+                            @csrf
+                            <button type="submit" class="pr-btn pr-btn-primary"><i class="fas fa-check" aria-hidden="true"></i> Setujui</button>
+                        </form>
+                        <form method="POST" action="{{ route('SkLetters.return', $sk->id) }}">
+                            @csrf
+                            <label for="return-note" class="emp-help" style="font-weight:700;color:var(--pr-ink)">Atau kembalikan ke HR untuk diperbaiki</label>
+                            <textarea id="return-note" name="note" class="emp-input" rows="2" minlength="5" maxlength="1000" placeholder="Tulis yang perlu diperbaiki" required>{{ old('note') }}</textarea>
+                            <button type="submit" class="pr-btn" style="margin-top:8px">Kembalikan</button>
+                        </form>
+                    </div>
+                </section>
+            @endif
+
+            <div class="sk-layout">
+                <div>
+                    <section class="pr-panel" aria-labelledby="h-people">
+                        <div class="pr-panel-head">
+                            <div>
+                                <h2 class="pr-panel-title" id="h-people">Karyawan ({{ $sk->employees->count() }})</h2>
+                                <span class="pr-panel-sub">Yang berubah, dari kondisi saat SK dibuat ke yang baru.</span>
+                            </div>
+                        </div>
+                        @forelse ($sk->employees as $e)
+                            @php
+                                $p = $e->pivot;
+                                $changes = array_filter([
+                                    'Jabatan'    => $p->new_position_id ? [$positions[$p->position_id] ?? '-', $positions[$p->new_position_id] ?? '-'] : null,
+                                    'Departemen' => $p->new_department_id ? [$departments[$p->department_id] ?? '-', $departments[$p->new_department_id] ?? '-'] : null,
+                                    'Lokasi'     => $p->new_store_id ? [$stores[$p->previous_store_id] ?? '-', $stores[$p->new_store_id] ?? '-'] : null,
+                                    'Grading'    => $p->new_grading_id ? [$gradings[$p->grading_id] ?? '-', $gradings[$p->new_grading_id] ?? '-'] : null,
+                                    'Group'      => $p->new_group_id ? [$groups[$p->group_id] ?? '-', $groups[$p->new_group_id] ?? '-'] : null,
+                                    'Jenis'      => $p->new_status_employee ? [$p->previous_status_employee ?? '-', $p->new_status_employee] : null,
+                                ]);
+                                $pay = array_filter(['Gaji pokok' => $rp($p->basic_salary), 'Tunjangan jabatan' => $rp($p->positional_allowance), 'Daily rate' => $rp($p->daily_rate)]);
+                            @endphp
+                            <article class="sk-person">
+                                <div class="sk-person-head">
+                                    <div>
+                                        <strong>{{ $e->employee_name }}</strong>
+                                        <span class="sk-person-now">{{ $e->employee_pengenal ? 'NIP ' . $e->employee_pengenal : 'Tanpa NIP' }}</span>
+                                    </div>
+                                </div>
+                                @if ($changes || $pay || $p->notes || ($p->new_structure_id && !$p->new_position_id))
+                                    <dl class="sk-change">
+                                        @foreach ($changes as $label => [$from, $to])
+                                            <dt>{{ $label }}</dt><dd><span class="from">{{ $from }}</span> menjadi <strong>{{ $to }}</strong></dd>
+                                        @endforeach
+                                        @if ($type?->categories === 'Termination')
+                                            <dt>Status</dt><dd><strong>Resign</strong> mulai {{ $tgl($sk->effective_date) }}</dd>
+                                        @endif
+                                        @foreach ($pay as $label => $value)
+                                            <dt>{{ $label }}</dt><dd><strong>{{ $value }}</strong></dd>
+                                        @endforeach
+                                        @if ($p->new_structure_id && !$p->new_position_id)
+                                            <dt>Struktur</dt><dd>SK lama: memakai struktur jabatan (modul struktur sudah tidak dipakai)</dd>
+                                        @endif
+                                        @if ($p->notes)
+                                            <dt>Keterangan</dt><dd>{{ $p->notes }}</dd>
+                                        @endif
+                                    </dl>
+                                @else
+                                    <p class="emp-help">Tidak ada perubahan yang diisi untuk karyawan ini.</p>
+                                @endif
+                                @if ($sk->isFinal() && $type?->generates_contract)
+                                    @php $ct = $sk->contracts->firstWhere('employee_id', $e->id); @endphp
+                                    @if ($ct)
+                                        <a href="{{ route('showcontract', $ct->id) }}" class="pr-btn pr-btn-sm" style="margin:8px 8px 0 0">Lihat kontrak</a>
+                                    @elseif (auth()->user()->can('ManageContracts'))
+                                        <a href="{{ route('createcontract', ['sk' => $sk->id, 'employee' => $e->id]) }}" class="pr-btn pr-btn-sm pr-btn-primary" style="margin:8px 8px 0 0">Buat kontrak dari SK ini</a>
+                                    @endif
+                                @endif
+                                @if ($sk->isFinal())
+                                    @if ($p->applied_at)
+                                        <span class="sk-applied">Sudah diterapkan ke data karyawan, {{ $jam($p->applied_at) }}</span>
+                                    @else
+                                        <span class="sk-applied is-later">Diterapkan otomatis pada {{ $tgl($sk->effective_date) }}</span>
+                                    @endif
+                                @endif
+                            </article>
+                        @empty
+                            <p class="sk-empty">Belum ada karyawan di SK ini.@if ($canEdit) Tambahkan lewat Ubah.@endif</p>
+                        @endforelse
+                    </section>
+
+                    <section class="pr-panel" aria-labelledby="h-content">
+                        <div class="pr-panel-head"><div><h2 class="pr-panel-title" id="h-content">Isi SK</h2></div></div>
+                        <div class="sk-text">
+                            @foreach ([['Menimbang', $sk->menimbang, 'content_menimbang'], ['Mengingat', $sk->mengingat, 'content_mengingat']] as [$label, $items, $col])
+                                @if ($items->isNotEmpty())
+                                    <h3>{{ $label }}</h3>
+                                    <ol>@foreach ($items as $it)<li>{{ $it->{$col} }}</li>@endforeach</ol>
+                                @endif
+                            @endforeach
+                            @if ($menetapkan !== '')
+                                <h3>Menetapkan</h3>
+                                <p style="margin:0">{!! nl2br(e($menetapkan)) !!}</p>
+                            @endif
+                            @if ($sk->keputusan->isNotEmpty())
+                                <h3>Memutuskan</h3>
+                                <ol>@foreach ($sk->keputusan as $it)<li>{{ $it->content_keputusan }}</li>@endforeach</ol>
+                            @endif
+                            @if ($sk->menimbang->isEmpty() && $sk->mengingat->isEmpty() && $menetapkan === '' && $sk->keputusan->isEmpty())
+                                <p class="emp-help" style="margin:0">Isi SK belum ditulis.</p>
+                            @endif
+                        </div>
+                    </section>
+                </div>
+
+                <aside>
+                    <section class="pr-panel" aria-labelledby="h-steps">
+                        <div class="pr-panel-head"><div><h2 class="pr-panel-title" id="h-steps">Persetujuan</h2><span class="pr-panel-sub">Berurutan, dari atas ke bawah.</span></div></div>
+                        <ol class="sk-steps">
+                            @foreach ($steps as $n => $s)
+                                @php
+                                    // Saat Draft belum ada yang menyetujui (data lama bisa menyimpan waktu approver 1 di Draft)
+                                    $done = $s['at'] && $sk->status !== 'Draft';
+                                    $state = $done ? 'is-done' : ($nowStep === $n && $sk->status !== 'Cancelled' ? 'is-now' : '');
+                                @endphp
+                                <li class="sk-step {{ $state }}">
+                                    <span class="sk-step-num" aria-hidden="true">{{ $n }}</span>
+                                    <div>
+                                        <strong>{{ $s['who']?->employee_name ?? 'Belum dipilih' }}</strong>
+                                        <span>{{ $s['role'] }}.
+                                            @if ($done) {{ $n === 1 ? 'Diajukan' : 'Disetujui' }} {{ $jam($s['at']) }}
+                                            @elseif ($state === 'is-now') {{ $n === 1 ? 'Menunggu diajukan' : 'Sedang menunggu persetujuan' }}
+                                            @else Belum @endif
+                                        </span>
+                                    </div>
+                                </li>
+                            @endforeach
+                        </ol>
+                    </section>
+
+                    @if ($sk->notes && $canManage)
+                        <section class="pr-panel" aria-labelledby="h-notes">
+                            <div class="pr-panel-head"><div><h2 class="pr-panel-title" id="h-notes">Catatan internal</h2></div></div>
+                            <p class="sk-text" style="margin:0">{{ $sk->notes }}</p>
+                        </section>
+                    @endif
+
+                    <section class="pr-panel" aria-labelledby="h-log">
+                        <div class="pr-panel-head"><div><h2 class="pr-panel-title" id="h-log">Riwayat</h2></div></div>
+                        @if ($activities->isEmpty())
+                            <p class="sk-empty">Belum ada riwayat.</p>
+                        @else
+                            <ol class="sk-log">
+                                @foreach ($activities as $a)<li>{{ $a->description }}<time datetime="{{ $a->created_at?->toIso8601String() }}">{{ $jam($a->created_at) }}</time></li>@endforeach
+                            </ol>
+                        @endif
+                    </section>
+                </aside>
             </div>
-
-        </div>
+        </section>
     </div>
-    </div>
-
-</section>
-</div>
 @endsection
 
 @push('scripts')
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-<script>
-$(document).ready(function () {
-
-   
-
-    @if(session('success'))
-        Swal.fire({ icon: 'success', title: 'Berhasil!', text: "{{ session('success') }}" });
-    @endif
-    @if(session('error'))
-        Swal.fire({ icon: 'error', title: 'Gagal!', text: "{{ session('error') }}" });
-    @endif
-
-});
-</script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        // Konfirmasi untuk aksi yang tidak bisa diurungkan (ajukan, setujui, batalkan)
+        document.querySelectorAll('form.sk-confirm').forEach(form => form.addEventListener('submit', function(e) {
+            if (form.dataset.ok) return;
+            e.preventDefault();
+            Swal.fire({ icon: 'question', text: form.dataset.confirm, showCancelButton: true, confirmButtonText: 'Ya, lanjutkan', cancelButtonText: 'Batal', confirmButtonColor: '#4f46e5' })
+                .then(r => { if (r.isConfirmed) { form.dataset.ok = '1'; form.querySelector('button[type=submit]').disabled = true; form.submit(); } });
+        }));
+    </script>
 @endpush
- {{-- // Approve
-    // $('#btn-approve').on('click', function () {
-    //     Swal.fire({
-    //         title: 'Approve SK?',
-    //         text: 'Pastikan data sudah benar sebelum approve.',
-    //         icon: 'question',
-    //         showCancelButton: true,
-    //         confirmButtonColor: '#28a745',
-    //         cancelButtonColor: '#d33',
-    //         confirmButtonText: 'Ya, Approve!',
-    //         cancelButtonText: 'Batal'
-    //     }).then((result) => {
-    //         if (result.isConfirmed) {
-    //             $.post('{{ route('SkLetters.approve', $skletter->id) }}', {
-    //                 _token: '{{ csrf_token() }}'
-    //             }).done(function () {
-    //                 location.reload();
-    //             }).fail(function (xhr) {
-    //                 Swal.fire('Gagal!', xhr.responseJSON?.message ?? 'Terjadi kesalahan.', 'error');
-    //             });
-    //         }
-    //     });
-    // });
-
-    // Cancel
-    // $('#btn-cancel').on('click', function () {
-    //     Swal.fire({
-    //         title: 'Cancel SK?',
-    //         text: 'SK yang dibatalkan tidak dapat diproses kembali.',
-    //         icon: 'warning',
-    //         showCancelButton: true,
-    //         confirmButtonColor: '#dc3545',
-    //         cancelButtonColor: '#6c757d',
-    //         confirmButtonText: 'Ya, Cancel!',
-    //         cancelButtonText: 'Tidak'
-    //     }).then((result) => {
-    //         if (result.isConfirmed) {
-    //             $.post('{{ route('SkLetters.cancel', $skletter->id) }}', {
-    //                 _token: '{{ csrf_token() }}'
-    //             }).done(function () {
-    //                 location.reload();
-    //             }).fail(function (xhr) {
-    //                 Swal.fire('Gagal!', xhr.responseJSON?.message ?? 'Terjadi kesalahan.', 'error');
-    //             });
-    //         }
-    //     });
-    // }); --}}

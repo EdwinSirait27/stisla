@@ -15,6 +15,7 @@ class Documenttypes extends Model
     public $timestamps = false;
     protected $casts = [
         'is_active'   => 'boolean',
+        'requires_approval' => 'boolean',
     ];
     protected static function boot()
     {
@@ -30,6 +31,8 @@ class Documenttypes extends Model
         'view_name',
         'nickname',
         'is_active',
+        // true = memakai alur approval bertingkat (berita acara), bukan terbit langsung
+        'requires_approval',
     ];
     public function setDocumentNameAttribute($value)
     {

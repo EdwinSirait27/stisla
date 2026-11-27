@@ -1500,6 +1500,11 @@
 
             @include('pages.dashboardSupervisor._approvals')
 
+            {{-- Berita acara: giliran saya menyetujui dan tembusan (hanya tampil kalau ada) --}}
+            @include('pages.BeritaAcara._dashboard')
+            @include('pages.SkLetters._dashboard')
+            @include('pages.contract._dashboard')
+
             {{-- Kehadiran tim: store + departemen yang sama, ditambah bawahan langsung --}}
             @include('pages.dashboardSupervisor._team', [
                 'teamId' => 'team',

@@ -25,6 +25,7 @@ class SkLetterEmployee extends Pivot
         'basic_salary'         => 'decimal:2',
         'positional_allowance' => 'decimal:2',
         'daily_rate'           => 'decimal:2',
+        'applied_at'           => 'datetime',
     ];
 
     protected $fillable = [
@@ -40,7 +41,24 @@ class SkLetterEmployee extends Pivot
         'positional_allowance',
         'daily_rate',
         'notes',
+        'previous_store_id',
+        'previous_status_employee',
+        'new_position_id',
+        'new_department_id',
+        'new_store_id',
+        'new_grading_id',
+        'new_group_id',
+        'new_status_employee',
+        'applied_at',
+        'salary_id',
     ];
+
+    public function newPosition()   { return $this->belongsTo(Position::class, 'new_position_id', 'id'); }
+    public function newDepartment() { return $this->belongsTo(Departments::class, 'new_department_id', 'id'); }
+    public function newStore()      { return $this->belongsTo(Stores::class, 'new_store_id', 'id'); }
+    public function newGrading()    { return $this->belongsTo(Grading::class, 'new_grading_id', 'id'); }
+    public function newGroup()      { return $this->belongsTo(Groups::class, 'new_group_id', 'id'); }
+    public function previousStore() { return $this->belongsTo(Stores::class, 'previous_store_id', 'id'); }
 
     public function skLetter()
     {

@@ -1494,6 +1494,10 @@
 
             @include('pages.dashboardSupervisor._approvals')
 
+            @include('pages.BeritaAcara._dashboard')
+            @include('pages.SkLetters._dashboard')
+            @include('pages.contract._dashboard')
+
             @include('pages.dashboardSupervisor._team')
 
             <h2 class="pr-section-title">Data saya</h2>

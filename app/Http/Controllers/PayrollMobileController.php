@@ -1,0 +1,1526 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Models\Employee;
+use App\Models\PayrollMobile;
+use App\Models\Stores;
+use App\Models\Position;
+use App\Models\PayrollMobileDetail;
+use App\Models\Grading;
+use App\Models\PayrollMobilePeriod;
+use App\Services\PayrollMobileService;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+use Yajra\DataTables\Facades\DataTables;
+use App\Exports\PayrollMobileExport;
+use App\Imports\PayrollMobileAttendanceImport;
+use App\Models\Company;
+use App\Models\Departments;
+use Maatwebsite\Excel\Facades\Excel;
+use App\Mail\PayrollMobileSlipMail;
+use App\Services\PayrollMobileSlipService;
+use Illuminate\Support\Facades\Mail;
+use App\Jobs\SendPayrollMobileSlipJob;
+
+class PayrollMobileController extends Controller
+{
+    protected PayrollMobileService $payrollService;
+
+    /** Permission per aksi (Spatie), bukan role. Route di web.php memakai peta yang sama. */
+    private const PERMISSIONS = [
+        'index'                      => 'payroll.mobile.view',
+        'getPayroll'                 => 'payroll.mobile.view',
+        'show'                       => 'payroll.mobile.show',
+        'generate'                   => 'payroll.mobile.generate',
+        'generateOne'                => 'payroll.mobile.generate.one',
+        'edit'                       => 'payroll.mobile.update',
+        'update'                     => 'payroll.mobile.update',
+        'destroy'                    => 'payroll.mobile.destroy',
+        'destroyBulk'                => 'payroll.mobile.destroy.bulk',
+        'approve'                    => 'payroll.mobile.approve',
+        'approveBulk'                => 'payroll.mobile.approve.bulk',
+        'paid'                       => 'payroll.mobile.paid',
+        'export'                     => 'payroll.mobile.export',
+        'importAttendance'           => 'payroll.mobile.import',
+        'downloadAttendanceTemplate' => 'payroll.mobile.download.template',
+        'downloadSlip'               => 'payroll.mobile.download.slip',
+        'downloadSlipBulk'           => 'payroll.mobile.slip.bulk',
+        'sendSlipEmail'              => 'payroll.mobile.send.slip',
+        'sendSlipEmailBulk'          => 'payroll.mobile.send.slip.bulk',
+    ];
+
+    public function __construct(PayrollMobileService $payrollService)
+    {
+        foreach (self::PERMISSIONS as $method => $permission) {
+            $this->middleware('permission:' . $permission)->only($method);
+        }
+
+        $this->payrollService = $payrollService;
+    }
+    // ── Index per periode ──
+    public function index(string $periodId)
+    {
+        $user     = auth()->user();
+        /** @var \App\Models\User|null $user */
+        if (!$user->hasPermissionTo('payroll.mobile.view')) {
+            abort(403, 'Unauthorized');
+        }
+        $period = PayrollMobilePeriod::findOrFail($periodId);
+        $agg = PayrollMobile::where('payroll_period_id', $periodId)
+            ->selectRaw("
+                COUNT(*)                                      AS total,
+                SUM(status = 'draft')                         AS draft,
+                SUM(status = 'approved')                      AS approved,
+                SUM(status = 'paid')                          AS paid,
+                COALESCE(SUM(gross_salary), 0)                AS total_gross,
+                COALESCE(SUM(overtime_amount), 0)             AS total_overtime,
+                COALESCE(SUM(total_deduction), 0)             AS total_deduction,
+                COALESCE(SUM(net_salary), 0)                  AS total_net,
+                SUM(status = 'draft' AND net_salary < 0)      AS net_negative,
+                SUM(status = 'draft' AND attendance_days = 0) AS no_attendance
+            ")
+            ->first();
+        $stats = [
+            'total'           => (int) $agg->total,
+            'draft'           => (int) $agg->draft,
+            'approved'        => (int) $agg->approved,
+            'paid'            => (int) $agg->paid,
+            'total_gross'     => (float) $agg->total_gross,
+            'total_overtime'  => (float) $agg->total_overtime,
+            'total_deduction' => (float) $agg->total_deduction,
+            'total_net'       => (float) $agg->total_net,
+            'net_negative'    => (int) $agg->net_negative,
+            'no_attendance'   => (int) $agg->no_attendance,
+        ];
+        $stores = Stores::orderBy('name')->get();
+        $companies = Company::orderBy('name')->get();
+        $departments = Departments::orderBy('department_name')->get();
+        $positions = Position::orderBy('name')->get();
+        $statuses = Employee::getStatusOptions();
+        $gradings = Grading::orderBy('grading_name')->get();
+        return view('pages.PayrollMobile.index', compact('statuses', 'gradings', 'positions', 'departments', 'companies', 'period', 'stats', 'stores'));
+    }
+
+    // ── DataTable ──
+//     public function getPayroll(Request $request, string $periodId)
+//     {
+//         $user     = auth()->user();
+//         /** @var \App\Models\User|null $user */
+//         if (!$user->hasPermissionTo('ManagePayroll')) {
+//             abort(403, 'Unauthorized');
+//         }
+//         $period = PayrollMobilePeriod::findOrFail($periodId);
+
+//         $query = PayrollMobile::with([
+//             'employee:id,employee_name,employee_pengenal,status_employee,status,company_id,grading_id',
+//             'employee.store' => fn($q) => $q->wherePivot('is_primary', true),
+//             'employee.department' => fn($q) => $q->wherePivot('is_primary', true),
+//             'employee.position' => fn($q) => $q->wherePivot('is_primary', true),
+//             'employee.company:id,name',
+//             'employee.grading:id,grading_name',
+//             'details.component',
+//         ])
+//             ->where('payroll_period_id', $period->id);
+
+//         if ($request->filled('status')) {
+//             $query->where('status', $request->status);
+//         }
+
+//         if ($request->filled('status_type')) {
+//             $query->whereHas(
+//                 'employee',
+//                 fn($q) =>
+//                 $q->where('status_employee', $request->status_type)
+//             );
+//         }
+//         if ($request->filled('company_name')) {
+//             $query->whereHas(
+//                 'employee.company',
+//                 fn($q) =>
+//                 $q->where('name', $request->company_name)
+//             );
+//         }
+//         if ($request->filled('status_employee')) {
+//             $query->whereHas(
+//                 'employee',
+//                 fn($q) =>
+//                 $q->where('status', $request->status_employee)
+//             );
+//         }
+
+//         if ($request->filled('grading_name')) {
+//             $query->whereHas(
+//                 'employee.grading',
+//                 fn($q) =>
+//                 $q->where('grading_name', $request->grading_name)
+//             );
+//         }
+
+//         if ($request->filled('store_name')) {
+//             $query->whereHas('employee', function ($q) use ($request) {
+//                 $q->whereHas(
+//                     'store',
+//                     fn($sq) =>
+//                     $sq->where('stores_tables.name', $request->store_name)
+//                         ->where('employee_stores.is_primary', true)
+//                 );
+//             });
+//         }
+//         if ($request->filled('department_name')) {
+//             $query->whereHas('employee', function ($q) use ($request) {
+//                 $q->whereHas(
+//                     'department',
+//                     fn($sq) =>
+//                     $sq->where('departments_tables.department_name', $request->department_name)
+//                         ->where('employee_departments.is_primary', true)
+//                 );
+//             });
+//         }
+//         if ($request->filled('search.value')) {
+//             $search = $request->input('search.value');
+//             $query->where(function ($q) use ($search) {
+//                 $q->whereHas('employee', function ($eq) use ($search) {
+//                     $eq->where('employee_name', 'like', '%' . $search . '%')
+//                         ->orWhere('employee_pengenal', 'like', '%' . $search . '%');
+//                 })
+//                     ->orWhereHas(
+//                         'employee.store',
+//                         fn($sq) =>
+//                         $sq->where('stores_tables.name', 'like', '%' . $search . '%')
+//                             ->where('employee_stores.is_primary', true)
+//                     )
+//                     ->orWhereHas(
+//                         'employee.department',
+//                         fn($sq) =>
+//                         $sq->where('departments_tables.department_name', 'like', '%' . $search . '%')
+//                             ->where('employee_departments.is_primary', true)
+//                     );
+//             });
+//         }
+
+//         return DataTables::of($query)
+//             ->addColumn('employee_name', fn($row) => $row->employee->employee_name ?? '-')
+//             ->addColumn('employee_pengenal', fn($row) => $row->employee->employee_pengenal ?? '-')
+//             ->addColumn('status_type', fn($row) => $row->employee->status_employee ?? '-')
+//             ->addColumn('status_employee', fn($row) => $row->employee->status ?? '-')
+//             ->addColumn('company_name', fn($row) => $row->employee->company->name ?? '-')
+//             ->addColumn('grading_name', fn($row) => $row->employee->grading->grading_name ?? '-')
+//             ->addColumn('store_name', fn($row) => $row->employee->store->first()?->name ?? '-')
+//             ->addColumn('department_name', fn($row) => $row->employee->department->first()?->department_name ?? '-')
+//             ->addColumn('position_name', fn($row) => $row->employee->position->first()?->name ?? '-')
+//             ->addColumn('status_badge', fn($row) => match ($row->status) {
+//                 'draft'    => '<span class="status-badge" style="background:#f1f5f9;color:#475569">Draft</span>',
+//                 'approved' => '<span class="status-badge" style="background:#f0fdf4;color:#166534">Approved</span>',
+//                 'paid'     => '<span class="status-badge" style="background:#eff6ff;color:#1e40af">Paid</span>',
+//                 default    => $row->status,
+//             })
+//             ->addColumn('status_type_badge', fn($row) => match ($row->employee->status_employee ?? '') {
+//                 'PKWT'           => '<span class="status-badge" style="background:#eff6ff;color:#1e40af">PKWT</span>',
+//                 'On Job Training' => '<span class="status-badge" style="background:#fdf4ff;color:#6b21a8">OJT</span>',
+//                 'DW'             => '<span class="status-badge" style="background:#fffbeb;color:#92400e">DW</span>',
+//                 default          => '-',
+//             })
+//             ->addColumn('status_employee_badge', fn($row) => match ($row->employee->status ?? '') {
+//                 'Active'           => '<span class="status-badge" style="background:#eff6ff;color:#1e40af">PKWT</span>',
+//                 'Inactive' => '<span class="status-badge" style="background:#fdf4ff;color:#6b21a8">OJT</span>',
+//                 'On Leave'             => '<span class="status-badge" style="background:#fffbeb;color:#92400e">DW</span>',
+//                 'Resign'             => '<span class="status-badge" style="background:#fffbeb;color:#92400e">DW</span>',
+//                 'Mutation'             => '<span class="status-badge" style="background:#fffbeb;color:#92400e">DW</span>',
+//                 default          => '-',
+//             })
+//             ->addColumn(
+//                 'basic_salary_fmt',
+//                 fn($row) =>
+//                 number_format($row->basic_salary, 0, ',', '.')
+//             )
+//             ->addColumn(
+//                 'position_allowance_fmt',
+//                 fn($row) =>
+//                 number_format($row->position_allowance, 0, ',', '.')
+//             )
+//             ->addColumn(
+//                 'daily_rate_fmt',
+//                 fn($row) =>
+//                 number_format($row->daily_rate, 0, ',', '.')
+//             )
+//             ->addColumn(
+//                 'gross_salary_fmt',
+//                 fn($row) =>
+//                 number_format($row->gross_salary, 0, ',', '.')
+//             )
+//             ->addColumn(
+//                 'meal_allowance_fmt',
+//                 fn($row) =>
+//                 number_format(
+//                     $row->details->where('component.component_name', 'MEAL ALLOWANCE')->first()?->amount ?? 0,
+//                     0,
+//                     ',',
+//                     '.'
+//                 )
+//             )
+//             ->addColumn(
+//                 'transport_allowance_fmt',
+//                 fn($row) =>
+//                 number_format(
+//                     $row->details->where('component.component_name', 'TRANSPORT ALLOWANCE')->first()?->amount ?? 0,
+//                     0,
+//                     ',',
+//                     '.'
+//                 )
+//             )
+//             ->addColumn(
+//                 'house_allowance_fmt',
+//                 fn($row) =>
+//                 number_format(
+//                     $row->details->where('component.component_name', 'HOUSE ALLOWANCE')->first()?->amount ?? 0,
+//                     0,
+//                     ',',
+//                     '.'
+//                 )
+//             )
+//             ->addColumn(
+//                 'overtime_amount_fmt',
+//                 fn($row) =>
+//                 number_format($row->overtime_amount, 0, ',', '.')
+//             )
+//             ->addColumn(
+//                 'reimburse_amount_fmt',
+//                 fn($row) =>
+//                 number_format($row->reimburse_amount, 0, ',', '.')
+//             )
+//             ->addColumn(
+//                 'total_income_fmt',
+//                 fn($row) =>
+//                 number_format($row->total_income, 0, ',', '.')
+//             )
+//             ->addColumn(
+//                 'bpjs_kesehatan_fmt',
+//                 fn($row) =>
+//                 number_format(
+//                     $row->details->where('component.component_name', 'BPJS KESEHATAN')->first()?->amount ?? 0,
+//                     0,
+//                     ',',
+//                     '.'
+//                 )
+//             )
+//             ->addColumn(
+//                 'bpjs_ketenagakerjaan_fmt',
+//                 fn($row) =>
+//                 number_format(
+//                     $row->details->where('component.component_name', 'BPJS KETENAGAKERJAAN')->first()?->amount ?? 0,
+//                     0,
+//                     ',',
+//                     '.'
+//                 )
+//             )
+//             ->addColumn(
+//                 'punishment_fmt',
+//                 fn($row) =>
+//                 number_format($row->punishment, 0, ',', '.')
+//             )
+//             ->addColumn(
+//                 'punishment_so_fmt',
+//                 fn($row) =>
+//                 number_format($row->punishment_so, 0, ',', '.')
+//             )
+//             ->addColumn(
+//                 'debt_fmt',
+//                 fn($row) =>
+//                 number_format($row->debt, 0, ',', '.')
+//             )
+//             ->addColumn(
+//                 'tax_fmt',
+//                 fn($row) =>
+//                 number_format($row->tax, 0, ',', '.')
+//             )
+//             ->addColumn(
+//                 'total_deduction_fmt',
+//                 fn($row) =>
+//                 number_format($row->total_deduction, 0, ',', '.')
+//             )
+//             ->addColumn(
+//                 'net_salary_fmt',
+//                 fn($row) =>
+//                 number_format($row->net_salary, 0, ',', '.')
+//             )
+//             ->addColumn(
+//                 'prorate_info',
+//                 fn($row) =>
+//                 $row->is_prorate
+//                     ? '<span class="status-badge" style="background:#fff7ed;color:#c2410c">Prorate ' . ($row->prorate_ratio * 100) . '%</span>'
+//                     : '-'
+//             )
+//             ->orderColumn('employee_name', function ($q, $order) {
+//                 $q->join('employees_tables as e', 'e.id', '=', 'payroll_mobiles.employee_id')
+//                     ->orderBy('e.employee_name', $order);
+//             })
+//           ->orderColumn('employee_pengenal', function ($q, $order) {
+//     $q->join('employees_tables as e_pen', 'e_pen.id', '=', 'payroll_mobiles.employee_id')
+//         ->orderBy('e_pen.employee_pengenal', $order);
+// })
+//             ->orderColumn('company_name', function ($q, $order) {
+//                 $q->join('employees_tables as e_c', 'e_c.id', '=', 'payroll_mobiles.employee_id')
+//                     ->join('company_tables as c', 'c.id', '=', 'e_c.company_id')
+//                     ->orderBy('c.name', $order);
+//             })
+//             ->orderColumn('department_name', function ($q, $order) {
+//                 $q->join('employees_tables as e3', 'e3.id', '=', 'payroll_mobiles.employee_id')
+//                     ->join('employee_departments as ed', 'ed.employee_id', '=', 'e3.id')
+//                     ->join('departments_tables as d', 'd.id', '=', 'ed.department_id')
+//                     ->where('ed.is_primary', true)
+//                     ->orderBy('d.department_name', $order);
+//             })
+//             ->orderColumn('grading_name', function ($q, $order) {
+//                 $q->join('employees_tables as e_g', 'e_g.id', '=', 'payroll_mobiles.employee_id')
+//                     ->join('grading as g', 'g.id', '=', 'e_g.grading_id')
+//                     ->orderBy('g.grading_name', $order);
+//             })
+//             ->orderColumn('store_name', function ($q, $order) {
+//                 $q->join('employees_tables as e2', 'e2.id', '=', 'payroll_mobiles.employee_id')
+//                     ->join('employee_stores as es', 'es.employee_id', '=', 'e2.id')
+//                     ->join('stores_tables as s', 's.id', '=', 'es.store_id')
+//                     ->where('es.is_primary', true)
+//                     ->orderBy('s.name', $order);
+//             })
+//             ->orderColumn('position_name', function ($q, $order) {
+//                 $q->join('employees_tables as e2', 'e2.id', '=', 'payroll_mobiles.employee_id')
+//                     ->join('employee_positions as es', 'es.employee_id', '=', 'e2.id')
+//                     ->join('position_tables as p', 'p.id', '=', 'es.position_id')
+//                     ->where('es.is_primary', true)
+//                     ->orderBy('p.name', $order);
+//             })
+//             ->orderColumn('status_type_badge', function ($q, $order) {
+//                 $q->join('employees_tables as e', 'e.id', '=', 'payroll_mobiles.employee_id')
+//                     ->orderBy('e.status_employee', $order);
+//             })
+//             ->orderColumn('status_employee_badge', function ($q, $order) {
+//                 $q->join('employees_tables as e', 'e.id', '=', 'payroll_mobiles.employee_id')
+//                     ->orderBy('e.status', $order);
+//             })
+//             ->addColumn('action', function ($row) {
+//                 $actions = '<a href="' . route('payroll.mobile.show', $row->id) . '"
+//                     class="act-btn" title="Detail">
+//                     <i class="fas fa-eye"></i>
+//                 </a>';
+
+//                 if ($row->status === 'draft') {
+//                     $actions .= '<a href="' . route('payroll.mobile.edit', $row->id) . '"
+//                         class="act-btn act-warning" title="Edit">
+//                         <i class="fas fa-edit"></i>
+//                     </a>';
+
+//                     $actions .= '<button
+//                         class="act-btn act-success btn-approve"
+//                         data-id="' . $row->id . '"
+//                         title="Approve">
+//                         <i class="fas fa-check"></i>
+//                     </button>';
+//                     $actions .= '<button
+//             class="act-btn act-danger btn-delete-single"
+//             data-id="' . $row->id . '"
+//             title="Delete">
+//             <i class="fas fa-trash"></i>
+//         </button>';
+//                 }
+//                 if (in_array($row->status, ['approved', 'paid'])) {
+//                     $actions .= '<a href="' . route('payroll.mobile.slip', $row->id) . '"
+//             class="act-btn act-info" title="Download Slip" target="_blank">
+//             <i class="fas fa-file-pdf"></i>
+//         </a>';
+//                     $actions .= '<button class="act-btn act-primary btn-send-slip" data-id="' . $row->id . '" title="Kirim Email Slip">
+//             <i class="fas fa-paper-plane"></i>
+//         </button>';
+//                 }
+//                 return '<div class="action-wrap">' . $actions . '</div>';
+//             })
+//             ->rawColumns(['status_badge', 'status_type_badge', 'status_employee_badge', 'prorate_info', 'action'])
+//             ->make(true);
+//     }
+ public function getPayroll(Request $request, string $periodId)
+    {
+        $user     = auth()->user();
+        /** @var \App\Models\User|null $user */
+        if (!$user->hasPermissionTo('payroll.mobile.view')) {
+            abort(403, 'Unauthorized');
+        }
+        $period = PayrollMobilePeriod::findOrFail($periodId);
+
+        // select('payroll_mobiles.*') wajib: orderColumn di bawah memakai JOIN, tanpa ini id payroll tertimpa id karyawan
+        $query = PayrollMobile::select('payroll_mobiles.*')->with([
+            'employee:id,employee_name,employee_pengenal,status_employee,status,company_id,grading_id',
+            'employee.store' => fn($q) => $q->wherePivot('is_primary', true),
+            'employee.department' => fn($q) => $q->wherePivot('is_primary', true),
+            'employee.position' => fn($q) => $q->wherePivot('is_primary', true),
+            'employee.company:id,name',
+            'employee.grading:id,grading_name',
+            'details.component',
+        ])
+            ->where('payroll_mobiles.payroll_period_id', $period->id);
+
+        if ($request->filled('status')) {
+            $query->where('payroll_mobiles.status', $request->status);
+        }
+
+        // Penanda dari panel "perlu dicek" di halaman index
+        if ($request->input('flag') === 'net_negative') {
+            $query->where('payroll_mobiles.status', 'draft')->where('payroll_mobiles.net_salary', '<', 0);
+        } elseif ($request->input('flag') === 'no_attendance') {
+            $query->where('payroll_mobiles.status', 'draft')->where('payroll_mobiles.attendance_days', 0);
+        }
+
+        if ($request->filled('status_type')) {
+            $query->whereHas(
+                'employee',
+                fn($q) =>
+                $q->where('status_employee', $request->status_type)
+            );
+        }
+        if ($request->filled('company_name')) {
+            $query->whereHas(
+                'employee.company',
+                fn($q) =>
+                $q->where('name', $request->company_name)
+            );
+        }
+        if ($request->filled('status_employee')) {
+            $query->whereHas(
+                'employee',
+                fn($q) =>
+                $q->where('status', $request->status_employee)
+            );
+        }
+
+        if ($request->filled('grading_name')) {
+            $query->whereHas(
+                'employee.grading',
+                fn($q) =>
+                $q->where('grading_name', $request->grading_name)
+            );
+        }
+
+        if ($request->filled('store_name')) {
+            $query->whereHas('employee', function ($q) use ($request) {
+                $q->whereHas(
+                    'store',
+                    fn($sq) =>
+                    $sq->where('stores_tables.name', $request->store_name)
+                        ->where('employee_stores.is_primary', true)
+                );
+            });
+        }
+        if ($request->filled('department_name')) {
+            $query->whereHas('employee', function ($q) use ($request) {
+                $q->whereHas(
+                    'department',
+                    fn($sq) =>
+                    $sq->where('departments_tables.department_name', $request->department_name)
+                        ->where('employee_departments.is_primary', true)
+                );
+            });
+        }
+        if ($request->filled('search.value')) {
+            $search = $request->input('search.value');
+            $query->where(function ($q) use ($search) {
+                $q->whereHas('employee', function ($eq) use ($search) {
+                    $eq->where('employee_name', 'like', '%' . $search . '%')
+                        ->orWhere('employee_pengenal', 'like', '%' . $search . '%');
+                })
+                    ->orWhereHas(
+                        'employee.store',
+                        fn($sq) =>
+                        $sq->where('stores_tables.name', 'like', '%' . $search . '%')
+                            ->where('employee_stores.is_primary', true)
+                    )
+                    ->orWhereHas(
+                        'employee.department',
+                        fn($sq) =>
+                        $sq->where('departments_tables.department_name', 'like', '%' . $search . '%')
+                            ->where('employee_departments.is_primary', true)
+                    );
+            });
+        }
+
+        return DataTables::of($query)
+            ->addColumn('employee_name', fn($row) => $row->employee->employee_name ?? '-')
+            ->addColumn('employee_pengenal', fn($row) => $row->employee->employee_pengenal ?? '-')
+            ->addColumn('status_type', fn($row) => $row->employee->status_employee ?? '-')
+            ->addColumn('status_employee', fn($row) => $row->employee->status ?? '-')
+            ->addColumn('company_name', fn($row) => $row->employee->company->name ?? '-')
+            ->addColumn('grading_name', fn($row) => $row->employee->grading->grading_name ?? '-')
+            ->addColumn('store_name', fn($row) => $row->employee->store->first()?->name ?? '-')
+            ->addColumn('department_name', fn($row) => $row->employee->department->first()?->department_name ?? '-')
+            ->addColumn('position_name', fn($row) => $row->employee->position->first()?->name ?? '-')
+            ->addColumn('status_badge', fn($row) => match ($row->status) {
+                'draft'    => '<span class="status-badge is-draft">Draft</span>',
+                'approved' => '<span class="status-badge is-approved">Approved</span>',
+                'paid'     => '<span class="status-badge is-paid">Paid</span>',
+                default    => $row->status,
+            })
+            ->addColumn('status_type_badge', fn($row) => match ($row->employee->status_employee ?? '') {
+                'PKWT'           => '<span class="status-badge is-type">PKWT</span>',
+                'On Job Training' => '<span class="status-badge is-type">OJT</span>',
+                'DW'             => '<span class="status-badge is-type">DW</span>',
+                default          => '-',
+            })
+            ->addColumn('status_employee_badge', fn($row) => match ($row->employee->status ?? '') {
+                'Active'           => '<span class="status-badge" style="background:#eff6ff;color:#1e40af">PKWT</span>',
+                'Inactive' => '<span class="status-badge" style="background:#fdf4ff;color:#6b21a8">OJT</span>',
+                'On Leave'             => '<span class="status-badge" style="background:#fffbeb;color:#92400e">DW</span>',
+                'Resign'             => '<span class="status-badge" style="background:#fffbeb;color:#92400e">DW</span>',
+                'Mutation'             => '<span class="status-badge" style="background:#fffbeb;color:#92400e">DW</span>',
+                default          => '-',
+            })
+            ->addColumn(
+                'basic_salary_fmt',
+                fn($row) =>
+                number_format($row->basic_salary, 0, ',', '.')
+            )
+            ->addColumn(
+                'position_allowance_fmt',
+                fn($row) =>
+                number_format($row->position_allowance, 0, ',', '.')
+            )
+            ->addColumn(
+                'daily_rate_fmt',
+                fn($row) =>
+                number_format($row->daily_rate, 0, ',', '.')
+            )
+            ->addColumn(
+                'gross_salary_fmt',
+                fn($row) =>
+                number_format($row->gross_salary, 0, ',', '.')
+            )
+            ->addColumn(
+                'meal_allowance_fmt',
+                fn($row) =>
+                number_format(
+                    $row->details->where('component.component_name', 'MEAL ALLOWANCE')->first()?->amount ?? 0,
+                    0,
+                    ',',
+                    '.'
+                )
+            )
+            ->addColumn(
+                'transport_allowance_fmt',
+                fn($row) =>
+                number_format(
+                    $row->details->where('component.component_name', 'TRANSPORT ALLOWANCE')->first()?->amount ?? 0,
+                    0,
+                    ',',
+                    '.'
+                )
+            )
+            ->addColumn(
+                'house_allowance_fmt',
+                fn($row) =>
+                number_format(
+                    $row->details->where('component.component_name', 'HOUSE ALLOWANCE')->first()?->amount ?? 0,
+                    0,
+                    ',',
+                    '.'
+                )
+            )
+            ->addColumn(
+                'overtime_amount_fmt',
+                fn($row) =>
+                number_format($row->overtime_amount, 0, ',', '.')
+            )
+            ->addColumn(
+                'reimburse_amount_fmt',
+                fn($row) =>
+                number_format($row->reimburse_amount, 0, ',', '.')
+            )
+            ->addColumn(
+                'total_income_fmt',
+                fn($row) =>
+                number_format($row->total_income, 0, ',', '.')
+            )
+            ->addColumn(
+                'bpjs_kesehatan_fmt',
+                fn($row) =>
+                number_format(
+                    $row->details->where('component.component_name', 'BPJS KESEHATAN')->first()?->amount ?? 0,
+                    0,
+                    ',',
+                    '.'
+                )
+            )
+            ->addColumn(
+                'bpjs_ketenagakerjaan_fmt',
+                fn($row) =>
+                number_format(
+                    $row->details->where('component.component_name', 'BPJS KETENAGAKERJAAN')->first()?->amount ?? 0,
+                    0,
+                    ',',
+                    '.'
+                )
+            )
+            ->addColumn(
+                'punishment_fmt',
+                fn($row) =>
+                number_format($row->punishment, 0, ',', '.')
+            )
+            ->addColumn(
+                'punishment_so_fmt',
+                fn($row) =>
+                number_format($row->punishment_so, 0, ',', '.')
+            )
+            ->addColumn(
+                'debt_fmt',
+                fn($row) =>
+                number_format($row->debt, 0, ',', '.')
+            )
+            ->addColumn(
+                'tax_fmt',
+                fn($row) =>
+                number_format($row->tax, 0, ',', '.')
+            )
+            ->addColumn(
+                'total_deduction_fmt',
+                fn($row) =>
+                number_format($row->total_deduction, 0, ',', '.')
+            )
+            ->addColumn(
+                'net_salary_fmt',
+                fn($row) =>
+                number_format($row->net_salary, 0, ',', '.')
+            )
+            ->addColumn(
+                'prorate_info',
+                fn($row) =>
+                $row->is_prorate
+                    ? '<span class="status-badge is-prorate">Prorate ' . ($row->prorate_ratio * 100) . '%</span>'
+                    : '-'
+            )
+            ->orderColumn('employee_name', function ($q, $order) {
+    $q->join('employees_tables as e', 'e.id', '=', 'payroll_mobiles.employee_id')
+        ->orderBy('e.employee_name', $order);
+})
+->orderColumn('employee_pengenal', function ($q, $order) {
+    $q->join('employees_tables as e_pen', 'e_pen.id', '=', 'payroll_mobiles.employee_id')
+        ->orderBy('e_pen.employee_pengenal', $order);
+})
+->orderColumn('status_type_badge', function ($q, $order) {
+    $q->join('employees_tables as e_t', 'e_t.id', '=', 'payroll_mobiles.employee_id')
+        ->orderBy('e_t.status_employee', $order);
+})
+->orderColumn('status_employee', function ($q, $order) {
+    $q->join('employees_tables as e_st', 'e_st.id', '=', 'payroll_mobiles.employee_id')
+        ->orderBy('e_st.status', $order);
+})
+// Pencarian sudah ditangani manual di atas (nama, NIP, store, departemen);
+// matikan pencarian global bawaan Yajra supaya tidak mencari ke kolom yang tidak ada.
+->filter(function () {
+}, false)
+->orderColumn('company_name', function ($q, $order) {
+    $q->join('employees_tables as e_c', 'e_c.id', '=', 'payroll_mobiles.employee_id')
+        ->join('company_tables as c', 'c.id', '=', 'e_c.company_id')
+        ->orderBy('c.name', $order);
+})
+->orderColumn('grading_name', function ($q, $order) {
+    $q->join('employees_tables as e_g', 'e_g.id', '=', 'payroll_mobiles.employee_id')
+        ->join('grading as g', 'g.id', '=', 'e_g.grading_id')
+        ->orderBy('g.grading_name', $order);
+})
+->orderColumn('store_name', function ($q, $order) {
+    $q->join('employees_tables as e_s', 'e_s.id', '=', 'payroll_mobiles.employee_id')
+        ->join('employee_stores as es', 'es.employee_id', '=', 'e_s.id')
+        ->join('stores_tables as s', 's.id', '=', 'es.store_id')
+        ->where('es.is_primary', true)
+        ->orderBy('s.name', $order);
+})
+->orderColumn('department_name', function ($q, $order) {
+    $q->join('employees_tables as e_d', 'e_d.id', '=', 'payroll_mobiles.employee_id')
+        ->join('employee_departments as ed', 'ed.employee_id', '=', 'e_d.id')
+        ->join('departments_tables as d', 'd.id', '=', 'ed.department_id')
+        ->where('ed.is_primary', true)
+        ->orderBy('d.department_name', $order);
+})
+->orderColumn('position_name', function ($q, $order) {
+    $q->join('employees_tables as e_pos', 'e_pos.id', '=', 'payroll_mobiles.employee_id')
+        ->join('employee_positions as ep', 'ep.employee_id', '=', 'e_pos.id')
+        ->join('position_tables as p', 'p.id', '=', 'ep.position_id')
+        ->where('ep.is_primary', true)
+        ->orderBy('p.name', $order);
+})
+
+->orderColumn('basic_salary_fmt', fn($q, $order) => $q->orderBy('basic_salary', $order))
+->orderColumn('position_allowance_fmt', fn($q, $order) => $q->orderBy('position_allowance', $order))
+->orderColumn('daily_rate_fmt', fn($q, $order) => $q->orderBy('daily_rate', $order))
+->orderColumn('gross_salary_fmt', fn($q, $order) => $q->orderBy('gross_salary', $order))
+->orderColumn('overtime_amount_fmt', fn($q, $order) => $q->orderBy('overtime_amount', $order))
+->orderColumn('reimburse_amount_fmt', fn($q, $order) => $q->orderBy('reimburse_amount', $order))
+->orderColumn('total_income_fmt', fn($q, $order) => $q->orderBy('total_income', $order))
+->orderColumn('punishment_fmt', fn($q, $order) => $q->orderBy('punishment', $order))
+->orderColumn('punishment_so_fmt', fn($q, $order) => $q->orderBy('punishment_so', $order))
+->orderColumn('debt_fmt', fn($q, $order) => $q->orderBy('debt', $order))
+->orderColumn('tax_fmt', fn($q, $order) => $q->orderBy('tax', $order))
+->orderColumn('total_deduction_fmt', fn($q, $order) => $q->orderBy('total_deduction', $order))
+->orderColumn('net_salary_fmt', fn($q, $order) => $q->orderBy('net_salary', $order))
+            ->addColumn('action', function ($row) use ($user) {
+                // Tiap tombol hanya muncul kalau user punya permission aksinya
+                $actions = '';
+
+                if ($user->can('payroll.mobile.show')) {
+                    $actions .= '<a href="' . route('payroll.mobile.show', $row->id) . '" class="act-btn" title="Detail" aria-label="Detail">
+                        <i class="fas fa-eye" aria-hidden="true"></i>
+                    </a>';
+                }
+
+                if ($row->status === 'draft') {
+                    if ($user->can('payroll.mobile.update')) {
+                        $actions .= '<a href="' . route('payroll.mobile.edit', $row->id) . '" class="act-btn act-warning" title="Edit" aria-label="Edit">
+                            <i class="fas fa-edit" aria-hidden="true"></i>
+                        </a>';
+                    }
+                    if ($user->can('payroll.mobile.approve')) {
+                        $actions .= '<button type="button" class="act-btn act-success btn-approve" data-id="' . $row->id . '" title="Approve" aria-label="Approve">
+                            <i class="fas fa-check" aria-hidden="true"></i>
+                        </button>';
+                    }
+                    if ($user->can('payroll.mobile.destroy')) {
+                        $actions .= '<button type="button" class="act-btn act-danger btn-delete-single" data-id="' . $row->id . '" title="Delete" aria-label="Delete">
+                            <i class="fas fa-trash" aria-hidden="true"></i>
+                        </button>';
+                    }
+                }
+
+                if (in_array($row->status, ['approved', 'paid'], true)) {
+                    if ($user->can('payroll.mobile.download.slip')) {
+                        $actions .= '<a href="' . route('payroll.mobile.slip', $row->id) . '" class="act-btn act-info" title="Download Slip" aria-label="Download Slip" target="_blank">
+                            <i class="fas fa-file-pdf" aria-hidden="true"></i>
+                        </a>';
+                    }
+                    if ($user->can('payroll.mobile.send.slip')) {
+                        $actions .= '<button type="button" class="act-btn act-primary btn-send-slip" data-id="' . $row->id . '" title="Kirim Email Slip" aria-label="Kirim Email Slip">
+                            <i class="fas fa-paper-plane" aria-hidden="true"></i>
+                        </button>';
+                    }
+                }
+
+                return '<div class="action-wrap">' . $actions . '</div>';
+            })
+            ->rawColumns(['status_badge', 'status_type_badge', 'status_employee_badge', 'prorate_info', 'action'])
+            ->make(true);
+    }
+    // Payroll hanya boleh diubah (edit/approve/hapus) selama periodenya masih open
+    private function periodIsOpen(PayrollMobile $payroll): bool
+    {
+        return (bool) $payroll->period?->isOpen();
+    }
+
+    public function destroy(string $id)
+    {
+        $user = auth()->user();
+        /** @var \App\Models\User|null $user */
+        if (!$user->hasPermissionTo('payroll.mobile.destroy')) {
+            abort(403, 'Unauthorized');
+        }
+
+        $payroll = PayrollMobile::with('period')->findOrFail($id);
+
+        if ($payroll->status !== 'draft') {
+            return response()->json([
+                'success' => false,
+                'message' => 'Hanya payroll berstatus draft yang bisa dihapus.',
+            ], 422);
+        }
+
+        if (!$this->periodIsOpen($payroll)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Periode sudah closed/locked, payroll tidak bisa dihapus.',
+            ], 422);
+        }
+
+        DB::beginTransaction();
+        try {
+            $this->payrollService->releaseOvertime($payroll); // ← kembalikan overtime supaya bisa di-generate ulang
+            $payroll->details()->delete(); // ← hapus PayrollMobileDetail dulu
+            $payroll->delete();            // ← baru hapus Payroll
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Payroll berhasil dihapus.',
+            ]);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('PayrollMobileController destroy error: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal menghapus payroll.',
+            ], 500);
+        }
+    }
+
+    public function destroyBulk(Request $request)
+    {
+        $user = auth()->user();
+        /** @var \App\Models\User|null $user */
+        if (!$user->hasPermissionTo('payroll.mobile.destroy.bulk')) {
+            abort(403, 'Unauthorized');
+        }
+
+        $request->validate([
+            'ids'   => 'required|array|min:1',
+            'ids.*' => 'exists:payroll_mobiles,id',
+        ]);
+
+        $payrolls = PayrollMobile::with('period')
+            ->whereIn('id', $request->ids)
+            ->where('status', 'draft') // ← hanya draft
+            ->whereHas('period', fn($q) => $q->where('status', 'open')) // ← hanya periode open
+            ->get();
+
+        if ($payrolls->isEmpty()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Tidak ada payroll draft (periode open) yang bisa dihapus.',
+            ], 422);
+        }
+
+        DB::beginTransaction();
+        try {
+            $ids = $payrolls->pluck('id')->toArray();
+
+            // Kembalikan overtime supaya bisa di-generate ulang
+            foreach ($payrolls as $payroll) {
+                $this->payrollService->releaseOvertime($payroll);
+            }
+
+            // Hapus PayrollMobileDetail dulu
+            PayrollMobileDetail::whereIn('payroll_id', $ids)->delete();
+
+            // Baru hapus Payroll
+            PayrollMobile::whereIn('id', $ids)->delete();
+
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => count($ids) . ' payroll berhasil dihapus.',
+            ]);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('PayrollMobileController destroyBulk error: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal menghapus payroll.',
+            ], 500);
+        }
+    }
+
+    // ── Generate semua employee ──
+    public function generate(string $periodId)
+    {
+        $user     = auth()->user();
+        /** @var \App\Models\User|null $user */
+        if (!$user->hasPermissionTo('payroll.mobile.generate')) {
+            abort(403, 'Unauthorized');
+        }
+        $period = PayrollMobilePeriod::findOrFail($periodId);
+
+        if (!$period->isOpen()) {
+            return back()->with('error', 'Periode bukan berstatus open.');
+        }
+
+        try {
+            $results = $this->payrollService->generateAll($period);
+
+            $message = "Generate selesai. "
+                . "Berhasil: " . count($results['success']) . " | "
+                . "Dilewati: " . count($results['skipped']) . " | "
+                . "Gagal: " . count($results['failed']);
+
+            if (!empty($results['warning'])) {
+                $message .= " | Perlu dicek (lihat note): " . implode(', ', $results['warning']);
+            }
+
+            // Log failed employees
+            if (!empty($results['failed'])) {
+                Log::warning('PayrollMobileController: failed employees', $results['failed']);
+            }
+
+            return redirect()
+                ->route('payroll.mobile.index', $periodId)
+                ->with('success', $message);
+        } catch (\Exception $e) {
+            Log::error('PayrollMobileController generate error: ' . $e->getMessage());
+            return back()->with('error', 'Gagal generate payroll: ' . $e->getMessage());
+        }
+    }
+
+    // ── Generate per employee ──
+    public function generateOne(Request $request, string $periodId)
+    {
+        $user     = auth()->user();
+        /** @var \App\Models\User|null $user */
+        if (!$user->hasPermissionTo('payroll.mobile.generate.one')) {
+            abort(403, 'Unauthorized');
+        }
+        $period   = PayrollMobilePeriod::findOrFail($periodId);
+        $employee = Employee::findOrFail($request->employee_id);
+
+        if (!$period->isOpen()) {
+            return back()->with('error', 'Periode bukan berstatus open.');
+        }
+
+        try {
+            $result = $this->payrollService->generateForEmployee($period, $employee);
+
+            if ($result === 'skipped') {
+                return back()->with('error', "Employee {$employee->employee_name} dilewati. Cek salary atau roster.");
+            }
+
+            if ($result === 'warning') {
+                return back()->with('success', "Payroll {$employee->employee_name} berhasil di-generate, tapi perlu dicek (lihat note).");
+            }
+
+            return back()->with('success', "Payroll {$employee->employee_name} berhasil di-generate.");
+        } catch (\Exception $e) {
+            Log::error('PayrollMobileController generateOne error: ' . $e->getMessage());
+            return back()->with('error', 'Gagal: ' . $e->getMessage());
+        }
+    }
+    // ── Show detail ──
+    public function show(string $id)
+    {
+        $user     = auth()->user();
+        /** @var \App\Models\User|null $user */
+        if (!$user->hasPermissionTo('payroll.mobile.show')) {
+            abort(403, 'Unauthorized');
+        }
+        $payroll = PayrollMobile::with([
+            'period',
+            'approvedBy:id,employee_name',
+            'employee.company:id,name',
+            'employee.grading:id,grading_name',
+            'employee.bank',
+            'employee.store'      => fn($q) => $q->wherePivot('is_primary', true),
+            'employee.department' => fn($q) => $q->wherePivot('is_primary', true),
+            'employee.position'   => fn($q) => $q->wherePivot('is_primary', true),
+            'details.component',
+        ])->findOrFail($id);
+
+        $breakdown = $payroll->salaryBreakdown();
+
+        return view('pages.PayrollMobile.show', compact('payroll', 'breakdown'));
+    }
+
+
+    // ── Edit (koreksi manual) ──
+    public function edit(string $id)
+    {
+        $user     = auth()->user();
+        /** @var \App\Models\User|null $user */
+        if (!$user->hasPermissionTo('payroll.mobile.update')) {
+            abort(403, 'Unauthorized');
+        }
+        $payroll = PayrollMobile::with([
+            'employee',
+            'details.component',
+        ])->findOrFail($id);
+
+        if ($payroll->status !== 'draft') {
+            return back()->with('error', 'Hanya payroll berstatus draft yang bisa diedit.');
+        }
+
+        if (!$this->periodIsOpen($payroll)) {
+            return back()->with('error', 'Periode sudah closed/locked, payroll tidak bisa diedit.');
+        }
+
+        return view('pages.PayrollMobile.edit', compact('payroll'));
+    }
+
+
+    public function update(Request $request, string $id)
+    {
+        $user = auth()->user();
+        /** @var \App\Models\User|null $user */
+        if (!$user->hasPermissionTo('payroll.mobile.update')) {
+            abort(403, 'Unauthorized');
+        }
+
+        $payroll = PayrollMobile::with(['period', 'employee'])->findOrFail($id);
+
+        if ($payroll->status !== 'draft') {
+            return back()->with('error', 'Hanya payroll berstatus draft yang bisa diedit.');
+        }
+
+        if (!$this->periodIsOpen($payroll)) {
+            return back()->with('error', 'Periode sudah closed/locked, payroll tidak bisa diedit.');
+        }
+
+        foreach (['overtime_amount', 'reimburse_amount', 'punishment', 'punishment_so', 'debt', 'tax'] as $field) {
+            if ($request->filled($field)) {
+                $request->merge([$field => str_replace('.', '', $request->input($field))]);
+            }
+        }
+
+        $request->validate([
+            'attendance_days'  => 'nullable|numeric|min:0',
+            'working_days'  => 'nullable|numeric|min:0',
+            'overtime_amount'  => 'nullable|numeric|min:0',
+            'reimburse_amount' => 'nullable|numeric|min:0',
+            'punishment'       => 'nullable|numeric|min:0',
+            'punishment_so'    => 'nullable|numeric|min:0',
+            'debt'             => 'nullable|numeric|min:0',
+            'tax'              => 'nullable|numeric|min:0',
+            'note'             => 'nullable|string|max:500',
+        ]);
+
+        // Non-DW: attendance boleh melebihi working days (dicatat apa adanya, sama seperti import),
+        // tapi gaji pokok tetap maksimal 100% lewat PayrollMobile::earnedSalary().
+
+        try {
+            $isDw = strtoupper($payroll->employee->status_employee ?? '') === 'DW';
+            $attendance = (int) ($request->attendance_days ?? 0);
+
+            $payroll->update([
+                // DW: gross = daily_rate × attendance, ikut diperbarui seperti saat import
+                'gross_salary'     => $isDw ? round((float) $payroll->daily_rate * $attendance, 2) : $payroll->gross_salary,
+                'attendance_days'  => $request->attendance_days  ?? 0,
+                'working_days'  => $request->working_days  ?? 0,
+                'overtime_amount'  => $request->overtime_amount  ?? 0,
+                'reimburse_amount' => $request->reimburse_amount ?? 0,
+                'punishment'       => $request->punishment       ?? 0,
+                'punishment_so'    => $request->punishment_so    ?? 0,
+                'debt'             => $request->debt             ?? 0,
+                'tax'              => $request->tax              ?? 0,
+                'note'             => $request->note,
+            ]);
+
+            $this->payrollService->recalculateNet($payroll);
+
+            return redirect()
+                ->route('payroll.mobile.show', $id)
+                ->with('success', 'Payroll berhasil diupdate.');
+        } catch (\Exception $e) {
+            Log::error('PayrollMobileController update error: ' . $e->getMessage());
+            return back()->with('error', 'Gagal update payroll.')->withInput();
+        }
+    }
+
+    // ── Approve ──
+    public function approve(string $id)
+    {
+        $user     = auth()->user();
+        /** @var \App\Models\User|null $user */
+        if (!$user->hasPermissionTo('payroll.mobile.approve')) {
+            abort(403, 'Unauthorized');
+        }
+        $payroll = PayrollMobile::with('period')->findOrFail($id);
+
+        if ($payroll->status !== 'draft') {
+            return response()->json(['error' => 'Hanya draft yang bisa di-approve.'], 422);
+        }
+
+        if (!$this->periodIsOpen($payroll)) {
+            return response()->json(['error' => 'Periode sudah closed/locked.'], 422);
+        }
+
+        if ((float) $payroll->net_salary < 0) {
+            return response()->json(['error' => 'Net salary minus, cek attendance & potongan sebelum approve.'], 422);
+        }
+
+        try {
+            $payroll->update([
+                'status'      => 'approved',
+                'approved_by' => $user->employee_id,
+
+                'approved_at' => now(),
+            ]);
+
+            return response()->json(['success' => true, 'message' => 'Payroll approved.']);
+        } catch (\Exception $e) {
+            Log::error('PayrollMobileController approve error: ' . $e->getMessage());
+            return response()->json(['error' => 'Gagal approve.'], 500);
+        }
+    }
+
+    // ── Approve Bulk ──
+    public function approveBulk(Request $request)
+    {
+        $user     = auth()->user();
+        /** @var \App\Models\User|null $user */
+        if (!$user->hasPermissionTo('payroll.mobile.approve.bulk')) {
+            abort(403, 'Unauthorized');
+        }
+        $request->validate([
+            'ids'   => 'required|array',
+            'ids.*' => 'exists:payroll_mobiles,id',
+        ]);
+
+        try {
+            $payrolls = PayrollMobile::with(['employee:id,employee_name', 'period:id,status'])
+                ->whereIn('id', $request->ids)
+                ->get();
+
+            $approvableIds = [];
+            $skipped = [];
+            foreach ($payrolls as $payroll) {
+                $reason = match (true) {
+                    $payroll->status !== 'draft'                      => "status {$payroll->status}",
+                    !$this->periodIsOpen($payroll)                    => 'periode closed/locked',
+                    (float) $payroll->net_salary < 0                  => 'net salary minus (Rp ' . number_format($payroll->net_salary, 0, ',', '.') . ')',
+                    default                                           => null,
+                };
+
+                if ($reason === null) {
+                    $approvableIds[] = $payroll->id;
+                } else {
+                    $skipped[] = ($payroll->employee->employee_name ?? $payroll->id) . " — {$reason}";
+                }
+            }
+
+            // Filter ulang di query supaya aman dari race condition
+            $approved = empty($approvableIds) ? 0 : PayrollMobile::whereIn('id', $approvableIds)
+                ->where('status', 'draft')
+                ->where('net_salary', '>=', 0)
+                ->whereHas('period', fn($q) => $q->where('status', 'open'))
+                ->update([
+                    'status'      => 'approved',
+                    'approved_by' => $user->employee_id,
+                    'approved_at' => now(),
+                ]);
+
+            $message = "{$approved} payroll di-approve."
+                . (count($skipped) > 0 ? ' ' . count($skipped) . ' dilewati.' : '');
+
+            return response()->json([
+                'success'  => true,
+                'approved' => $approved,
+                'skipped'  => $skipped,
+                'message'  => $message,
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error('PayrollMobileController approveBulk error: ' . $e->getMessage());
+            return response()->json(['error' => 'Gagal bulk approve.'], 500);
+        }
+    }
+
+    // ── Paid ──
+    public function paid(string $id)
+    {
+        $user     = auth()->user();
+        /** @var \App\Models\User|null $user */
+        if (!$user->hasPermissionTo('payroll.mobile.paid')) {
+            abort(403, 'Unauthorized');
+        }
+        $payroll = PayrollMobile::with('period')->findOrFail($id);
+
+        if ($payroll->status !== 'approved') {
+            return response()->json(['error' => 'Hanya approved yang bisa di-paid.'], 422);
+        }
+
+        // Pembayaran masih boleh setelah periode closed, tapi tidak setelah locked
+        if (!$payroll->period || $payroll->period->isLocked()) {
+            return response()->json(['error' => 'Periode sudah locked.'], 422);
+        }
+
+        try {
+            $payroll->update([
+                'status'  => 'paid',
+                'paid_at' => now(),
+            ]);
+
+            return response()->json(['success' => true, 'message' => 'Payroll paid.']);
+        } catch (\Exception $e) {
+            Log::error('PayrollMobileController paid error: ' . $e->getMessage());
+            return response()->json(['error' => 'Gagal paid.'], 500);
+        }
+    }
+    public function export(Request $request, string $periodId)
+    {
+        $period = PayrollMobilePeriod::findOrFail($periodId);
+
+        return Excel::download(
+            new PayrollMobileExport(
+                $period,
+                $request->status,
+                $request->status_employee,
+                $request->store_name,
+                $request->department_name,
+                $request->company_name,
+                $request->grading_name,
+            ),
+            'payroll_' . $period->period_label . '_' . now()->format('Ymd_His') . '.xlsx'
+        );
+    }
+
+    public function importAttendance(Request $request, string $periodId)
+    {
+        $period = PayrollMobilePeriod::findOrFail($periodId);
+
+        if (!$period->isOpen()) {
+            return back()->with('error', 'Periode bukan berstatus open.');
+        }
+
+        $request->validate([
+            'file' => 'required|mimes:xlsx,xls|max:10240',
+        ]);
+
+        try {
+            $import = new PayrollMobileAttendanceImport($periodId, $this->payrollService);
+            Excel::import($import, $request->file('file'));
+
+            $message = 'Import selesai. '
+                . 'Berhasil: ' . count($import->updated) . ' | '
+                . 'Dilewati: ' . count($import->skipped);
+
+            return back()
+                ->with('success', $message)
+                ->with('skipped', $import->skipped)
+                ->with('import_notes', $import->notes);
+        } catch (\Exception $e) {
+            Log::error('PayrollMobileAttendanceImport error: ' . $e->getMessage());
+            return back()->with('error', 'Import gagal: ' . $e->getMessage());
+        }
+    }
+    public function downloadAttendanceTemplate(string $periodId)
+    {
+        $period = PayrollMobilePeriod::findOrFail($periodId);
+
+        $payrolls = PayrollMobile::with('employee:id,employee_name,employee_pengenal,status_employee')
+            ->where('payroll_period_id', $periodId)
+            ->where('status', 'draft')
+            ->get()
+            ->sortBy(fn($p) => match (strtoupper($p->employee->status_employee ?? '')) {
+                'PKWT'            => 1,
+                'ON JOB TRAINING' => 2,
+                'DW'              => 3,
+                default           => 4,
+            });
+
+        $spreadsheet = new \PhpOffice\PhpSpreadsheet\Spreadsheet();
+        $sheet       = $spreadsheet->getActiveSheet();
+        $sheet->setTitle('Attendance');
+
+        // Header
+        $sheet->fromArray([[
+            'employee_pengenal',
+            'employee_name',
+            'status_employee',
+            'working_days',
+            'attendance_days',
+            'overtime_amount',
+            'reimburse_amount',
+            'punishment',
+            'punishment_so',
+            'debt',
+            'tax',
+        ]], null, 'A1');
+
+        // Style header A1:K1
+        $sheet->getStyle('A1:K1')->applyFromArray([
+            'font' => ['bold' => true, 'color' => ['rgb' => 'FFFFFF']],
+            'fill' => [
+                'fillType'   => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID,
+                'startColor' => ['rgb' => '1d4ed8'],
+            ],
+        ]);
+
+        // Data per employee
+        $row = 2;
+        foreach ($payrolls as $payroll) {
+            $statusEmp = strtoupper($payroll->employee->status_employee ?? '');
+            $isDW      = $statusEmp === 'DW';
+
+            $sheet->fromArray([[
+                $payroll->employee->employee_pengenal ?? '-',
+                $payroll->employee->employee_name     ?? '-',
+                $payroll->employee->status_employee   ?? '-',
+                $isDW ? 0 : $payroll->working_days,    // ← DW = 0
+                $payroll->attendance_days,
+                $payroll->overtime_amount  ?? 0,
+                $payroll->reimburse_amount ?? 0,
+                $payroll->punishment       ?? 0,
+                $payroll->punishment_so    ?? 0,
+                $payroll->debt             ?? 0,
+                $payroll->tax              ?? 0,
+            ]], null, 'A' . $row);
+
+            $rowColor = match ($statusEmp) {
+                'PKWT'            => 'eff6ff',
+                'ON JOB TRAINING' => 'fdf4ff',
+                'DW'              => 'fffbeb',
+                default           => 'ffffff',
+            };
+
+            $sheet->getStyle('A' . $row . ':K' . $row)->applyFromArray([
+                'fill' => [
+                    'fillType'   => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID,
+                    'startColor' => ['rgb' => $rowColor],
+                ],
+            ]);
+            $row++;
+        }
+        // Lock kolom A, B, C
+        $sheet->getStyle('A2:C' . ($row - 1))->applyFromArray([
+            'font' => ['bold' => true],
+            'fill' => [
+                'fillType'   => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID,
+                'startColor' => ['rgb' => 'e2e8f0'],
+            ],
+        ]);
+        // Border A1:K
+        $sheet->getStyle('A1:K' . ($row - 1))->applyFromArray([
+            'borders' => [
+                'allBorders' => [
+                    'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN,
+                    'color'       => ['rgb' => 'cbd5e1'],
+                ],
+            ],
+        ]);
+
+        // Auto width A sampai K
+        foreach (range('A', 'K') as $col) {
+            $sheet->getColumnDimension($col)->setAutoSize(true);
+        }
+
+        $sheet->freezePane('A2');
+
+        $writer   = new \PhpOffice\PhpSpreadsheet\Writer\Xlsx($spreadsheet);
+        $filename = tempnam(sys_get_temp_dir(), 'attendance_template');
+        $writer->save($filename);
+
+        return response()->download(
+            $filename,
+            'attendance_' . $period->period_label . '.xlsx'
+        )->deleteFileAfterSend(true);
+    }
+
+    public function downloadSlip(string $id)
+    {
+        $payroll = PayrollMobile::with(['employee.company', 'details.component'])->findOrFail($id);
+
+        if (!in_array($payroll->status, ['approved', 'paid'], true)) {
+            return back()->with('error', 'Slip hanya bisa diunduh untuk payroll approved/paid.');
+        }
+
+        ['pdf' => $pdf] = app(\App\Services\PayrollMobileSlipService::class)->generateForDownload($payroll);
+
+        return $pdf->download($payroll->slipFilename());
+    }
+    public function downloadSlipBulk(Request $request, string $periodId)
+    {
+        $period = PayrollMobilePeriod::findOrFail($periodId);
+
+        $query = PayrollMobile::with(['employee.company', 'employee.bank', 'details.component'])
+            ->where('payroll_period_id', $periodId)
+            ->whereIn('status', ['approved', 'paid']);
+
+        if ($request->filled('ids')) {
+            $query->whereIn('id', $request->ids);
+        }
+
+        $payrolls = $query->get();
+
+        if ($payrolls->isEmpty()) {
+            return back()->with('error', 'Tidak ada payroll approved/paid untuk didownload.');
+        }
+
+        $service = app(\App\Services\PayrollMobileSlipService::class);
+        $tempDir = storage_path('app/temp-slips');
+        $zipPath = $tempDir . '/Slip_Gaji_' . $period->period_label . '_' . time() . '.zip';
+
+        if (!file_exists($tempDir)) {
+            mkdir($tempDir, 0755, true);
+        }
+
+        $zip = new \ZipArchive();
+        if ($zip->open($zipPath, \ZipArchive::CREATE | \ZipArchive::OVERWRITE) !== true) {
+            return back()->with('error', 'Gagal membuat file zip.');
+        }
+
+        $tempFiles = [];
+        $results = $service->generateBulkForDownload($payrolls);
+        $usedNames = [];
+
+        foreach ($results as $result) {
+            $payroll = $result['payroll'];
+            $pdf     = $result['pdf'];
+
+            $filename = $payroll->slipFilename();
+            // Dua karyawan bernama sama di satu ZIP → tambahkan NIP supaya file tidak saling menimpa
+            if (isset($usedNames[$filename])) {
+                $filename = substr($filename, 0, -4) . '_' . $payroll->employee->employee_pengenal . '.pdf';
+            }
+            $usedNames[$filename] = true;
+            $tempPdf  = $tempDir . '/' . uniqid('', true) . '_' . $filename;
+
+            $pdf->save($tempPdf);
+            $zip->addFile($tempPdf, $filename);
+            $tempFiles[] = $tempPdf;
+        }
+
+        $zip->close();
+
+        foreach ($tempFiles as $file) {
+            if (file_exists($file)) {
+                unlink($file);
+            }
+        }
+
+        if (empty($tempFiles)) {
+            if (file_exists($zipPath)) {
+                unlink($zipPath);
+            }
+            return back()->with('error', 'Gagal generate slip untuk semua payroll. Cek log untuk detail.');
+        }
+
+        return response()->download($zipPath, 'Slip_Gaji_' . $period->period_label . '.zip')
+            ->deleteFileAfterSend(true);
+    }
+
+    public function sendSlipEmail(string $id)
+    {
+        $payroll = PayrollMobile::with('employee')->findOrFail($id);
+
+        if (!in_array($payroll->status, ['approved', 'paid'], true)) {
+            return back()->with('error', 'Slip hanya bisa dikirim untuk payroll approved/paid.');
+        }
+
+        if (!$payroll->employee || !$payroll->employee->email) {
+            return back()->with('error', 'Email karyawan tidak tersedia.');
+        }
+
+        SendPayrollMobileSlipJob::dispatch($payroll->id);
+
+        return back()->with('success', "Slip gaji {$payroll->employee->employee_name} sedang dikirim di background.");
+    }
+    public function sendSlipEmailBulk(Request $request, string $periodId)
+    {
+        $request->validate(['ids' => 'required|array|min:1']);
+
+        $payrolls = PayrollMobile::with('employee')
+            ->whereIn('id', $request->ids)
+            ->where('payroll_period_id', $periodId)
+            ->whereIn('status', ['approved', 'paid'])
+            ->get();
+
+        $dispatched = 0;
+        $skipped    = [];
+
+        foreach ($payrolls as $payroll) {
+            if (!$payroll->employee || !$payroll->employee->email) {
+                $skipped[] = $payroll->employee->employee_name ?? "Payroll ID: {$payroll->id}";
+                continue;
+            }
+
+            SendPayrollMobileSlipJob::dispatch($payroll->id);
+            $dispatched++;
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => "{$dispatched} slip masuk antrian pengiriman."
+                . (count($skipped) ? ' Dilewati (no email): ' . implode(', ', $skipped) : ''),
+        ]);
+    }
+}

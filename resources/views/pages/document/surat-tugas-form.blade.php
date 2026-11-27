@@ -45,7 +45,7 @@
     <div class="main-content">
         <section class="section">
             <div class="section-header">
-                <h1>{{ $document ? 'Edit Surat Tugas' : 'Buat Surat Tugas' }}</h1>
+                <h1>Edit Surat Tugas {{ $document->document_number }}</h1>
             </div>
             <div class="section-body">
                 <div class="row">
@@ -56,9 +56,9 @@
                             </div>
                             <div class="card-body">
                                 <div class="current-assignment">
-                                    <div><strong>Departemen saat ini:</strong> {{ $employee->primaryDepartment->first()->department_name ?? '-' }}</div>
-                                    <div><strong>Store saat ini:</strong> {{ $employee->primaryStore->first()->name ?? '-' }}</div>
-                                    <div><strong>Posisi saat ini:</strong> {{ $employee->primaryPosition->first()->name ?? '-' }}</div>
+                                    <div><strong>Departemen saat ini:</strong> {{ $employee->primaryDepartment->first()->department_name ?? \App\Models\Departments::find($employee->department_id)?->department_name ?? '-' }}</div>
+                                    <div><strong>Store saat ini:</strong> {{ $employee->primaryStore->first()->name ?? \App\Models\Stores::find($employee->store_id)?->name ?? '-' }}</div>
+                                    <div><strong>Posisi saat ini:</strong> {{ $employee->primaryPosition->first()->name ?? \App\Models\Position::find($employee->position_id)?->name ?? '-' }}</div>
                                 </div>
 
                                 @if ($errors->any())
@@ -85,26 +85,31 @@
                                         return $row->new_reference_id ?? null;
                                     };
 
-                                    // store is multi-select: prefill every id it was moved to.
+                                    // store is multi-select: lokasi utama dulu, lalu tambahan sesuai urutan dibuat
                                     $multiValues = function (string $type) use ($activeAssignments) {
                                         $group = $activeAssignments->get($type);
-                                        return $group ? $group->pluck('new_reference_id')->all() : [];
+                                        return $group ? $group->sortByDesc('is_primary_change')->pluck('new_reference_id')->values()->all() : [];
                                     };
+                                    $pickedStores = array_values(array_filter((array) old('store_id', $multiValues('store')), 'is_string'));
+                                    $scheduled = $document && \Carbon\Carbon::parse($document->issued_date)->startOfDay()->gt(today());
                                 @endphp
 
                                 <form
                                     method="POST"
-                                    action="{{ $document ? route('documents.st.update', $document->id) : route('documents.st.store', $employee->id) }}"
+                                    action="{{ route('documents.st.update', $document->id) }}"
                                 >
                                     @csrf
-                                    @if ($document)
-                                        @method('PUT')
-                                    @endif
+                                    @method('PUT')
 
                                     <p class="text-muted" style="font-size:.85rem;">
                                         Pilih minimal salah satu tujuan pemindahan (departemen, store, dan/atau posisi).
-                                        Setelah <strong>Tanggal Selesai</strong> terlewati, karyawan otomatis
-                                        dikembalikan ke penempatan semula.
+                                        Karyawan dipindah pada <strong>Tanggal Mulai</strong> dan dikembalikan ke penempatan semula
+                                        sehari setelah <strong>Tanggal Selesai</strong>.
+                                        @if ($scheduled)
+                                            <br><strong>Terjadwal:</strong> karyawan belum dipindah, akan dipindah otomatis pada tanggal mulai.
+                                        @else
+                                            <br>Menyimpan perubahan akan mengembalikan pemindahan yang sekarang lalu menerapkan tujuan yang baru.
+                                        @endif
                                     </p>
 
                                     <div class="row">
@@ -122,17 +127,18 @@
                                         </div>
                                         <div class="col-md-4 form-group">
                                             <label class="form-label">Store Tujuan</label>
-                                            <select name="store_id[]" class="form-control select2" multiple
+                                            <select name="store_id[]" id="st-store" class="form-control select2" multiple
                                                 data-placeholder="— Tidak diubah —">
-                                                @foreach ($stores as $store)
-                                                    <option value="{{ $store->id }}"
-                                                        {{ in_array($store->id, old('store_id', $multiValues('store'))) ? 'selected' : '' }}>
-                                                        {{ $store->name }}
-                                                    </option>
+                                                {{-- Urutan opsi = urutan yang dikirim form: yang terpilih ditulis dulu sesuai urutannya --}}
+                                                @foreach ($pickedStores as $id)
+                                                    @if ($s = $stores->firstWhere('id', $id))<option value="{{ $s->id }}" selected>{{ $s->name }}</option>@endif
+                                                @endforeach
+                                                @foreach ($stores->whereNotIn('id', $pickedStores) as $store)
+                                                    <option value="{{ $store->id }}">{{ $store->name }}</option>
                                                 @endforeach
                                             </select>
                                             <small class="text-muted">
-                                                Bisa pilih lebih dari satu; yang pertama jadi lokasi utama.
+                                                Bisa pilih lebih dari satu; yang dipilih pertama (paling kiri) jadi lokasi utama.
                                             </small>
                                         </div>
                                         <div class="col-md-4 form-group">
@@ -166,9 +172,7 @@
 
                                     <div class="d-flex justify-content-end gap-2 mt-3">
                                         <a href="{{ route('document.index') }}" class="btn btn-light border">Batal</a>
-                                        <button type="submit" class="btn btn-primary">
-                                            {{ $document ? 'Simpan Perubahan' : 'Buat Surat Tugas' }}
-                                        </button>
+                                        <button type="submit" class="btn btn-primary">Simpan Perubahan</button>
                                     </div>
                                 </form>
                             </div>
@@ -185,6 +189,14 @@
         jQuery(document).ready(function($) {
             $('.select2').select2({
                 width: 'resolve'
+            });
+            // Pertahankan urutan pilihan lokasi (form mengirim sesuai urutan opsi)
+            $('#st-store').on('select2:select', function(e) {
+                const opt = e.params.data.element;
+                $(opt).detach();
+                const lastPicked = $(this).find('option:selected').last();
+                lastPicked.length ? lastPicked.after(opt) : $(this).prepend(opt);
+                $(this).trigger('change.select2');
             });
         });
     </script>

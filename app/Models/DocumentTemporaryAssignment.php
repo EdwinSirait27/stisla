@@ -33,12 +33,14 @@ class DocumentTemporaryAssignment extends Model
         'new_name',
         'was_created',
         'is_primary_change',
+        'applied_at',
         'reverted_at',
     ];
 
     protected $casts = [
         'was_created'       => 'boolean',
         'is_primary_change' => 'boolean',
+        'applied_at'        => 'datetime',
         'reverted_at'       => 'datetime',
     ];
 

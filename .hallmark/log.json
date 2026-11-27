@@ -5,6 +5,21 @@
   "scope": "app",
   "shape": "app screen",
   "theme": "brand",
+  "signature": "employee directory for the training team: each person beside a tap-to-call number and their placement (position over department and location), employment type as one-tap chips, Active by default",
+  "sections": [
+   "summary stats",
+   "directory table with type chips and filters"
+  ],
+  "waived": [],
+  "prompt": "employee directory for the training team: find people to train, reach them, export the list",
+  "date": "2026-11-26"
+ },
+ {
+  "mode": "redesign",
+  "depth": "full",
+  "scope": "app",
+  "shape": "app screen",
+  "theme": "brand",
   "signature": "each payroll component beside where its amount comes from and its latest-period total; live calculation and take-home effect preview on the form",
   "sections": [
    "summary stats",

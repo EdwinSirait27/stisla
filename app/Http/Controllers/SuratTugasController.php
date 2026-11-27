@@ -4,16 +4,13 @@ namespace App\Http\Controllers;
 
 use App\Models\Departments;
 use App\Models\Documents;
-use App\Models\DocumentTemporaryAssignment;
 use App\Models\Employee;
 use App\Models\Position;
 use App\Models\Stores;
 use App\Services\SuratTugasService;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\ValidationException;
-use RuntimeException;
 use Throwable;
 
 class SuratTugasController extends Controller
@@ -22,43 +19,13 @@ class SuratTugasController extends Controller
     {
     }
 
+    /** Form lama per karyawan: sekarang satu pintu di halaman Buat dokumen, karyawan sudah terpilih. */
     public function create(string $employeeId)
     {
         $this->authorizeManage();
+        $employee = Employee::findOrFail($employeeId);
 
-        $employee = Employee::with(['primaryDepartment', 'primaryStore', 'primaryPosition'])
-            ->findOrFail($employeeId);
-
-        return view('pages.document.surat-tugas-form', [
-            'employee'    => $employee,
-            'document'    => null,
-            'departments' => Departments::orderBy('department_name')->get(),
-            'stores'      => Stores::orderBy('name')->get(),
-            'positions'   => Position::orderBy('name')->get(),
-        ]);
-    }
-
-    public function store(Request $request, string $employeeId)
-    {
-        $this->authorizeManage();
-
-        $validated = $this->validateRequest($request);
-
-        try {
-            $this->suratTugasService->createSuratTugas($employeeId, $validated);
-        } catch (ValidationException $e) {
-            return back()->withErrors($e->errors())->withInput();
-        } catch (Throwable $e) {
-            Log::error('SuratTugasController@store failed', ['error' => $e->getMessage()]);
-
-            return back()
-                ->withErrors(['assignment' => 'Gagal membuat Surat Tugas. Silakan coba lagi.'])
-                ->withInput();
-        }
-
-        return redirect()
-            ->route('document.index')
-            ->with('success', 'Surat Tugas berhasil dibuat.');
+        return redirect()->route('documents.create', ['employee_id' => $employee->id]);
     }
 
     public function edit(string $documentId)
@@ -77,6 +44,8 @@ class SuratTugasController extends Controller
             abort(403, 'Surat Tugas ini sudah expired dan tidak bisa diedit.');
         }
 
+        $document->employee->load(['primaryDepartment', 'primaryStore', 'primaryPosition']);
+
         return view('pages.document.surat-tugas-form', [
             'employee'    => $document->employee,
             'document'    => $document,
@@ -93,43 +62,14 @@ class SuratTugasController extends Controller
         $validated = $this->validateRequest($request);
 
         try {
-            DB::transaction(function () use ($documentId, $validated) {
-                $document = Documents::with('companydocumentconfigs.documenttypes')
-                    ->where('id', $documentId)
-                    ->lockForUpdate()
-                    ->firstOrFail();
-
-                $this->assertIsSuratTugas($document);
-
-                if ($document->status !== SuratTugasService::ACTIVE_STATUS) {
-                    throw new RuntimeException('Surat Tugas ini sudah expired dan tidak bisa diedit.');
-                }
-
-                $employee = Employee::where('id', $document->employee_id)->lockForUpdate()->firstOrFail();
-
-                // Revert the currently active assignments first, then re-apply
-                // the (possibly changed) target so we never double-apply.
-                $activeAssignments = DocumentTemporaryAssignment::where('document_id', $document->id)
-                    ->whereNull('reverted_at')
-                    ->lockForUpdate()
-                    ->get();
-
-                $this->suratTugasService->revertAssignments($employee, $activeAssignments);
-
-                $document->update([
-                    'issued_date'  => $validated['issued_date'],
-                    'expired_date' => $validated['expired_date'],
-                ]);
-
-                $this->suratTugasService->applyAssignments($employee, $document, $validated['targets']);
-            }, 3);
+            $this->suratTugasService->updateSuratTugas($documentId, $validated);
         } catch (ValidationException $e) {
             return back()->withErrors($e->errors())->withInput();
         } catch (Throwable $e) {
-            Log::error('SuratTugasController@update failed', ['error' => $e->getMessage()]);
+            Log::error('SuratTugasController@update failed', ['document_id' => $documentId, 'error' => $e->getMessage()]);
 
             return back()
-                ->withErrors(['assignment' => $e->getMessage() ?: 'Gagal mengubah Surat Tugas. Silakan coba lagi.'])
+                ->withErrors(['assignment' => 'Gagal mengubah Surat Tugas. Silakan coba lagi.'])
                 ->withInput();
         }
 
@@ -168,7 +108,9 @@ class SuratTugasController extends Controller
             'store_id.*'    => 'uuid|exists:stores_tables,id',
             'position_id'   => 'nullable|uuid|exists:position_tables,id',
             'issued_date'   => 'required|date',
-            'expired_date'  => 'required|date|after:issued_date',
+            'expired_date'  => 'required|date|after_or_equal:issued_date|after_or_equal:today',
+        ], [
+            'expired_date.after_or_equal' => 'Tanggal selesai tidak boleh sebelum tanggal mulai atau sebelum hari ini.',
         ]);
 
         $targets = array_filter([

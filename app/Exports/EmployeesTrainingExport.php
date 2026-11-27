@@ -30,29 +30,31 @@ class EmployeesTrainingExport extends DefaultValueBinder implements FromQuery, W
             $join->on('employee_positions.employee_id', '=', 'employees_tables.id')
                  ->where('employee_positions.is_primary', true);
         })
-        ->leftJoin('position_tables', 'position_tables.id', '=', 'employee_positions.position_id')
+        ->leftJoin('position_tables', 'position_tables.id', '=', \Illuminate\Support\Facades\DB::raw('COALESCE(employee_positions.position_id, employees_tables.position_id)'))
         
         ->leftJoin('employee_stores', function ($join) {
             $join->on('employee_stores.employee_id', '=', 'employees_tables.id')
                  ->where('employee_stores.is_primary', true);
         })
-        ->leftJoin('stores_tables', 'stores_tables.id', '=', 'employee_stores.store_id')
+        ->leftJoin('stores_tables', 'stores_tables.id', '=', \Illuminate\Support\Facades\DB::raw('COALESCE(employee_stores.store_id, employees_tables.store_id)'))
 
         // ← Department lewat pivot
         ->leftJoin('employee_departments', function ($join) {
             $join->on('employee_departments.employee_id', '=', 'employees_tables.id')
                  ->where('employee_departments.is_primary', true);
         })
-        ->leftJoin('departments_tables', 'departments_tables.id', '=', 'employee_departments.department_id')
+        ->leftJoin('departments_tables', 'departments_tables.id', '=', \Illuminate\Support\Facades\DB::raw('COALESCE(employee_departments.department_id, employees_tables.department_id)'))
 
         
         
         ->leftJoin('company_tables', 'company_tables.id', '=', 'employees_tables.company_id')
+        ->whereNotNull('employees_tables.id')
         ->select([
             'users.*',
             'employees_tables.employee_name',
             'employees_tables.employee_pengenal',
             'employees_tables.status',
+            'employees_tables.status_employee',
             'employees_tables.telp_number',
             'position_tables.name as position_name',
             'stores_tables.name as store_name',
@@ -68,6 +70,7 @@ class EmployeesTrainingExport extends DefaultValueBinder implements FromQuery, W
                 'filter_department' => $query->where('departments_tables.department_name', $value),
                 'filter_store'      => $query->where('stores_tables.name', $value),
                 'filter_status'     => $query->where('employees_tables.status', $value),
+                'filter_emp_status' => $query->where('employees_tables.status_employee', $value),
                  default             => null,
             };
         }
@@ -90,6 +93,7 @@ class EmployeesTrainingExport extends DefaultValueBinder implements FromQuery, W
             'Position',
             'Telp Number',
             'Status',
+            'Employee Type',
         ];
     }
 
@@ -108,6 +112,7 @@ class EmployeesTrainingExport extends DefaultValueBinder implements FromQuery, W
             $e->position_name  ?? 'Empty',
             $e->telp_number         ?? 'Empty',
             $e->status         ?? 'Empty',
+            $e->status_employee ?? 'Empty',
         ];
     }
 

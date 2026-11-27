@@ -1043,7 +1043,10 @@ class EmployeeController extends Controller
 
         $documents = $viewer->hasPermissionTo('ManageEmployee')
             ? Documents::with(['companydocumentconfigs.documenttypes', 'companydocumentconfigs.company'])
-                ->where('employee_id', $emp->id)->get()
+                ->where('employee_id', $emp->id)
+                // Berita acara punya menu sendiri, bukan surat untuk karyawan ini
+                ->whereDoesntHave('companydocumentconfigs.documenttypes', fn($q) => $q->where('requires_approval', true))
+                ->get()
             : collect();
 
         // Gaji yang dipakai payroll sekarang: effective_date terakhir <= hari ini
@@ -1746,6 +1749,11 @@ class EmployeeController extends Controller
         ])
             ->where('employee_id', $targetUser->employee_id)
             ->findOrFail($documentId);
+
+        // Berita acara (jenis beralur approval) punya halaman & PDF sendiri
+        if ($document->companydocumentconfigs?->documenttypes?->requires_approval) {
+            return redirect()->route('beritaacara.pdf', $document->id);
+        }
 
         if (!$document->companydocumentconfigs || !$document->companydocumentconfigs->documenttypes) {
             abort(404, 'Document configuration not found');

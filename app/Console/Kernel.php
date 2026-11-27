@@ -49,6 +49,14 @@ class Kernel extends ConsoleKernel
         $schedule->command('attendance:send-reminder')
             ->everyFifteenMinutes()
             ->timezone('Asia/Makassar');
+        $schedule->command('contracts:expire')
+            ->dailyAt('00:10')
+            ->timezone('Asia/Makassar')
+            ->withoutOverlapping();
+        $schedule->command('sk:apply-effective')
+            ->dailyAt('00:15')
+            ->timezone('Asia/Makassar')
+            ->withoutOverlapping();
         $schedule->command('documents:expire-surat-tugas')
             ->everyFiveMinutes()
             ->timezone('Asia/Makassar')

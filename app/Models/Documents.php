@@ -119,6 +119,48 @@ class Documents extends Model
         return $this->belongsTo(Employee::class, 'issued_by', 'id');
     }
 
+    /** Label status untuk semua dokumen, termasuk alur approval (berita acara). */
+    /** Status berita acara yang masih berjalan (menunggu approver berikutnya). */
+    public const BA_IN_APPROVAL = ['pending', 'in_review'];
+
+    public const STATUS_LABELS = [
+        'draft'     => 'Draf',
+        'issued'    => 'Terbit',
+        'revoked'   => 'Dicabut',
+        'expired'   => 'Kedaluwarsa',
+        'pending'   => 'Menunggu persetujuan',
+        'in_review' => 'Disetujui sebagian',
+        'revision'  => 'Perlu revisi',
+        'approved'  => 'Disetujui',
+        'cancelled' => 'Dibatalkan',
+    ];
+
+    public function getStatusLabelAttribute(): string
+    {
+        return self::STATUS_LABELS[$this->status] ?? (string) $this->status;
+    }
+
+    public function content()
+    {
+        return $this->hasOne(DocumentContent::class, 'document_id', 'id');
+    }
+
+    /** Semua langkah approval, semua putaran. Putaran aktif: currentApprovals(). */
+    public function approvals()
+    {
+        return $this->hasMany(DocumentApproval::class, 'document_id', 'id')->orderBy('round')->orderBy('sequence');
+    }
+
+    public function recipients()
+    {
+        return $this->hasMany(DocumentRecipient::class, 'document_id', 'id');
+    }
+
+    public function attachments()
+    {
+        return $this->hasMany(DocumentAttachment::class, 'document_id', 'id');
+    }
+
     public function assignments()
     {
         return $this->hasMany(DocumentTemporaryAssignment::class, 'document_id', 'id');

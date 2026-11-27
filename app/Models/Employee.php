@@ -232,9 +232,11 @@ class Employee extends Model
     {
         return $this->hasOne(User::class, 'employee_id');
     }
+    /** Surat untuk karyawan ini. Berita acara (jenis beralur approval) tidak termasuk: punya menu sendiri. */
     public function documents()
     {
-        return $this->hasMany(Documents::class, 'employee_id', 'id');
+        return $this->hasMany(Documents::class, 'employee_id', 'id')
+            ->whereDoesntHave('companydocumentconfigs.documenttypes', fn($q) => $q->where('requires_approval', true));
     }
     public function skletters()
     {
@@ -322,6 +324,10 @@ class Employee extends Model
                     'grading_id' => fn($id) => optional(Grading::find($id))->grading_name,
                     'group_id' => fn($id) => optional(Groups::find($id))->group_name,
                     'level_id' => fn($id) => optional(Employee::find($id))->employee_name,
+                    // Penempatan (mis. dari Surat Tugas): tampilkan nama, bukan id
+                    'department_id' => fn($id) => optional(Departments::find($id))->department_name,
+                    'store_id' => fn($id) => optional(Stores::find($id))->name,
+                    'position_id' => fn($id) => optional(Position::find($id))->name,
                 ];
                 $fieldLabels = [
                     'employee_name' => 'Employee Name',
@@ -358,16 +364,21 @@ class Employee extends Model
                     'notes' => 'Resign notes',
                     'pin' => 'Employee Fingerprints',
                     'end_date' => 'Leave',
+                    'department_id' => 'Department',
+                    'store_id' => 'Location',
+                    'position_id' => 'Position',
                 ];
                 $changesInfo = '';
                 if ($eventName === 'updated' && !empty($changes)) {
-                    $details = collect($changes)->map(function ($new, $field) use ($original, $relationNames, $fieldLabels) {
+                    // Waktu sistem tidak perlu masuk riwayat perubahan
+                    $details = collect($changes)->except(['updated_at', 'created_at'])->map(function ($new, $field) use ($original, $relationNames, $fieldLabels) {
                         $old = $original[$field] ?? 'null';
                         $label = $fieldLabels[$field] ?? ucfirst(str_replace('_', ' ', $field));
                         if (isset($relationNames[$field])) {
                             $label = $fieldLabels[$field] ?? ucfirst(str_replace('_', ' ', $field));
-                            $oldLabel = $relationNames[$field]($old) ?? $old;
-                            $newLabel = $relationNames[$field]($new) ?? $new;
+                            if ($old == $new) return null;
+                            $oldLabel = $old === 'null' || $old === null ? '-' : ($relationNames[$field]($old) ?? $old);
+                            $newLabel = $new === null ? '-' : ($relationNames[$field]($new) ?? $new);
                             return "{$label}: {$oldLabel} → {$newLabel}";
                         }
                         if ($old == $new) return null;
@@ -534,6 +545,10 @@ public function atasan()
     return $atasan;
 }
 
+public function contracts()
+{
+    return $this->hasMany(Contract::class, 'employee_id', 'id');
+}
 public function bawahan()
 {
     return $this->bawahanList()->get();

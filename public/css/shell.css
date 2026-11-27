@@ -139,6 +139,8 @@ body:not(.sidebar-mini) .sb .sidebar-menu li.active ul.dropdown-menu li a { posi
 body:not(.sidebar-mini) .sb .sidebar-menu li.active ul.dropdown-menu li.active > a { color: var(--shell-accent); font-weight: 700; }
 body:not(.sidebar-mini) .sb .sidebar-menu li ul.dropdown-menu li.active > a::before { content: ""; position: absolute; left: 28px; top: 50%; width: 3px; height: 18px; transform: translateY(-50%); border-radius: 2px; background: var(--shell-accent); }
 
+.sb .sb-badge { display: inline-block; min-width: 20px; margin-left: 8px; padding: 0 6px; border-radius: 999px; background: var(--shell-warn-soft); color: var(--shell-warn); font-size: var(--shell-text-xs); font-weight: 700; line-height: 18px; text-align: center; font-variant-numeric: tabular-nums; }
+
 @media (max-width: 1024px) {
     .shell-today, .shell-user-text { display: none; }
 }
