@@ -1,9 +1,13 @@
 @php
+    $waiting = $waiting ?? null;
+    $waitingSince = $waitingSince ?? null;
     $lead = [
         'approval_needed' => 'Ada berita acara yang menunggu persetujuan Anda.',
         'returned'        => 'Berita acara Anda dikembalikan untuk direvisi.',
         'approved'        => 'Berita acara Anda sudah disetujui semua approver dan sah.',
         'cc'              => 'Anda menerima tembusan berita acara yang sudah disetujui.',
+        'reminder'        => 'Pengingat: berita acara ini masih menunggu persetujuan' . ($waiting ? ' ' . $waiting : '') . ($waitingSince ? ' sejak ' . \Carbon\Carbon::parse($waitingSince)->locale('id')->translatedFormat('d F Y') : '') . '.',
+        'shared'          => 'Berikut berita acara yang dibagikan kepada Anda.',
     ][$event] ?? '';
     $action = [
         'approval_needed' => 'Buka dan setujui',

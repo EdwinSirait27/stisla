@@ -3,6 +3,7 @@
 @push('styles')
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
     @include('pages.Documenttype._styles')
+    @include('pages.BeritaAcara._list_styles')
 @endpush
 
 @section('main')
@@ -15,12 +16,13 @@
         <section class="section">
             <header class="pr-head">
                 <div>
-                    <ol class="pr-crumbs"><li>Dokumen</li><li><a href="{{ route('beritaacara.index') }}">Berita acara</a></li><li aria-current="page">{{ $doc->document_number }}</li></ol>
+                    <ol class="pr-crumbs"><li>Dokumen</li><li><a href="{{ route('beritaacara.index') }}">Berita acara</a></li><li aria-current="page">Detail</li></ol>
                     <h1 class="pr-title">{{ $c?->subject }}</h1>
                     <p class="pr-lede">
                         <span class="ba-st is-{{ $doc->status }}">{{ $doc->status_label }}</span>
                         @if (in_array($doc->status, \App\Models\Documents::BA_IN_APPROVAL, true) && $step)
-                            {{ $steps->where('status', 'approved')->count() }} dari {{ $steps->count() }} menyetujui, menunggu {{ $step->employee?->employee_name }}.
+                            {{ $steps->where('status', 'approved')->count() }} dari {{ $steps->count() }} menyetujui, menunggu {{ $step->employee?->employee_name }}
+                            {{ $waitingSince ? 'sejak ' . $waitingSince->locale('id')->diffForHumans() : '' }}.
                         @endif
                         {{ $type?->document_name }}, nomor {{ $doc->document_number }}{{ ($c?->round ?? 1) > 1 ? ', pengajuan ke-' . $c->round : '' }}
                     </p>
@@ -149,6 +151,54 @@
                             </details>
                         @endif
                     </section>
+
+                    @if ($canRemind && $reminder)
+                        @php
+                            $opts = [
+                                'current'  => ['Approver yang sedang mendapat giliran', 'Email "perlu persetujuan Anda" dikirim ulang.'],
+                                'superior' => ['Atasan pengaju', 'Pengingat bahwa berita acara bawahannya masih menunggu persetujuan.'],
+                                'next'     => ['Approver berikutnya', 'Pengingat bahwa sebentar lagi gilirannya.'],
+                            ];
+                            $firstOk = collect(['current', 'superior', 'next'])->first(fn($k) => $reminder[$k][1] === null) ?? 'email';
+                            // Sudah tidak menunggu persetujuan: hanya kirim tautan ke alamat email
+                            $inApproval = in_array($doc->status, \App\Models\Documents::BA_IN_APPROVAL, true);
+                        @endphp
+                        <section class="pr-panel" aria-labelledby="h-remind">
+                            <div class="pr-panel-head">
+                                <div>
+                                    <h2 class="pr-panel-title" id="h-remind">{{ $inApproval ? 'Kirim ulang email' : 'Kirim tautan lewat email' }}</h2>
+                                    <span class="pr-panel-sub">{{ $inApproval ? 'Untuk mengingatkan yang ditunggu.' : 'Berita acara ini sudah tidak menunggu persetujuan.' }} Email masuk antrian dan tercatat di riwayat.</span>
+                                </div>
+                            </div>
+                            <form method="POST" action="{{ route('beritaacara.remind', $doc->id) }}" class="rm-form" id="remind-form">
+                                @csrf
+                                @foreach ($inApproval ? $opts : [] as $key => [$title, $desc])
+                                    @php [$who, $problem] = $reminder[$key]; @endphp
+                                    <label class="rm-option">
+                                        <input type="radio" name="target" value="{{ $key }}" @checked(old('target', $firstOk) === $key) @disabled($problem !== null)>
+                                        <span>
+                                            <strong>{{ $title }}{{ $who ? ': ' . $who->employee_name : '' }}</strong>
+                                            <small>{{ $problem ? 'Tidak bisa: ' . $problem . '.' : $desc . ' Ke ' . $who->company_email }}</small>
+                                        </span>
+                                    </label>
+                                @endforeach
+                                <label class="rm-option">
+                                    <input type="radio" name="target" value="email" @checked(old('target', $firstOk) === 'email')>
+                                    <span>
+                                        <strong>Alamat email lain</strong>
+                                        <small>Penerima hanya bisa membuka isinya kalau punya akses ke berita acara ini di HRX.</small>
+                                    </span>
+                                </label>
+                                <label for="remind-email" class="rm-label">Alamat email</label>
+                                <input type="email" id="remind-email" name="email" value="{{ old('email') }}" placeholder="nama@perusahaan.co.id" autocomplete="off">
+                                <label for="remind-note" class="rm-label">Pesan (opsional)</label>
+                                <textarea id="remind-note" name="note" rows="2" maxlength="500" placeholder="Mis. Mohon disetujui sebelum Jumat">{{ old('note') }}</textarea>
+                                @error('target')<span class="emp-error">{{ $message }}</span>@enderror
+                                @error('email')<span class="emp-error">{{ $message }}</span>@enderror
+                                <button type="submit" class="pr-btn pr-btn-primary"><i class="fas fa-paper-plane" aria-hidden="true"></i> Kirim email</button>
+                            </form>
+                        </section>
+                    @endif
 
                     <section class="pr-panel" aria-labelledby="h-activity">
                         <div class="pr-panel-head">

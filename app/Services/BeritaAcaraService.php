@@ -154,9 +154,10 @@ class BeritaAcaraService
         }
 
         [$approverIds, $recipientIds] = $this->chain($submitter, $approverIds, $recipientIds);
-        $stored = $this->storeFiles($files);
 
-        $document = activity()->withoutLogs(fn() => DB::transaction(function () use ($config, $submitter, $content, $approverIds, $recipientIds, $stored) {
+        // Dokumen dibuat dulu supaya nomornya terbit; lampiran diunggah sesudahnya ke folder nomor itu
+        // (upload ke S3 tidak dilakukan di dalam transaksi database).
+        $document = activity()->withoutLogs(fn() => DB::transaction(function () use ($config, $submitter, $content, $approverIds, $recipientIds) {
             $document = Documents::create([
                 'company_document_config_id' => $config->id,
                 'employee_id' => $submitter->id,
@@ -168,10 +169,17 @@ class BeritaAcaraService
             DocumentContent::create($content + ['document_id' => $document->id, 'round' => 1, 'submitted_at' => now()]);
             $this->createApprovals($document, $approverIds, 1, self::superiorOf($submitter)?->id);
             $this->syncRecipients($document, $recipientIds);
-            $this->attachFiles($document, $stored);
 
             return $document;
         }));
+
+        try {
+            $this->attachFiles($document, $this->storeFiles($files, $document));
+        } catch (\Throwable $e) {
+            // Upload gagal: batalkan ajuan seluruhnya (dokumen & file yang sempat terunggah)
+            $this->purge($document);
+            throw $e;
+        }
 
         $this->snapshotSubmitterSignature($document, $submitter, 1);
         $this->record($document, 'submitted', "{$submitter->employee_name} mengajukan berita acara {$document->document_number} ke "
@@ -185,7 +193,7 @@ class BeritaAcaraService
     public function resubmit(Documents $document, Employee $submitter, array $content, array $approverIds, array $recipientIds, array $files, array $removeAttachmentIds): Documents
     {
         [$approverIds, $recipientIds] = $this->chain($submitter, $approverIds, $recipientIds);
-        $stored = $this->storeFiles($files);
+        $stored = $this->storeFiles($files, $document);
 
         $round = activity()->withoutLogs(fn() => DB::transaction(function () use ($document, $submitter, $content, $approverIds, $recipientIds, $stored, $removeAttachmentIds) {
             $doc = Documents::whereKey($document->id)->lockForUpdate()->firstOrFail();
@@ -437,13 +445,40 @@ class BeritaAcaraService
         }
     }
 
-    /** Upload ke S3 sebelum transaksi; foto dikompres & dibersihkan oleh UploadStorage. */
-    private function storeFiles(array $files): array
+    /**
+     * Folder S3 satu berita acara: documents/berita-acara/{nomor}/ dengan subfolder lampiran/ dan
+     * tanda-tangan/. Garis miring di nomor (004/BA-ABD/XI/2026) diganti "-" karena di S3 berarti subfolder.
+     */
+    public static function folder(Documents $document): string
+    {
+        $number = trim(preg_replace('/[^A-Za-z0-9-]+/', '-', (string) $document->document_number), '-') ?: $document->id;
+        return 'documents/berita-acara/' . $number;
+    }
+
+    /** Hapus ajuan yang gagal di tengah jalan (dokumen, relasi, dan file di foldernya). */
+    private function purge(Documents $document): void
+    {
+        try {
+            Storage::disk('s3')->deleteDirectory(self::folder($document));
+        } catch (\Throwable $e) {
+            report($e);
+        }
+        DB::transaction(function () use ($document) {
+            DocumentAttachment::where('document_id', $document->id)->delete();
+            DocumentRecipient::where('document_id', $document->id)->delete();
+            DocumentApproval::where('document_id', $document->id)->delete();
+            DocumentContent::where('document_id', $document->id)->delete();
+            activity()->withoutLogs(fn() => Documents::whereKey($document->id)->delete());
+        });
+    }
+
+    /** Upload ke folder lampiran berita acara; foto dikompres & dibersihkan oleh UploadStorage. */
+    private function storeFiles(array $files, Documents $document): array
     {
         $out = [];
         foreach ($files as $file) {
             if (!$file instanceof UploadedFile) continue;
-            $path = $this->uploads->put($file, 'documents/berita-acara/' . now()->format('Y/m'), 'lampiran',
+            $path = $this->uploads->put($file, self::folder($document) . '/lampiran', 'lampiran',
                 array_merge(UploadStorage::IMAGES, ['pdf']), 's3', false, 'attachments');
             // Jenis & ukuran dari file yang tersimpan (foto sudah dikompres, bisa berubah format), bukan file asli
             $ext = strtolower(pathinfo($path, PATHINFO_EXTENSION));
@@ -471,7 +506,7 @@ class BeritaAcaraService
      */
     private function snapshotSubmitterSignature(Documents $doc, Employee $submitter, int $round): void
     {
-        $path = $this->copySignature($submitter->signature, "documents/signatures/{$doc->id}/submitter-r{$round}.png");
+        $path = $this->copySignature($submitter->signature, self::folder($doc) . "/tanda-tangan/pengaju-putaran-{$round}.png");
         if ($path) {
             DocumentContent::where('document_id', $doc->id)->update(['submitter_signature_path' => $path]);
         }
@@ -479,7 +514,7 @@ class BeritaAcaraService
 
     private function snapshotSignature(Documents $doc, DocumentApproval $step, Employee $approver): ?string
     {
-        return $this->copySignature($approver->signature, "documents/signatures/{$doc->id}/{$step->id}.png");
+        return $this->copySignature($approver->signature, self::folder($doc) . "/tanda-tangan/approver-putaran-{$step->round}-ke-{$step->sequence}.png");
     }
 
     private function copySignature(?string $source, string $target): ?string
@@ -495,6 +530,71 @@ class BeritaAcaraService
             report($e);
         }
         return $source; // cadangan: pakai path profil
+    }
+
+    /**
+     * Penerima yang bisa diberi pengingat (untuk ManageBeritaAcara), hanya selama masih berjalan:
+     * current = approver yang sedang mendapat giliran, superior = atasan pengaju,
+     * next = approver sesudah yang sekarang. Nilai: [Employee|null, alasan tidak bisa|null].
+     */
+    public function reminderTargets(Documents $document): array
+    {
+        $open = in_array($document->status, Documents::BA_IN_APPROVAL, true);
+        $step = $open ? $this->currentStep($document)?->loadMissing('employee') : null;
+        $next = $step ? DocumentApproval::with('employee')->where('document_id', $document->id)->where('round', $step->round)
+            ->where('status', 'waiting')->where('sequence', '>', $step->sequence)->orderBy('sequence')->first() : null;
+        $superior = $document->employee ? self::superiorOf($document->employee) : null;
+
+        $check = function (?Employee $e, string $missing) {
+            if (!$e) return [null, $missing];
+            if (!filter_var(trim((string) $e->company_email), FILTER_VALIDATE_EMAIL)) return [$e, 'tidak punya email kantor'];
+            return [$e, null];
+        };
+
+        return [
+            'current'  => $open ? $check($step?->employee, 'tidak ada langkah yang menunggu') : [null, 'berita acara tidak sedang menunggu persetujuan'],
+            'superior' => $open ? $check($superior, 'pengaju tidak punya atasan') : [null, 'berita acara tidak sedang menunggu persetujuan'],
+            'next'     => $open ? $check($next?->employee, 'tidak ada approver sesudahnya') : [null, 'berita acara tidak sedang menunggu persetujuan'],
+            'step'     => $step,
+        ];
+    }
+
+    /**
+     * Kirim ulang email (pengingat) oleh pemegang ManageBeritaAcara. Mengembalikan alamat tujuan.
+     * Approver yang sedang mendapat giliran menerima email "perlu persetujuan" seperti biasa; penerima
+     * lain menerima email pengingat yang menyebut siapa yang sedang ditunggu.
+     */
+    public function remind(Documents $document, string $target, ?string $email, ?string $note, Employee $actor): string
+    {
+        if ($document->status === 'cancelled') {
+            throw ValidationException::withMessages(['target' => 'Berita acara yang dibatalkan tidak bisa dikirimi pengingat.']);
+        }
+
+        if ($target === 'email') {
+            $address = strtolower(trim((string) $email));
+            if (!filter_var($address, FILTER_VALIDATE_EMAIL)) {
+                throw ValidationException::withMessages(['email' => 'Alamat email tidak valid.']);
+            }
+            $name = 'Bapak/Ibu';
+            $event = in_array($document->status, Documents::BA_IN_APPROVAL, true) ? 'reminder' : 'shared';
+        } else {
+            $targets = $this->reminderTargets($document);
+            [$employee, $problem] = $targets[$target] ?? [null, 'pilihan tidak dikenal'];
+            if ($problem) {
+                $who = ['current' => 'Approver yang sedang mendapat giliran', 'superior' => 'Atasan pengaju', 'next' => 'Approver berikutnya'][$target] ?? 'Penerima';
+                throw ValidationException::withMessages(['target' => "{$who}" . ($employee ? " ({$employee->employee_name})" : '') . ": {$problem}."]);
+            }
+            $address = trim($employee->company_email);
+            $name = $employee->employee_name;
+            $event = $target === 'current' ? 'approval_needed' : 'reminder';
+        }
+
+        Mail::to($address)->queue(new BeritaAcaraMail($document->id, $name, $event, $note ?: null));
+        $label = $target === 'email' ? $address : "{$name} ({$address})";
+        $this->record($document, 'reminded', "{$actor->employee_name} mengirim ulang email berita acara {$document->document_number} ke {$label}" . ($note ? ". Pesan: {$note}" : ''),
+            ['target' => $target, 'email' => $address]);
+
+        return $label;
     }
 
     private function notifyCurrentApprover(Documents $document): void

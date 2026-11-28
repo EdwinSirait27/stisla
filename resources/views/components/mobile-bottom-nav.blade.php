@@ -43,6 +43,7 @@
         'Dokumen' => [
             ['Kontrak', 'fa-file-contract', 'contract', ['ManageContracts']],
             ['Dokumen', 'fa-folder-open', 'document.index', ['ManageDocument']],
+            ['Berita Acara', 'fa-folder-open', 'beritaacara.index', ['CreateBeritaAcara']],
             ['Jenis SK', 'fa-tags', 'pages.Sktype', ['ManageSktypes']],
             ['Surat SK', 'fa-file-signature', 'SkLetters', ['ManageSkLetters']],
         ],

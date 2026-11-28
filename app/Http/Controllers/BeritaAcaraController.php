@@ -19,7 +19,8 @@ use Illuminate\Validation\Rule;
  * Berita acara dengan approval bertingkat (lihat BeritaAcaraService untuk alurnya).
  *
  * Akses:
- * - Membuat: permission CreateBeritaAcara.
+ * - Membuat & tab pribadi (perlu persetujuan saya, ajuan saya, tembusan): permission CreateBeritaAcara.
+ * - Kirim ulang email / pengingat: ManageBeritaAcara.
  * - Melihat satu berita acara: pengaju, approver (semua putaran), tembusan, atau ManageBeritaAcara.
  * - Melihat semua berita acara (tab Semua): ManageBeritaAcara. Terpisah dari ManageDocument (dokumen HR).
  * - Menyetujui / mengembalikan: hanya approver yang sedang mendapat giliran.
@@ -28,6 +29,8 @@ use Illuminate\Validation\Rule;
 class BeritaAcaraController extends Controller
 {
     private const MAX_LOCATIONS = 20;
+    /** Langkah yang menunggu lebih lama dari ini dianggap tertahan (tab Semua). */
+    private const STUCK_DAYS = 3;
 
     public function __construct(private BeritaAcaraService $service)
     {
@@ -74,10 +77,14 @@ class BeritaAcaraController extends Controller
     public function index(Request $request)
     {
         $me = $this->me($request);
+        $canCreatePerm = $request->user()->can('CreateBeritaAcara');
         $canAll = $request->user()->can('ManageBeritaAcara');
-        $tabs = ['approval', 'mine', 'cc'];
+
+        // Tab pribadi (persetujuan, ajuan, tembusan): CreateBeritaAcara. Tab Semua: ManageBeritaAcara.
+        $tabs = $canCreatePerm ? ['approval', 'mine', 'cc'] : [];
         if ($canAll) $tabs[] = 'all';
-        $tab = in_array($request->query('tab'), $tabs, true) ? $request->query('tab') : 'approval';
+        abort_if(!$tabs, 403, 'Daftar berita acara butuh permission CreateBeritaAcara atau ManageBeritaAcara. Berita acara yang menunggu persetujuan Anda tetap bisa dibuka dari dashboard atau email.');
+        $tab = in_array($request->query('tab'), $tabs, true) ? $request->query('tab') : $tabs[0];
 
         $queries = [
             'approval' => fn() => $this->baQuery()->whereHas('approvals', fn($q) => $q->where('employee_id', $me->id)->where('status', 'pending')),
@@ -87,32 +94,88 @@ class BeritaAcaraController extends Controller
         ];
 
         $counts = [
-            'approval' => $queries['approval']()->count(),
-            'mine'     => $queries['mine']()->count(),
-            'mine_revision' => $queries['mine']()->where('status', 'revision')->count(),
-            'cc_unread' => DocumentRecipient::where('employee_id', $me->id)->whereNull('read_at')
-                ->whereHas('document', fn($q) => $q->where('status', '!=', 'cancelled'))->count(),
+            'approval'      => $canCreatePerm ? $queries['approval']()->count() : 0,
+            'mine'          => $canCreatePerm ? $queries['mine']()->count() : 0,
+            'mine_revision' => $canCreatePerm ? $queries['mine']()->where('status', 'revision')->count() : 0,
+            'mine_open'     => $canCreatePerm ? $queries['mine']()->whereIn('status', Documents::BA_IN_APPROVAL)->count() : 0,
+            'cc_unread'     => $canCreatePerm ? DocumentRecipient::where('employee_id', $me->id)->whereNull('read_at')
+                ->whereHas('document', fn($q) => $q->where('status', '!=', 'cancelled'))->count() : 0,
         ];
 
+        // Ringkasan seluruh berita acara (tab Semua)
+        $overall = null;
+        if ($canAll) {
+            $byStatus = $this->baQuery()->select('status', \Illuminate\Support\Facades\DB::raw('COUNT(*) AS c'))->groupBy('status')->pluck('c', 'status');
+            $overall = [
+                'open'     => (int) (($byStatus['pending'] ?? 0) + ($byStatus['in_review'] ?? 0)),
+                'revision' => (int) ($byStatus['revision'] ?? 0),
+                'approved' => (int) ($byStatus['approved'] ?? 0),
+                // Langkah yang menunggu lebih dari 3 hari (perlu diingatkan)
+                'stuck'    => DocumentApproval::where('status', 'pending')->where('updated_at', '<', now()->subDays(self::STUCK_DAYS))
+                    ->whereHas('document', fn($q) => $q->whereIn('status', Documents::BA_IN_APPROVAL))->count(),
+            ];
+        }
+
         $status = $request->query('status');
-        $documents = $queries[$tab]()
-            ->when($status && array_key_exists($status, Documents::STATUS_LABELS), fn($q) => $q->where('status', $status))
+        $sort = $request->query('sort') === 'waiting' ? 'waiting' : 'status';
+        $query = $queries[$tab]()
+            ->when($status === 'stuck', fn($q) => $q->whereIn('status', Documents::BA_IN_APPROVAL)
+                ->whereHas('approvals', fn($a) => $a->where('status', 'pending')->where('updated_at', '<', now()->subDays(self::STUCK_DAYS))))
+            ->when($status && $status !== 'stuck' && array_key_exists($status, Documents::STATUS_LABELS), fn($q) => $q->where('status', $status))
+            ->when($tab === 'all' && $request->filled('type'), fn($q) => $q->whereHas('companydocumentconfigs', fn($c) => $c->where('document_type_id', $request->query('type'))))
+            ->when($tab === 'all' && $request->filled('company'), fn($q) => $q->whereHas('companydocumentconfigs', fn($c) => $c->where('company_id', $request->query('company'))))
             ->when($request->filled('q'), function ($q) use ($request) {
                 $term = '%' . str_replace(['%', '_'], ['\%', '\_'], $request->query('q')) . '%';
-                $q->where(fn($w) => $w->where('document_number', 'like', $term)->orWhereHas('content', fn($c) => $c->where('subject', 'like', $term)));
-            })
-            ->orderByRaw("FIELD(status, 'revision', 'pending', 'in_review', 'approved', 'cancelled')")
-            ->orderByDesc('issued_date')
-            ->paginate(20)->withQueryString();
+                $q->where(fn($w) => $w->where('document_number', 'like', $term)
+                    ->orWhereHas('content', fn($c) => $c->where('subject', 'like', $term))
+                    ->orWhereHas('employee', fn($e) => $e->where('employee_name', 'like', $term)));
+            });
 
-        // Langkah aktif per dokumen (untuk "menunggu siapa")
-        $current = DocumentApproval::with('employee:id,employee_name')->whereIn('document_id', $documents->pluck('id'))
-            ->where('status', 'pending')->get()->keyBy('document_id');
-        $unread = DocumentRecipient::where('employee_id', $me->id)->whereNull('read_at')->whereIn('document_id', $documents->pluck('id'))->pluck('document_id')->flip();
+        $sort === 'waiting'
+            // Yang paling lama menunggu di atas
+            ? $query->orderByRaw("FIELD(status, 'pending', 'in_review', 'revision', 'approved', 'cancelled')")
+                ->orderBy(DocumentApproval::select('updated_at')->whereColumn('document_id', 'documents.id')->where('status', 'pending')->limit(1))
+            : $query->orderByRaw("FIELD(status, 'revision', 'pending', 'in_review', 'approved', 'cancelled')")->orderByDesc('issued_date');
 
-        return view('pages.BeritaAcara.index', compact('tab', 'tabs', 'counts', 'documents', 'current', 'unread', 'status', 'me') + [
-            'canCreate' => $request->user()->can('CreateBeritaAcara') && $this->typesFor($me)->isNotEmpty(),
+        $documents = $query->withCount(['attachments', 'recipients'])->paginate(20)->withQueryString();
+        $ids = $documents->pluck('id');
+
+        // Per dokumen: langkah yang menunggu (siapa & sejak kapan) dan kemajuan putaran berjalan
+        $current = DocumentApproval::with('employee:id,employee_name')->whereIn('document_id', $ids)->where('status', 'pending')->get()->keyBy('document_id');
+        $progress = DocumentApproval::whereIn('document_approvals.document_id', $ids)
+            ->join('document_contents as dc', fn($j) => $j->on('dc.document_id', '=', 'document_approvals.document_id')->on('dc.round', '=', 'document_approvals.round'))
+            ->select('document_approvals.document_id')
+            ->selectRaw('COUNT(*) AS total')->selectRaw("SUM(document_approvals.status = 'approved') AS done")
+            ->groupBy('document_approvals.document_id')->get()->keyBy('document_id');
+        $unread = DocumentRecipient::where('employee_id', $me->id)->whereNull('read_at')->whereIn('document_id', $ids)->pluck('document_id')->flip();
+
+        return view('pages.BeritaAcara.index', compact('tab', 'tabs', 'counts', 'documents', 'current', 'progress', 'unread', 'status', 'sort', 'me', 'overall') + [
+            'canCreate'  => $canCreatePerm && $this->typesFor($me)->isNotEmpty(),
+            'canAll'     => $canAll,
+            'stuckDays'  => self::STUCK_DAYS,
+            'types'      => $canAll ? Documenttypes::where('requires_approval', true)->orderBy('document_name')->pluck('document_name', 'id') : collect(),
+            'companies'  => $canAll ? \App\Models\Company::orderBy('name')->pluck('name', 'id') : collect(),
         ]);
+    }
+
+    /** Kirim ulang email / pengingat (ManageBeritaAcara). */
+    public function remind(Request $request, string $id)
+    {
+        abort_unless($request->user()->can('ManageBeritaAcara'), 403, 'Mengirim ulang email butuh permission ManageBeritaAcara.');
+        [$doc, $me] = $this->findBa($request, $id);
+        $data = $request->validate([
+            'target' => ['required', Rule::in(['current', 'superior', 'next', 'email'])],
+            'email'  => ['nullable', 'required_if:target,email', 'email:rfc', 'max:255'],
+            'note'   => ['nullable', 'string', 'max:500'],
+        ], [
+            'target.required'  => 'Pilih penerima.',
+            'email.required_if' => 'Isi alamat email tujuan.',
+            'email.email'      => 'Alamat email tidak valid.',
+        ]);
+
+        $label = $this->service->remind($doc, $data['target'], $data['email'] ?? null, $data['note'] ?? null, $me);
+
+        return back()->with('success', "Email dikirim ke {$label}. Email masuk antrian dan terkirim dalam beberapa saat.");
     }
 
     private function people(Employee $me)
@@ -239,6 +302,10 @@ class BeritaAcaraController extends Controller
                 ->where('log_name', 'document')->latest()->latest('id')->limit(50)->get(['id', 'event', 'description', 'created_at']),
             'isOwner'   => $doc->employee_id === $me->id,
             'mySignature' => $me->signature ? route('useremployeesignature.photo', basename($me->signature)) : null,
+            'canRemind'   => $request->user()->can('ManageBeritaAcara') && $doc->status !== 'cancelled',
+            'reminder'    => $request->user()->can('ManageBeritaAcara') ? $this->service->reminderTargets($doc) : null,
+            'waitingSince' => $step?->updated_at,
+            'superior'    => $doc->employee ? BeritaAcaraService::superiorOf($doc->employee) : null,
         ]);
     }
 

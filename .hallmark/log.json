@@ -5,6 +5,23 @@
   "scope": "app",
   "shape": "app screen",
   "theme": "brand",
+  "signature": "each berita acara beside its approval progress and who it waits on for how long, stuck ones surfaced, with a resend-email panel for ManageBeritaAcara",
+  "sections": [
+   "summary stats (personal or all)",
+   "tabs + filters",
+   "berita acara list with progress and waiting time",
+   "detail with resend email panel"
+  ],
+  "waived": [],
+  "prompt": "berita acara inbox: approve, track own submissions and copies; HR sees all and nudges stuck approvers",
+  "date": "2026-11-28"
+ },
+ {
+  "mode": "redesign",
+  "depth": "full",
+  "scope": "app",
+  "shape": "app screen",
+  "theme": "brand",
   "signature": "each SK type shown as what it does to an employee once its SK is approved, beside its usage; the form previews the SK number and explains each switch",
   "sections": [
    "summary stats",

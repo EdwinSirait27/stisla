@@ -649,6 +649,7 @@ Route::get('manual-recap/signed-url', [ManualRecapController::class, 'signedUrl'
         Route::post('/{id}/approve', [BeritaAcaraController::class, 'approve'])->middleware('throttle:30,1')->name('approve');
         Route::post('/{id}/return', [BeritaAcaraController::class, 'returnRevision'])->middleware('throttle:30,1')->name('return');
         Route::post('/{id}/cancel', [BeritaAcaraController::class, 'cancel'])->name('cancel');
+        Route::post('/{id}/remind', [BeritaAcaraController::class, 'remind'])->middleware('throttle:10,1')->name('remind');
         Route::get('/{id}/lampiran/{attachmentId}', [BeritaAcaraController::class, 'attachment'])->name('attachment');
         Route::get('/{id}/ttd/{approvalId}', [BeritaAcaraController::class, 'signature'])->name('signature');
         Route::get('/{id}/pdf', [BeritaAcaraController::class, 'pdf'])->name('pdf');
