@@ -41,7 +41,7 @@
                 ['Employees Contracts', 'contract', ['ManageContracts']],
             ]],
             ['Documents', 'fa-folder-open', [
-                ['Berita Acara', ['route', 'beritaacara.index'], ['ManageBeritaAcara']],
+                ['Berita Acara', ['route', 'beritaacara.index'], ['CreateBeritaAcara']],
                 ['Documents', 'document', ['ManageDocument']],
                 ['Document Types', ['route', 'documenttype.index'], ['ManageDocumentType']],
                 ['Document Settings', ['route', 'documentconfig.index'], ['ManageDocumentType']],
