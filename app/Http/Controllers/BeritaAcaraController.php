@@ -190,7 +190,6 @@ class BeritaAcaraController extends Controller
             ->leftJoin('position_tables as p', 'p.id', '=', 'e.position_id')
             ->whereIn('e.id', $employeeIds ?: ['-'])->pluck('p.name', 'e.id')->all();
     }
-
     public function create(Request $request)
     {
         abort_unless($request->user()->can('CreateBeritaAcara'), 403);
